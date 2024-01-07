@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Application;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ApplicationPolicy
 {
@@ -13,7 +12,8 @@ class ApplicationPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        // Por ejemplo, cualquier usuario autenticado puede ver todas las solicitudes de aplicación
+        return $user->is_authenticated;
     }
 
     /**
@@ -21,7 +21,8 @@ class ApplicationPolicy
      */
     public function view(User $user, Application $application): bool
     {
-        //
+        // Por ejemplo, cualquier usuario autenticado puede ver una solicitud de aplicación específica
+        return $user->is_authenticated;
     }
 
     /**
@@ -29,7 +30,8 @@ class ApplicationPolicy
      */
     public function create(User $user): bool
     {
-        //
+        // Por ejemplo, cualquier usuario autenticado puede crear nuevas solicitudes de aplicación
+        return $user->is_authenticated;
     }
 
     /**
@@ -37,7 +39,8 @@ class ApplicationPolicy
      */
     public function update(User $user, Application $application): bool
     {
-        //
+        // Por ejemplo, el propietario de la solicitud de aplicación puede actualizarla
+        return $user->id === $application->user_id;
     }
 
     /**
@@ -45,7 +48,8 @@ class ApplicationPolicy
      */
     public function delete(User $user, Application $application): bool
     {
-        //
+        // Por ejemplo, el propietario de la solicitud de aplicación puede eliminarla
+        return $user->id === $application->user_id;
     }
 
     /**
@@ -53,7 +57,8 @@ class ApplicationPolicy
      */
     public function restore(User $user, Application $application): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 
     /**
@@ -61,6 +66,7 @@ class ApplicationPolicy
      */
     public function forceDelete(User $user, Application $application): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 }

@@ -9,7 +9,7 @@ class JobCategory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'description', 'status'];
 
     public function jobs()
     {

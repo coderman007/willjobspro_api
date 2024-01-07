@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\JobCategory;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class JobCategoryPolicy
 {
@@ -13,7 +12,8 @@ class JobCategoryPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        // Por ejemplo, un usuario puede ver todas las categorías de trabajo si está autenticado
+        return $user->is_authenticated;
     }
 
     /**
@@ -21,7 +21,8 @@ class JobCategoryPolicy
      */
     public function view(User $user, JobCategory $jobCategory): bool
     {
-        //
+        // Por ejemplo, un usuario puede ver una categoría de trabajo si está autenticado
+        return $user->is_authenticated;
     }
 
     /**
@@ -29,7 +30,8 @@ class JobCategoryPolicy
      */
     public function create(User $user): bool
     {
-        //
+        // Por ejemplo, un usuario puede crear categorías de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -37,7 +39,8 @@ class JobCategoryPolicy
      */
     public function update(User $user, JobCategory $jobCategory): bool
     {
-        //
+        // Por ejemplo, un usuario puede actualizar categorías de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -45,7 +48,8 @@ class JobCategoryPolicy
      */
     public function delete(User $user, JobCategory $jobCategory): bool
     {
-        //
+        // Por ejemplo, un usuario puede eliminar categorías de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -53,7 +57,8 @@ class JobCategoryPolicy
      */
     public function restore(User $user, JobCategory $jobCategory): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 
     /**
@@ -61,6 +66,7 @@ class JobCategoryPolicy
      */
     public function forceDelete(User $user, JobCategory $jobCategory): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 }

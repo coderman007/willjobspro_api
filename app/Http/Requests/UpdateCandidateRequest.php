@@ -6,23 +6,30 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCandidateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'user_id' => 'exists:users,id',
+            'full_name' => 'string|max:255',
+            'gender' => 'string|max:20',
+            'date_of_birth' => 'date',
+            'address' => 'string|max:255',
+            'phone_number' => 'string|max:20',
+            'work_experience' => 'string',
+            'education' => 'string',
+            'skills' => 'string',
+            'certifications' => 'string',
+            'languages' => 'string',
+            'references' => 'string',
+            'expected_salary' => 'numeric|min:0',
+            'cv_path' => 'nullable|string|max:255',
+            'photo_path' => 'nullable|string|max:255',
+            'status' => 'in:Activo,Inactivo,Pendiente',
         ];
     }
 }

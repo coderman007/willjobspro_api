@@ -11,7 +11,7 @@ class StoreCompanyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,16 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'user_id' => 'required|exists:users,id',
+            'company_name' => 'required|string|max:255',
+            'industry' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'website' => 'nullable|string|max:255',
+            'description' => 'required|string',
+            'contact_person' => 'required|string|max:255',
+            'logo_path' => 'nullable|string|max:255',
+            'status' => 'required|in:Activo,Inactivo,Pendiente',
         ];
     }
 }

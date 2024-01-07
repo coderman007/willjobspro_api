@@ -13,6 +13,7 @@ class Job extends Model
         'company_id',
         'job_category_id',
         'job_type_id',
+        'suscription_plan_id',
         'title',
         'description',
         'posted_date',
@@ -23,6 +24,10 @@ class Job extends Model
         'contact_phone'
     ];
 
+    public function applications()
+    {
+        return $this->hasMany(Application::class);
+    }
     public function company()
     {
         return $this->belongsTo(Company::class);
@@ -38,8 +43,8 @@ class Job extends Model
         return $this->belongsTo(JobType::class);
     }
 
-    public function applications()
+    public function subscriptionPlan()
     {
-        return $this->hasMany(Application::class);
+        return $this->belongsTo(SubscriptionPlan::class);
     }
 }

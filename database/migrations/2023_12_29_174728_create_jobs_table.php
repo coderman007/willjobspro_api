@@ -20,6 +20,8 @@ return new class extends Migration
             $table->unsignedBigInteger('job_type_id');
             $table->foreign('job_type_id')->references('id')->on('job_types')->onDelete('cascade');
             $table->string('title');
+            $table->unsignedBigInteger('subscription_plan_id')->nullable();
+            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
             $table->text('description');
             $table->dateTime('posted_date');
             $table->dateTime('deadline');

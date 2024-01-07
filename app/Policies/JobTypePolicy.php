@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\JobType;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class JobTypePolicy
 {
@@ -13,7 +12,8 @@ class JobTypePolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        // Por ejemplo, cualquier usuario autenticado puede ver todos los tipos de trabajo
+        return $user->is_authenticated;
     }
 
     /**
@@ -21,7 +21,8 @@ class JobTypePolicy
      */
     public function view(User $user, JobType $jobType): bool
     {
-        //
+        // Por ejemplo, cualquier usuario autenticado puede ver un tipo de trabajo específico
+        return $user->is_authenticated;
     }
 
     /**
@@ -29,7 +30,8 @@ class JobTypePolicy
      */
     public function create(User $user): bool
     {
-        //
+        // Por ejemplo, un usuario puede crear tipos de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -37,7 +39,8 @@ class JobTypePolicy
      */
     public function update(User $user, JobType $jobType): bool
     {
-        //
+        // Por ejemplo, un usuario puede actualizar tipos de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -45,7 +48,8 @@ class JobTypePolicy
      */
     public function delete(User $user, JobType $jobType): bool
     {
-        //
+        // Por ejemplo, un usuario puede eliminar tipos de trabajo si es un administrador
+        return $user->is_admin;
     }
 
     /**
@@ -53,7 +57,8 @@ class JobTypePolicy
      */
     public function restore(User $user, JobType $jobType): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 
     /**
@@ -61,6 +66,7 @@ class JobTypePolicy
      */
     public function forceDelete(User $user, JobType $jobType): bool
     {
-        //
+        // Puedes definir la lógica según tus necesidades
+        return false;
     }
 }
