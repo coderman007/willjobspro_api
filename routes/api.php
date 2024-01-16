@@ -42,7 +42,8 @@ Route::group(
     ],
     function () {
         Route::get('profile', [AuthController::class, 'profile']);
-        Route::get('logout', [AuthController::class, 'logOut']);
+        Route::delete('logout', [AuthController::class, 'logOut']);
+        Route::put('update-password', [AuthController::class, 'updatePassword']);
         Route::apiResource('users', UserController::class);
         Route::apiResource('candidates', CandidateController::class);
         Route::apiResource('companies', CompanyController::class);

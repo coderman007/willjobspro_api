@@ -22,8 +22,8 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'string|max:255', // Puedes ajustar las reglas según tus necesidades
-            'email' => 'email|unique:users,email,' . $this->route('user'), // Asegura que el email sea único, excluyendo el actual
+            'name' => 'nullable|string|max:255', // Puedes ajustar las reglas según tus necesidades
+            'email' => 'nullable|email|unique:users,email,' . $this->route('user'), // Asegura que el email sea único, excluyendo el actual
             'password' => 'nullable|string|min:8', // Contraseña es opcional, pero si se proporciona, debe cumplir con las reglas
             'role' => 'nullable|in:candidate,company',
         ];

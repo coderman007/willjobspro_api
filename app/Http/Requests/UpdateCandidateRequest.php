@@ -29,7 +29,8 @@ class UpdateCandidateRequest extends FormRequest
             'expected_salary' => 'numeric|min:0',
             'cv_path' => 'nullable|string|max:255',
             'photo_path' => 'nullable|string|max:255',
-            'status' => 'in:Activo,Inactivo,Pendiente',
+            'banner_path' => 'nullable|string|max:255',
+            'status' => 'in:Active,Inactive',
         ];
     }
 }

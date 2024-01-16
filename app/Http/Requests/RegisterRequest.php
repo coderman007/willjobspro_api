@@ -30,11 +30,11 @@ class RegisterRequest extends FormRequest
                 Password::min(8)
                     ->mixedCase()
                     ->numbers()
-                    ->symbols()
-                    ->uncompromised(),
+                    ->symbols(),
+                // ->uncompromised(),
                 'confirmed',
-                'role' => 'required|in:candidate,company',
             ],
+            'role' => 'required',
         ];
     }
 
@@ -52,7 +52,7 @@ class RegisterRequest extends FormRequest
             'password.mixed_case' => 'La contraseña debe contener caracteres en mayúscula y minúscula.',
             'password.numbers' => 'La contraseña debe contener números.',
             'password.symbols' => 'La contraseña debe contener símbolos.',
-            'role.required' => 
+            'role.required' =>
             "Debe indicar si eres una empresa o un candidato.",
             'role.in' => "Por favor, elige entre 'Empresa' o
             'Candidato'.",

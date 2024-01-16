@@ -26,6 +26,7 @@ class Candidate extends Model
         'expected_salary',
         'cv_path',
         'photo_path',
+        'banner_path',
         'status',
     ];
 

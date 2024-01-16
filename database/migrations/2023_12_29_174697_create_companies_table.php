@@ -16,14 +16,15 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->unique();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('company_name');
-            $table->string('industry');
-            $table->string('address');
-            $table->string('phone_number');
+            $table->string('industry')->nullable();
+            $table->string('address')->nullable();
+            $table->string('phone_number')->nullable();
             $table->string('website')->nullable();
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->string('contact_person');
             $table->string('logo_path')->nullable(); // Campo para almacenar la ruta del logo
-            $table->enum('status', ['Activo', 'Inactivo', 'Pendiente']);
+            $table->string('banner_path')->nullable(); // Campo para almacenar la ruta del banner
+            $table->enum('status', ['Active', 'Inactive']);
             $table->timestamps();
         });
     }

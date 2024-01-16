@@ -2,23 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUserRequest;
-use App\Http\Requests\UpdateUserRequest;
-use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Database\QueryException;
+use App\Http\Requests\UpdateUserRequest;
 
 class UserController extends Controller
 {
-    public function index(): JsonResource
+    public function index(): JsonResponse
     {
         try {
             $users = User::all();
 
-            return UserResource::collection($users);
+            return response()->json(['data' => $users], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la lista de usuarios.'], 500);
+            return response()->json([
+                'error' => 'Error al obtener la lista de usuarios.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -30,98 +31,92 @@ class UserController extends Controller
             // Obtener el usuario por su ID
             $user = User::findOrFail($id);
 
+            if (!$user) {
+                return response()->json(['error' => 'No pudimos encontrar el usuario'], 401);
+            }
+
+            $roles = $user->getRoleNames();
+
+            return response()->json([
+                'message' => 'User Profile Successfully Obtained!',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                    ],
+                    'roles' => $roles,
+                ]
+            ], 200);
+
             // Retornar una respuesta JSON con el usuario encontrado
-            return response()->json(['data' => new UserResource($user)], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             // Manejar el caso en que no se encuentra el usuario
-            return response()->json(['error' => 'Usuario no encontrado.'], 404);
+            return response()->json([
+                'error' => 'Usuario no encontrado.',
+                'details' => $e->getMessage(),
+            ], 404);
         } catch (\Exception $e) {
             // Manejar cualquier otra excepción y retornar una respuesta de error
-            return response()->json(['error' => 'Error al obtener el usuario.'], 500);
+            return response()->json([
+                'error' => 'Error al obtener el usuario.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
-    public function store(StoreUserRequest $request): JsonResponse
+    public function update(UpdateUserRequest $request): JsonResponse
     {
+        $user = auth()->user();
+
         try {
-            $storeValidatedData = $request->validated();
+            $updateData = [];
 
-            // Crear un nuevo usuario
-            $user = User::create([
-                'name' => $storeValidatedData['name'],
-                'email' => $storeValidatedData['email'],
-                'password' => bcrypt($storeValidatedData['password']),
-                'role' => $storeValidatedData['role'], // Asumiendo que 'role' está presente en la solicitud
-            ]);
-
-            // Retornar una respuesta JSON con el usuario recién creado
-            return response()->json(['data' => new UserResource($user), 'message' => 'Usuario creado con éxito.'], 201);
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Manejar la excepción de la base de datos
-            return response()->json(['error' => 'Error en la base de datos al crear un nuevo usuario.'], 500);
-        } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y retornar una respuesta de error
-            return response()->json(['error' => 'Error al crear un nuevo usuario.'], 500);
-        }
-    }
-
-
-
-    public function update(UpdateUserRequest $request, $id): JsonResponse
-    {
-        try {
-            // Obtener el usuario que se va a actualizar
-            $user = User::findOrFail($id);
-
-            // Validar los datos recibidos en la solicitud
-            $updateValidatedData = $request->validated();
-
-            // Actualizar los campos necesarios
-            $user->name = $updateValidatedData['name'];
-            $user->email = $updateValidatedData['email'];
-
-            // Si se proporciona un nuevo rol, actualizarlo
-            if (isset($updateValidatedData['role'])) {
-                $user->role = $updateValidatedData['role'];
+            // Verificar si 'name' está presente en la solicitud antes de agregarlo a los datos de actualización
+            if ($request->filled('name')) {
+                $updateData['name'] = $request->input('name');
             }
 
-            // Si se proporciona una nueva contraseña, cifrarla y actualizarla
-            if (isset($updateValidatedData['password'])) {
-                $user->password = bcrypt($updateValidatedData['password']);
+            // Verificar si 'email' está presente en la solicitud antes de agregarlo a los datos de actualización
+            if ($request->filled('email')) {
+                $updateData['email'] = $request->input('email');
             }
 
-            // Guardar los cambios en el usuario
-            $user->save();
+            // Actualizar el usuario solo si hay datos para actualizar
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
 
-            // Retornar una respuesta JSON con el usuario actualizado
-            return response()->json(['data' => new UserResource($user), 'message' => 'Usuario actualizado con éxito.'], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Manejar el caso en que no se encuentra el usuario
-            return response()->json(['error' => 'Usuario no encontrado.'], 404);
+            // Si necesitas actualizar el rol, asegúrate de que sea una operación permitida
+            if ($request->filled('role')) {
+                $user->syncRoles([$request->input('role')]);
+            }
+
+            return response()->json([
+                'message' => 'User updated successfully',
+                'data' => $user,
+            ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'error' => 'Database error while updating the user',
+                'details' => $e->getMessage(),
+            ], 500);
         } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y retornar una respuesta de error
-            return response()->json(['error' => 'Error al actualizar el usuario.'], 500);
+            return response()->json([
+                'error' => 'An unexpected error occurred while updating the user',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
-
-
-    public function destroy($id): JsonResponse
+    public function destroy(User $user): JsonResponse
     {
         try {
-            // Obtener el usuario por su ID
-            $user = User::findOrFail($id);
-
-            // Eliminar el usuario
             $user->delete();
 
-            // Retornar una respuesta JSON exitosa
+            // Puedes retornar un mensaje de éxito u otros datos necesarios
             return response()->json(['message' => 'Usuario eliminado con éxito.'], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Manejar el caso en que no se encuentra el usuario
-            return response()->json(['error' => 'Usuario no encontrado.'], 404);
         } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y retornar una respuesta de error
             return response()->json(['error' => 'Error al eliminar el usuario.'], 500);
         }
     }

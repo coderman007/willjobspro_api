@@ -24,14 +24,15 @@ class StoreCompanyRequest extends FormRequest
         return [
             'user_id' => 'required|exists:users,id',
             'company_name' => 'required|string|max:255',
-            'industry' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
+            'industry' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'phone_number' => 'nullable|string|max:20',
             'website' => 'nullable|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'contact_person' => 'required|string|max:255',
             'logo_path' => 'nullable|string|max:255',
-            'status' => 'required|in:Activo,Inactivo,Pendiente',
+            'banner_path' => 'nullable|string|max:255',
+            'status' => 'required|in:Active,Inactive',
         ];
     }
 }

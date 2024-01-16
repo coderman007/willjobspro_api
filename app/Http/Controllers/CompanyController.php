@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 
 class CompanyController extends Controller
@@ -25,7 +26,7 @@ class CompanyController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created company instance in storage.
      *
      * @param StoreCompanyRequest $request
      * @return JsonResponse
@@ -34,8 +35,33 @@ class CompanyController extends Controller
     {
         try {
             $validatedData = $request->validated();
-            $company = Company::create($validatedData);
-            return response()->json(['data' => $company, 'message' => 'Compañía creada con éxito.'], 201);
+            $user = auth()->user();
+
+            // Verificar si el usuario tiene el rol 'company'
+            if (!$user->hasRole('company')) {
+                return response()->json(['error' => 'User does not have the company role'], 403);
+            }
+
+            // Crear instancia en la tabla 'companies'
+            $company = Company::create([
+                'user_id' => $user->id,
+                'company_name' => $validatedData['company_name'],
+                'industry' => $validatedData['industry'],
+                'address' => $validatedData['address'],
+                'phone_number' => $validatedData['phone_number'],
+                'website' => $validatedData['website'],
+                'description' => $validatedData['description'],
+                'contact_person' => $validatedData['contact_person'],
+                'logo_path' => $validatedData['logo_path'],
+                'status' => $validatedData['status'],
+            ]);
+
+            return response()->json(['data' => $company, 'message' => 'Company Created Successfully!'], 201);
+        } catch (QueryException $e) {
+            // Manejo de errores de base de datos
+            return response()->json([
+                'error' => 'Ha ocurrido un error en la base de datos al intentar crear la compañía.',
+            ], 500);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al crear la compañía.'], 500);
         }
@@ -50,7 +76,10 @@ class CompanyController extends Controller
     public function show(Company $company): JsonResponse
     {
         try {
-            return response()->json(['data' => $company], 200);
+            return response()->json([
+                'data' => $company,
+                'role' => 'company',
+            ], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener la compañía.'], 500);
         }
