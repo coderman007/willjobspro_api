@@ -1,9 +1,10 @@
 GENERAL
 
-* Redes Sociales Compañías
+* Redes Sociales Usuarios (Compañías y candidatos)
 * Funcionalidad de Búsqueda y Paginación
 * Gestión de carga de archivos e imágenes
-*   Tabla 'languages'
+*   Tabla 'languages', 'locations'
+* Número de aplicantes 
 
 ADMIN
 
@@ -13,6 +14,12 @@ ADMIN
 CANDIDATOS
 * Filtros (Tipos y categoría de empleo, nivel de estudio, )
 * Filtro de ofertas de trabajo por salario.
+* Profile = {
+    -   Imagen
+    -   Información Personal
+    -   Mis postulaciones o aplicaciones
+    -   Si la postulación ya venció, entonces no deberá mostrarse.
+}
 
 COMPAÑÍAS
 * Una compañía puede ver la lista de los candidatos que hayan aplicado a  alguna de sus ofertas de trabajo.
