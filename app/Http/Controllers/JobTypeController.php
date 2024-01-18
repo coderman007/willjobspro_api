@@ -20,7 +20,7 @@ class JobTypeController extends Controller
             $jobTypes = JobType::all();
             return response()->json(['data' => $jobTypes], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la lista de tipos de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while getting the job type list!'], 500);
         }
     }
 
@@ -35,9 +35,9 @@ class JobTypeController extends Controller
         try {
             $validatedData = $request->validated();
             $jobType = JobType::create($validatedData);
-            return response()->json(['data' => $jobType, 'message' => 'Tipo de trabajo creado con éxito.'], 201);
+            return response()->json(['data' => $jobType, 'message' => 'Job type created successfully!'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al crear el tipo de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while creating the job type!'], 500);
         }
     }
 
@@ -52,7 +52,7 @@ class JobTypeController extends Controller
         try {
             return response()->json(['data' => $jobType], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener el tipo de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while getting the job type!'], 500);
         }
     }
 
@@ -68,9 +68,9 @@ class JobTypeController extends Controller
         try {
             $validatedData = $request->validated();
             $jobType->update($validatedData);
-            return response()->json(['data' => $jobType, 'message' => 'Tipo de trabajo actualizado con éxito.'], 200);
+            return response()->json(['data' => $jobType, 'message' => 'Job type updated successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar el tipo de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while updating the job type!'], 500);
         }
     }
 
@@ -84,9 +84,9 @@ class JobTypeController extends Controller
     {
         try {
             $jobType->delete();
-            return response()->json(['message' => 'Tipo de trabajo eliminado con éxito.'], 200);
+            return response()->json(['message' => 'Job type deleted!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar el tipo de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while deleting the job type!'], 500);
         }
     }
 }

@@ -21,12 +21,12 @@ class UpdateJobRequest extends FormRequest
             'title' => 'string|max:255',
             'description' => 'string',
             'posted_date' => 'date',
-            'deadline' => 'date',
+            'deadline' => 'date|after:posted_date',
             'location' => 'string|max:255',
             'salary' => 'numeric',
             'contact_email' => 'email',
             'contact_phone' => 'string|max:20',
-            'status' => 'in:Abierto,Cerrado,En Revisión',
+            'status' => 'in:Open,Closed,Under Review',
         ];
     }
 }

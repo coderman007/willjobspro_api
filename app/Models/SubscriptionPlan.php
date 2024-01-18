@@ -14,7 +14,7 @@ class SubscriptionPlan extends Model
         'description',
         'price',
         'duration',
-        'features',
+        'status',
     ];
 
     public function jobs()

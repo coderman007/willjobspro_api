@@ -26,8 +26,8 @@ class StoreSubscriptionRequest extends FormRequest
             'payment_method' => 'required|in:credit_card,paypal', // Ejemplo de métodos de pago permitidos
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'status' => 'required|in:active,inactive', // Ejemplo de estados permitidos
-            'payment_status' => 'required|in:pending,completed,failed', // Ejemplo de estados de pago permitidos
+            'status' => 'required|in:Active,Inactive', // Ejemplo de estados permitidos
+            'payment_status' => 'required|in:Pending,Completed,Failed', // Ejemplo de estados de pago permitidos
         ];
     }
 }

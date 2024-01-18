@@ -17,8 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('subscription_plan_id');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->enum('status', ['active', 'inactive']);
-            $table->enum('payment_status', ['pending', 'completed']);
+            $table->enum('status', ['Active', 'Inactive']);
+            $table->enum('payment_status', ['Pending', 'Completed']);
             $table->string('payment_method')->nullable();
             $table->timestamps();
 

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->decimal('salary', 10, 2);
             $table->string('contact_email');
             $table->string('contact_phone');
-            $table->enum('status', ['Abierto', 'Cerrado', 'En Revisión']);
+            $table->enum('status', ['Open', 'Closed', 'Under Review']);
 
             $table->timestamps();
         });

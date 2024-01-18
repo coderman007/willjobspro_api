@@ -11,7 +11,7 @@ class UpdateSubscriptionPlanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class UpdateSubscriptionPlanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'string|max:255',
+            'description' => 'nullable|string',
+            'price' => 'numeric|min:0',
+            'duration' => 'integer|min:1',
+            'status' => 'in:Active,Inactive',
         ];
     }
 }

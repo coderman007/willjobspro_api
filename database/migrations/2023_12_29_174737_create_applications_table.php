@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('application_date');
             $table->dateTime('rejection_date');
             $table->text('cover_letter');
-            $table->enum('status', ['Pendiente', 'Revisada', 'Aceptada', 'Rechazada']);
+            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected']);
             $table->timestamps();
         });
     }

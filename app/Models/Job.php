@@ -13,7 +13,7 @@ class Job extends Model
         'company_id',
         'job_category_id',
         'job_type_id',
-        'suscription_plan_id',
+        'subscription_plan_id',
         'title',
         'description',
         'posted_date',
@@ -21,7 +21,8 @@ class Job extends Model
         'location',
         'salary',
         'contact_email',
-        'contact_phone'
+        'contact_phone',
+        'status',
     ];
 
     public function applications()

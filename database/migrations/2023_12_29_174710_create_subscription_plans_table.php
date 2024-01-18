@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
             $table->integer('duration');
-            $table->json('features')->nullable();
+            $table->enum('status', ['Active', 'Inactive']);
             $table->timestamps();
         });
     }

@@ -16,7 +16,7 @@ class UpdateJobTypeRequest extends FormRequest
         return [
             'name' => 'string|max:255',
             'description' => 'nullable|string',
-            'status' => 'in:Activo,Inactivo,Pendiente',
+            'status' => 'in:Active,Inactive',
         ];
     }
 }

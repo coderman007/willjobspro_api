@@ -12,31 +12,28 @@ class SubscriptionPlanSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear plan básico
+        // Create basic plan
         SubscriptionPlan::create([
-            'name' => 'Básico',
-            'description' => 'Plan básico con funciones estándar.',
+            'name' => 'Basic',
+            'description' => 'Free plan with standard features.',
             'price' => 0.00,
             'duration' => 30,
-            'features' => json_encode(['Funciones estándar incluidas.']),
         ]);
 
-        // Crear plan premium
+        // Create premium plan
         SubscriptionPlan::create([
             'name' => 'Premium',
-            'description' => 'Accede a funciones premium por un precio asequible.',
+            'description' => 'Access premium features for an affordable price.',
             'price' => 19.99,
             'duration' => 60,
-            'features' => json_encode(['Funciones estándar incluidas. + funciones premium.']),
         ]);
 
-        // Crear plan VIP
+        // Create VIP plan
         SubscriptionPlan::create([
             'name' => 'VIP',
-            'description' => 'Experiencia VIP con todas las funciones.',
+            'description' => 'VIP experience with all features.',
             'price' => 49.99,
             'duration' => 90,
-            'features' => json_encode(['Acceso completo a todas las funciones, soporte prioritario, etc.']),
         ]);
     }
 }

@@ -21,12 +21,12 @@ class StoreJobRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'posted_date' => 'required|date',
-            'deadline' => 'required|date',
+            'deadline' => 'required|date|after:posted_date',
             'location' => 'required|string|max:255',
             'salary' => 'required|numeric',
             'contact_email' => 'required|email',
             'contact_phone' => 'required|string|max:20',
-            'status' => 'required|in:Abierto,Cerrado,En Revisión',
+            'status' => 'required|in:Open,Closed,Under Review',
         ];
     }
 }
