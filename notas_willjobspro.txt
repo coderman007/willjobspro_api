@@ -1,0 +1,22 @@
+GENERAL
+
+* Redes Sociales Compañías
+* Funcionalidad de Búsqueda y Paginación
+* Gestión de carga de archivos e imágenes
+*   Tabla 'languages'
+
+ADMIN
+
+*   Puede bloquear o desbloquear usuarios (Compañía o Cliente)
+    Si se bloquea a una compáñía, entonces todo lo relacionado con esta compañía no será visible por los usuarios postulantes
+
+CANDIDATOS
+* Filtros (Tipos y categoría de empleo, nivel de estudio, )
+* Filtro de ofertas de trabajo por salario.
+
+COMPAÑÍAS
+* Una compañía puede ver la lista de los candidatos que hayan aplicado a  alguna de sus ofertas de trabajo.
+* Crear una nueva tabla para los niveles de estudio y asociarla a la tabla de ofertas de trabajo (Admin también puede modificar esta info)
+
+
+

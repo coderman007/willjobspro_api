@@ -54,8 +54,7 @@ Route::group(
         Route::apiResource('subscription-plans', SubscriptionPlanController::class);
 
         // Rutas para ver y listar ofertas de trabajo
-        Route::get('jobs', [JobController::class, 'index']);
-        Route::get('jobs/{job}', [JobController::class, 'show']);
+       
 
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::middleware(['checkCompanyRole'])->group(function () {

@@ -163,11 +163,13 @@ class AuthController extends Controller
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'Database error while updating the password',
+                'details' => $e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
             // Manejo de otras excepciones inesperadas
             return response()->json([
                 'error' => 'An unexpected error occurred while updating the password',
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
