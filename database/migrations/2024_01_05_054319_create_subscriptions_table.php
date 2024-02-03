@@ -13,16 +13,16 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('candidate_id');
             $table->unsignedBigInteger('subscription_plan_id');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->enum('status', ['Active', 'Inactive']);
             $table->enum('payment_status', ['Pending', 'Completed']);
-            $table->string('payment_method')->nullable();
+            $table->enum('payment_method', ['credit_card', 'paypal'])->nullable();
             $table->timestamps();
 
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('cascade');
         });
     }

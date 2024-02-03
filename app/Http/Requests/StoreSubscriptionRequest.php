@@ -22,12 +22,13 @@ class StoreSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'candidate_id' => 'required|exists:candidates,id',
             'subscription_plan_id' => 'required|exists:subscription_plans,id',
-            'payment_method' => 'required|in:credit_card,paypal', // Ejemplo de métodos de pago permitidos
+            'payment_method' => 'nullable|in:credit_card,paypal',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'status' => 'required|in:Active,Inactive', // Ejemplo de estados permitidos
-            'payment_status' => 'required|in:Pending,Completed,Failed', // Ejemplo de estados de pago permitidos
+            'status' => 'required|in:Active,Inactive',
+            'payment_status' => 'required|in:Pending,Completed,Failed',
         ];
     }
 }

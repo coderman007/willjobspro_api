@@ -12,6 +12,7 @@ class Candidate extends Model
     use HasFactory;
     protected $fillable = [
         'user_id',
+        'subscription_id',
         'full_name',
         'gender',
         'date_of_birth',
@@ -19,7 +20,6 @@ class Candidate extends Model
         'phone_number',
         'work_experience',
         'education',
-        'skills',
         'certifications',
         'languages',
         'references',
@@ -27,13 +27,28 @@ class Candidate extends Model
         'cv_path',
         'photo_path',
         'banner_path',
+        'candidate_social_networks',
         'status',
+    ];
+
+    protected $casts = [
+        'candidate_social_networks' => 'json',
     ];
 
     // Relación con el usuario
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class);
+    }
+
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
     }
 
     // Relación con aplicaciones o postulaciones

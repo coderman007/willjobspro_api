@@ -9,6 +9,14 @@ use Illuminate\Http\JsonResponse;
 
 class InvoiceController extends Controller
 {
+    private function handleException(\Exception $e, $errorMessage, $statusCode): JsonResponse
+    {
+        return response()->json([
+            'error' => $errorMessage,
+            'details' => $e->getMessage()
+        ], $statusCode);
+    }
+
     /**
      * Muestra todas las facturas.
      *
@@ -16,9 +24,32 @@ class InvoiceController extends Controller
      */
     public function index(): JsonResponse
     {
-        $invoices = Invoice::all();
+        try {
+            // Obtener el número de elementos por página desde la solicitud
+            $perPage = request()->query('per_page', 10);
 
-        return response()->json(['invoices' => $invoices]);
+            // Obtener las facturas paginadas
+            $invoices = Invoice::paginate($perPage);
+
+            // Metadatos de paginación
+            $paginationData = [
+                'total' => $invoices->total(),
+                'per_page' => $invoices->perPage(),
+                'current_page' => $invoices->currentPage(),
+                'last_page' => $invoices->lastPage(),
+                'from' => $invoices->firstItem(),
+                'to' => $invoices->lastItem(),
+                'next_page_url' => $invoices->nextPageUrl(),
+                'prev_page_url' => $invoices->previousPageUrl(),
+                'path' => $invoices->path(),
+                'data' => $invoices->items(),
+                'links' => $invoices->render(),
+            ];
+
+            return response()->json(['data' => $invoices, 'pagination' => $paginationData], 200);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Error al obtener la lista de facturas.', 500);
+        }
     }
 
     /**

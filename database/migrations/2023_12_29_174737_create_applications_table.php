@@ -14,14 +14,16 @@ return new class extends Migration
         Schema::create('applications', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('candidate_id');
-            $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
             $table->unsignedBigInteger('job_id');
-            $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
-            $table->dateTime('application_date');
-            $table->dateTime('rejection_date');
+
+            $table->dateTime('application_date')->nullable();
+            $table->dateTime('rejection_date')->nullable();
             $table->text('cover_letter');
             $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected']);
             $table->timestamps();
+
+            $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
+            $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
         });
     }
 

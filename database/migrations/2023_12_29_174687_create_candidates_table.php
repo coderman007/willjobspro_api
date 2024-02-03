@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('candidates', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->string('full_name');
             $table->string('gender');
             $table->date('date_of_birth')->nullable();
@@ -22,7 +22,6 @@ return new class extends Migration
             $table->string('phone_number');
             $table->text('work_experience')->nullable();
             $table->text('education')->nullable();
-            $table->text('skills')->nullable();
             $table->text('certifications')->nullable();
             $table->text('languages')->nullable();
             $table->text('references')->nullable();
@@ -30,8 +29,11 @@ return new class extends Migration
             $table->string('cv_path')->nullable()->default('N/A');
             $table->string('photo_path')->nullable()->default('N/A');
             $table->string('banner_path')->nullable()->default('N/A');
+            $table->json('candidate_social_networks')->nullable();
             $table->enum('status', ['Active', 'Inactive']);
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

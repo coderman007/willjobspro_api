@@ -6,21 +6,40 @@ use App\Models\JobCategory;
 use App\Http\Requests\StoreJobCategoryRequest;
 use App\Http\Requests\UpdateJobCategoryRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class JobCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $jobCategories = JobCategory::all();
-            return response()->json(['data' => $jobCategories], 200);
+            $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
+            $jobCategories = JobCategory::paginate($perPage);
+
+            // Metadatos de paginación
+            $paginationData = [
+                'total' => $jobCategories->total(),
+                'per_page' => $jobCategories->perPage(),
+                'current_page' => $jobCategories->currentPage(),
+                'last_page' => $jobCategories->lastPage(),
+                'from' => $jobCategories->firstItem(),
+                'to' => $jobCategories->lastItem(),
+                'next_page_url' => $jobCategories->nextPageUrl(),
+                'prev_page_url' => $jobCategories->previousPageUrl(),
+                'path' => $jobCategories->path(),
+                'data' => $jobCategories->items(),
+                'links' => $jobCategories->render(),
+            ];
+
+            return response()->json(['data' => $jobCategories, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la lista de categorías de trabajo.'], 500);
+            return response()->json(['error' => 'An error occurred while getting the job category list!'], 500);
         }
     }
 
@@ -30,6 +49,7 @@ class JobCategoryController extends Controller
      * @param StoreJobCategoryRequest $request
      * @return JsonResponse
      */
+
     public function store(StoreJobCategoryRequest $request): JsonResponse
     {
         try {
@@ -37,7 +57,7 @@ class JobCategoryController extends Controller
             $jobCategory = JobCategory::create($validatedData);
             return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo creada con éxito.'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al crear la categoría de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while creating the job category!'], 500);
         }
     }
 
@@ -52,7 +72,7 @@ class JobCategoryController extends Controller
         try {
             return response()->json(['data' => $jobCategory], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la categoría de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while getting the job category!'], 500);
         }
     }
 
@@ -70,7 +90,7 @@ class JobCategoryController extends Controller
             $jobCategory->update($validatedData);
             return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo actualizada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar la categoría de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while updating the job category!'], 500);
         }
     }
 
@@ -86,7 +106,7 @@ class JobCategoryController extends Controller
             $jobCategory->delete();
             return response()->json(['message' => 'Categoría de trabajo eliminada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar la categoría de trabajo.'], 500);
+            return response()->json(['error' => 'An error ocurred while deleting the job category!'], 500);
         }
     }
 }

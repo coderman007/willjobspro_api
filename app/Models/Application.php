@@ -13,6 +13,14 @@ class Application extends Model
         'candidate_id',
         'job_id',
         'cover_letter',
+        'application_date',
+        'rejection_date',
+        'status',
+    ];
+
+    protected $dates = [
+        'application_date',
+        'rejection_date',
     ];
 
     public function candidate()

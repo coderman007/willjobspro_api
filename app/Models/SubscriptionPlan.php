@@ -21,4 +21,9 @@ class SubscriptionPlan extends Model
     {
         return $this->hasMany(Job::class);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
 }

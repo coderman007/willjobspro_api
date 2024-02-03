@@ -7,23 +7,73 @@ use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CandidateController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+
+    public function index(Request $request): JsonResponse
     {
         try {
-            $candidates = Candidate::all();
-            return response()->json(['data' => $candidates], 200);
+            $perPage = $request->query('per_page', 10);
+            $query = Candidate::query();
+
+            // Búsqueda
+            if ($request->filled('search')) {
+                $searchTerm = $request->query('search');
+                $query->where(function ($subquery) use ($searchTerm) {
+                    $subquery->where('full_name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('skills', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('certifications', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            // Filtros
+            $filters = [
+                'full_name', 'gender', 'education', 'status', 'date_of_birth', 'skills', 'certifications',
+            ];
+
+            foreach ($filters as $filter) {
+                if ($request->filled($filter)) {
+                    $query->where($filter, $request->query($filter));
+                }
+            }
+
+            // Ordenación
+            if ($request->filled('sort_by') && $request->filled('sort_order')) {
+                $sortBy = $request->query('sort_by');
+                $sortOrder = $request->query('sort_order');
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $candidates = $query->paginate($perPage);
+
+            $paginationData = [
+                'total' => $candidates->total(),
+                'per_page' => $candidates->perPage(),
+                'current_page' => $candidates->currentPage(),
+                'last_page' => $candidates->lastPage(),
+                'from' => $candidates->firstItem(),
+                'to' => $candidates->lastItem(),
+                'next_page_url' => $candidates->nextPageUrl(),
+                'prev_page_url' => $candidates->previousPageUrl(),
+                'path' => $candidates->path(),
+            ];
+
+            return response()->json(['data' => $candidates, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la lista de candidatos.'], 500);
+            return response()->json(['error' => 'An error occurred while getting the candidate list!'], 500);
         }
     }
+
+
+
     /**
      * Store a newly created candidate instance in storage.
      *
@@ -58,20 +108,22 @@ class CandidateController extends Controller
                 'expected_salary' => $validatedData['expected_salary'],
                 'cv_path' => $validatedData['cv_path'],
                 'photo_path' => $validatedData['photo_path'],
+                'candidate_social_networks' => $validatedData['candidate_social_networks'],
                 'status' => $validatedData['status'],
             ]);
 
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
         } catch (QueryException $e) {
+
             // Manejo de errores de base de datos
             return response()->json([
-                'error' => 'Ha ocurrido un error en la base de datos al intentar crear el candidato.',
-                'details' => $e->getMessage(), // Agrega esta línea para obtener detalles específicos
+                'error' => 'An error occurred in database while creating the candidate!',
+                'details' => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error al crear el candidato.',
-                'details' => $e->getMessage(), // Agrega esta línea para obtener detalles específicos
+                'error' => 'An error occurred while creating the candidate!',
+                'details' => $e->getMessage()
             ], 500);
         }
     }
@@ -90,7 +142,10 @@ class CandidateController extends Controller
                 'role' => 'candidate',
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener el candidato.'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the candidate!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -106,9 +161,12 @@ class CandidateController extends Controller
         try {
             $validatedData = $request->validated();
             $candidate->update($validatedData);
-            return response()->json(['data' => $candidate, 'message' => 'Candidato actualizado con éxito.'], 200);
+            return response()->json(['data' => $candidate, 'message' => 'Candidate updated successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar el candidato.'], 500);
+            return response()->json([
+                'error' => 'An error occurred while updating the candidate!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -122,9 +180,12 @@ class CandidateController extends Controller
     {
         try {
             $candidate->delete();
-            return response()->json(['message' => 'Candidato eliminado con éxito.'], 200);
+            return response()->json(['message' => 'Candidate deleted!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar el candidato.'], 500);
+            return response()->json([
+                'error' => 'An error occurred while deleting the candidate!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

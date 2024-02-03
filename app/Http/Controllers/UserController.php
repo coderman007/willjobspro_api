@@ -6,33 +6,93 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function index(): JsonResponse
+    private function handleException(\Exception $e, $errorMessage, $statusCode): JsonResponse
     {
-        try {
-            $users = User::all();
-
-            return response()->json(['data' => $users], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener la lista de usuarios.',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'error' => $errorMessage,
+            'details' => $e->getMessage()
+        ], $statusCode);
     }
 
+    /**
+     * Display a listing of the resource.
+     *
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            // Get the number of items per page from the request
+            $perPage = $request->query('per_page', 10);
 
+            // Get all users with their roles
+            $users = User::with('roles');
+
+            // Filter by name
+            if ($request->has('name')) {
+                $users->where('name', 'like', '%' . $request->input('name') . '%');
+            }
+
+            // Filter by email
+            if ($request->has('email')) {
+                $users->where('email', 'like', '%' . $request->input('email') . '%');
+            }
+
+            // Filter by role
+            if ($request->has('role')) {
+                $role = Role::where('name', $request->input('role'))->first();
+
+                if ($role) {
+                    $users->whereHas('roles', function ($query) use ($role) {
+                        $query->where('role_id', $role->id);
+                    });
+                }
+            }
+
+            // Sort results
+            if ($request->has('sort')) {
+                $sortField = $request->input('sort');
+                $users->orderBy($sortField, 'asc');
+            }
+
+            // Get paginated users
+            $paginatedUsers = $users->paginate($perPage);
+
+            // Only include user data and pagination information
+            $data = $paginatedUsers->items();
+
+            // Pagination metadata
+            $paginationData = [
+                'total' => $paginatedUsers->total(),
+                'per_page' => $paginatedUsers->perPage(),
+                'current_page' => $paginatedUsers->currentPage(),
+                'last_page' => $paginatedUsers->lastPage(),
+                'from' => $paginatedUsers->firstItem(),
+                'to' => $paginatedUsers->lastItem(),
+                'next_page_url' => $paginatedUsers->nextPageUrl(),
+                'prev_page_url' => $paginatedUsers->previousPageUrl(),
+                'path' => $paginatedUsers->path(),
+            ];
+
+            return response()->json(['data' => $data, 'pagination' => $paginationData], 200);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'An error occurred while getting users', 500);
+        }
+    }
 
     public function show($id): JsonResponse
     {
         try {
-            // Obtener el usuario por su ID
+            // Get user by ID
             $user = User::findOrFail($id);
 
             if (!$user) {
-                return response()->json(['error' => 'No pudimos encontrar el usuario'], 401);
+                return response()->json(['error' => 'User not found'], 401);
             }
 
             $roles = $user->getRoleNames();
@@ -49,17 +109,17 @@ class UserController extends Controller
                 ]
             ], 200);
 
-            // Retornar una respuesta JSON con el usuario encontrado
+            // Return a JSON response with the found user
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Manejar el caso en que no se encuentra el usuario
+            // Handle the case where the user is not found
             return response()->json([
-                'error' => 'Usuario no encontrado.',
+                'error' => 'User not found.',
                 'details' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y retornar una respuesta de error
+            // Handle any other exception and return an error response
             return response()->json([
-                'error' => 'Error al obtener el usuario.',
+                'error' => 'An error ocurred while getting the user.',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -72,22 +132,22 @@ class UserController extends Controller
         try {
             $updateData = [];
 
-            // Verificar si 'name' está presente en la solicitud antes de agregarlo a los datos de actualización
+            // Check if 'name' is present in the request before adding it to the update data
             if ($request->filled('name')) {
                 $updateData['name'] = $request->input('name');
             }
 
-            // Verificar si 'email' está presente en la solicitud antes de agregarlo a los datos de actualización
+            // Check if 'email' is present in the request before adding it to the update data
             if ($request->filled('email')) {
                 $updateData['email'] = $request->input('email');
             }
 
-            // Actualizar el usuario solo si hay datos para actualizar
+            // Update the user only if there is data to update
             if (!empty($updateData)) {
                 $user->update($updateData);
             }
 
-            // Si necesitas actualizar el rol, asegúrate de que sea una operación permitida
+            // If you need to update the role, ensure it is a permitted operation
             if ($request->filled('role')) {
                 $user->syncRoles([$request->input('role')]);
             }
@@ -114,10 +174,10 @@ class UserController extends Controller
         try {
             $user->delete();
 
-            // Puedes retornar un mensaje de éxito u otros datos necesarios
-            return response()->json(['message' => 'Usuario eliminado con éxito.'], 200);
+            // You can return a success message or other necessary data
+            return response()->json(['message' => 'User deleted'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar el usuario.'], 500);
+            return response()->json(['error' => 'An error ocurred while deleting the user.'], 500);
         }
     }
 }

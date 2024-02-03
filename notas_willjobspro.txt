@@ -1,10 +1,10 @@
 GENERAL
 
-* Redes Sociales Usuarios (Compañías y candidatos)
+* Redes Sociales Usuarios (Compañías y candidatos) (Listo)
 * Funcionalidad de Búsqueda y Paginación
 * Gestión de carga de archivos e imágenes
-*   Tabla 'languages', 'locations'
-* Número de aplicantes 
+* Tabla 'languages', 'locations'
+* Número de aplicantes
 
 ADMIN
 

@@ -12,12 +12,12 @@ class SubscriptionPlanSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create basic plan
+        // Create free plan
         SubscriptionPlan::create([
-            'name' => 'Basic',
+            'name' => 'Free',
             'description' => 'Free plan with standard features.',
             'price' => 0.00,
-            'duration' => 30,
+            'duration' => 360,
         ]);
 
         // Create premium plan
@@ -25,7 +25,7 @@ class SubscriptionPlanSeeder extends Seeder
             'name' => 'Premium',
             'description' => 'Access premium features for an affordable price.',
             'price' => 19.99,
-            'duration' => 60,
+            'duration' => 360,
         ]);
 
         // Create VIP plan
@@ -33,7 +33,7 @@ class SubscriptionPlanSeeder extends Seeder
             'name' => 'VIP',
             'description' => 'VIP experience with all features.',
             'price' => 49.99,
-            'duration' => 90,
+            'duration' => 360,
         ]);
     }
 }

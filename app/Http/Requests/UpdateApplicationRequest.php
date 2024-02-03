@@ -11,7 +11,7 @@ class UpdateApplicationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,9 @@ class UpdateApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'cover_letter' => 'required|string|max:500',
+            'status' => 'required|in:Pending,Reviewed,Accepted,Rejected',
+            'rejection_date' => 'nullable|date|after_or_equal:application_date',
         ];
     }
 }

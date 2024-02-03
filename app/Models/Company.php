@@ -20,7 +20,12 @@ class Company extends Model
         'contact_person',
         'logo_path',
         'banner_path',
+        'company_social_networks',
         'status',
+    ];
+
+    protected $casts = [
+        'company_social_networks' => 'json',
     ];
 
     // Relación con el usuario

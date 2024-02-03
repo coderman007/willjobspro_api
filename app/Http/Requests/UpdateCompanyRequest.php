@@ -32,6 +32,7 @@ class UpdateCompanyRequest extends FormRequest
             'contact_person' => 'string|max:255',
             'logo_path' => 'nullable|string|max:255',
             'banner_path' => 'nullable|string|max:255',
+            'company_social_networks' => 'nullable|json',
             'status' => 'in:Active,Inactive',
         ];
     }

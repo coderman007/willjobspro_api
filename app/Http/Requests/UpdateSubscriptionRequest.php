@@ -22,12 +22,13 @@ class UpdateSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'candidate_id' => 'exists:candidates,id',
             'subscription_plan_id' => 'exists:subscription_plans,id',
-            'payment_method' => 'in:credit_card,paypal', // Ejemplo de métodos de pago permitidos
+            'payment_method' => 'in:credit_card,paypal',
             'start_date' => 'date',
             'end_date' => 'date',
-            'status' => 'in:Active,Inactive', // Ejemplo de estados permitidos
-            'payment_status' => 'in:Pending,Completed,Failed', // Ejemplo de estados de pago permitidos
+            'status' => 'in:Active,Inactive',
+            'payment_status' => 'in:Pending,Completed,Failed',
         ];
     }
 }

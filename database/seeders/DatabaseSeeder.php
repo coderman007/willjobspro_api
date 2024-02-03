@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,14 +18,16 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             SubscriptionPlanSeeder::class,
             JobCategorySeeder::class,
+            SkillCategorySeeder::class,
             JobTypeSeeder::class,
+            SkillSeeder::class,
         ]);
 
-        // \App\Models\User::factory(10)->create();
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $user = User::factory()->create([
+            'name' => 'jaime Sierra',
+            'email' => 'coderman1980@gmail.com',
+            'password' => bcrypt('Coderman1980$'),
+        ]);
+        $user->assignRole('admin');
     }
 }

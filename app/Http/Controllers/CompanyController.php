@@ -7,23 +7,73 @@ use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+
+    public function index(Request $request): JsonResponse
     {
         try {
-            $companies = Company::all();
-            return response()->json(['data' => $companies], 200);
+            $perPage = $request->query('per_page', 10);
+            $query = Company::query();
+
+            // Search
+            if ($request->filled('search')) {
+                $searchTerm = $request->query('search');
+                $query->where(function ($subquery) use ($searchTerm) {
+                    $subquery->where('company_name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('industry', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('contact_person', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            // Filters
+            $filters = [
+                'company_name', 'industry', 'status', 'contact_person'
+            ];
+
+            foreach ($filters as $filter) {
+                if ($request->filled($filter)) {
+                    $query->where($filter, $request->query($filter));
+                }
+            }
+
+            // Ordenación
+            if ($request->filled('sort_by') && $request->filled('sort_order')) {
+                $sortBy = $request->query('sort_by');
+                $sortOrder = $request->query('sort_order');
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $companies = $query->paginate($perPage);
+
+            $paginationData = [
+                'total' => $companies->total(),
+                'per_page' => $companies->perPage(),
+                'current_page' => $companies->currentPage(),
+                'last_page' => $companies->lastPage(),
+                'from' => $companies->firstItem(),
+                'to' => $companies->lastItem(),
+                'next_page_url' => $companies->nextPageUrl(),
+                'prev_page_url' => $companies->previousPageUrl(),
+                'path' => $companies->path(),
+                'data' => $companies->items(),
+            ];
+
+            return response()->json(['data' => $companies, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener la lista de compañías.'], 500);
         }
     }
+
 
     /**
      * Store a newly created company instance in storage.
@@ -53,6 +103,7 @@ class CompanyController extends Controller
                 'description' => $validatedData['description'],
                 'contact_person' => $validatedData['contact_person'],
                 'logo_path' => $validatedData['logo_path'],
+                'company_social_networks' => $validatedData['company_social_networks'],
                 'status' => $validatedData['status'],
             ]);
 

@@ -6,21 +6,40 @@ use App\Models\JobType;
 use App\Http\Requests\StoreJobTypeRequest;
 use App\Http\Requests\UpdateJobTypeRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class JobTypeController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $jobTypes = JobType::all();
-            return response()->json(['data' => $jobTypes], 200);
+            $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
+            $jobTypes = JobType::paginate($perPage);
+
+            // Metadatos de paginación
+            $paginationData = [
+                'total' => $jobTypes->total(),
+                'per_page' => $jobTypes->perPage(),
+                'current_page' => $jobTypes->currentPage(),
+                'last_page' => $jobTypes->lastPage(),
+                'from' => $jobTypes->firstItem(),
+                'to' => $jobTypes->lastItem(),
+                'next_page_url' => $jobTypes->nextPageUrl(),
+                'prev_page_url' => $jobTypes->previousPageUrl(),
+                'path' => $jobTypes->path(),
+                'data' => $jobTypes->items(),
+                'links' => $jobTypes->render(),
+            ];
+
+            return response()->json(['data' => $jobTypes, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while getting the job type list!'], 500);
+            return response()->json(['error' => 'An error occurred while getting the job type list!'], 500);
         }
     }
 

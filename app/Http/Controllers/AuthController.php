@@ -39,43 +39,6 @@ class AuthController extends Controller
             $role = Role::findByName($roleName);
             $user->assignRole($role);
 
-            // // Crear instancia en la tabla correspondiente (candidates o companies)
-            // if ($roleName === 'candidate') {
-            //     Candidate::create([
-            //         'user_id' => $user->id,
-            //         'full_name' => $candidateValidatedData['full_name'],
-            //         'gender' => $candidateValidatedData['gender'],
-            //         'date_of_birth' => $candidateValidatedData['date_of_birth'],
-            //         'address' => $candidateValidatedData['address'],
-            //         'phone_number' => $candidateValidatedData['phone_number'],
-            //         'work_experience' => $candidateValidatedData['work_experience'],
-            //         'education' => $candidateValidatedData['education'],
-            //         'skills' => $candidateValidatedData['skills'],
-            //         'certifications' => $candidateValidatedData['certifications'],
-            //         'languages' => $candidateValidatedData['languages'],
-            //         'references' => $candidateValidatedData['references'],
-            //         'expected_salary' => $candidateValidatedData['expected_salary'],
-            //         'cv_path' => $candidateValidatedData['cv_path'],
-            //         'photo_path' => $candidateValidatedData['photo_path'],
-            //         'status' => $candidateValidatedData['status'],
-            //     ]);
-            //     $message = 'Candidate Created Successfully!';
-            // } elseif ($roleName === 'company') {
-            //     Company::create([
-            //         'user_id' => $user->id,
-            //         'company_name' => $companyValidatedData['company_name'],
-            //         'industry' => $companyValidatedData['industry'],
-            //         'address' => $companyValidatedData['address'],
-            //         'phone_number' => $companyValidatedData['phone_number'],
-            //         'website' => $companyValidatedData['website'],
-            //         'description' => $companyValidatedData['description'],
-            //         'contact_person' => $companyValidatedData['contact_person'],
-            //         'logo_path' => $companyValidatedData['logo_path'],
-            //         'status' => $companyValidatedData['status'],
-            //     ]);
-            //     $message = 'Company Created Successfully!';
-            // }
-
             // Generar el token de Sanctum después de la creación del candidato o la empresa
             $token = $user->createToken('user_token')->plainTextToken;
 
@@ -90,11 +53,13 @@ class AuthController extends Controller
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'Database error occurred while registering the user',
+                'details' => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {
             // Manejo de otras excepciones inesperadas
             return response()->json([
                 'error' => 'An unexpected error occurred while registering the user',
+                'details' => $e->getMessage()
             ], 500);
         }
     }
@@ -142,6 +107,7 @@ class AuthController extends Controller
             // Manejo de otras excepciones inesperadas
             return response()->json([
                 'error' => 'An unexpected error occurred while fetching the user profile',
+                'details' => $e->getMessage()
             ], 500);
         }
     }
@@ -182,7 +148,10 @@ class AuthController extends Controller
                 'message' => 'Successfully Logged Out!',
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Logout Error'], 500);
+            return response()->json([
+                'error' => 'Logout Error',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

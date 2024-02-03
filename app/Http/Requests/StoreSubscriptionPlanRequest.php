@@ -11,7 +11,10 @@ class StoreSubscriptionPlanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        // return true;
+
+        // Verifica si el usuario tiene el rol 'admin' para autorizar la solicitud
+        return $this->user()->hasRole('admin');
     }
 
     /**

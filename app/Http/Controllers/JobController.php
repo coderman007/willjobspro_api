@@ -5,22 +5,72 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class JobController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+
+    public function index(Request $request): JsonResponse
     {
         try {
-            $jobs = Job::with(['company', 'jobCategory', 'jobType'])->get();
-            return response()->json(['data' => $jobs], 200);
+            $perPage = $request->query('per_page', 10);
+            $query = Job::with(['company', 'jobCategory', 'jobType', 'subscriptionPlan']);
+
+            // Búsqueda por título de trabajo
+            if ($request->filled('search')) {
+                $searchTerm = $request->query('search');
+                $query->where('title', 'like', '%' . $searchTerm . '%');
+            }
+
+            // Filtros
+            $filters = [
+                'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
+            ];
+
+            foreach ($filters as $filter) {
+                if ($request->filled($filter)) {
+                    $query->where($filter, $request->query($filter));
+                }
+            }
+
+            // Ordenación
+            if ($request->filled('sort_by') && $request->filled('sort_order')) {
+                $sortBy = $request->query('sort_by');
+                $sortOrder = $request->query('sort_order');
+                $query->orderBy($sortBy, $sortOrder);
+            } else {
+                // Orden por defecto si no se especifica
+                $query->orderBy('created_at', 'desc');
+            }
+
+            $jobs = $query->paginate($perPage);
+
+            $paginationData = [
+                'total' => $jobs->total(),
+                'per_page' => $jobs->perPage(),
+                'current_page' => $jobs->currentPage(),
+                'last_page' => $jobs->lastPage(),
+                'from' => $jobs->firstItem(),
+                'to' => $jobs->lastItem(),
+                'next_page_url' => $jobs->nextPageUrl(),
+                'prev_page_url' => $jobs->previousPageUrl(),
+                'path' => $jobs->path(),
+            ];
+
+            return response()->json(['data' => $jobs, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while getting the job offer list!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the job offer list!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -65,6 +115,13 @@ class JobController extends Controller
             // Resto de la lógica, si es necesario...
 
             return response()->json(['message' => 'Job offer created successfully', 'data' => $job], 201);
+        } catch (QueryException $e) {
+
+            // Manejo de errores de base de datos
+            return response()->json([
+                'error' => 'An error ocurred in database while creating the job offer.',
+                'details' => $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while creating the job offer.',

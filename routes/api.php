@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\Route;
 Route::post("register", [AuthController::class, 'register']);
 Route::post("login", [AuthController::class, 'login']);
 
-// Rutas protegidas con autenticación
+// Rutas comunes a todos los usuarios, protegidas con autenticación.
 Route::group(
     [
         'prefix' => 'v1',
@@ -49,12 +49,37 @@ Route::group(
         Route::apiResource('candidates', CandidateController::class);
         Route::apiResource('companies', CompanyController::class);
         Route::apiResource('invoices', InvoiceController::class);
-        Route::apiResource('job-categories', JobCategoryController::class);
-        Route::apiResource('job-types', JobTypeController::class);
-        Route::apiResource('subscription-plans', SubscriptionPlanController::class);
+        Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
+        Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
+        Route::get('jobs', [JobController::class, 'index']);
+        Route::get('jobs/{id}', [JobController::class, 'show']);
+        Route::get('applications', [ApplicationController::class, 'index']);
+        Route::get('applications/{id}', [ApplicationController::class, 'show']);
 
-        // Rutas para ver y listar ofertas de trabajo
-       
+
+
+        //Rutas para usuarios con el rol 'admin'
+
+        // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
+        Route::middleware(['checkAdminRole'])->group(function () {
+            Route::post('job-categories', [JobCategoryController::class, 'store']);
+            Route::put('job-categories/{job_category}', [JobCategoryController::class, 'update']);
+            Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);
+
+            // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
+            Route::post('job-types', [JobTypeController::class, 'store']);
+            Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
+            Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
+
+
+            // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
+            Route::post('subscription-plans', [SubscriptionPlanController::class, 'store']);
+            Route::put('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'update']);
+            Route::delete('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'destroy']);
+        });
+
+
+        //Rutas para usuarios con el rol 'company'
 
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::middleware(['checkCompanyRole'])->group(function () {
@@ -62,18 +87,24 @@ Route::group(
             Route::put('jobs/{job}', [JobController::class, 'update']);
             Route::delete('jobs/{job}', [JobController::class, 'destroy']);
         });
-        Route::apiResource('applications', ApplicationController::class);
 
-        // Rutas para suscripciones
-        Route::post('subscriptions', [SubscriptionController::class, 'subscribe']);
-        Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
-        Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
-        Route::put('subscriptions/{id}', [SubscriptionController::class, 'updateSubscription']);
-        Route::delete('subscriptions/{id}', [SubscriptionController::class, 'cancelSubscription']);
+        //Rutas para usuarios con el rol 'candidate'
 
-        // Rutas para pagos
-        Route::post('payments', [PaymentController::class, 'makePayment']);
-        Route::get('payments', [PaymentController::class, 'getPayments']);
-        Route::get('payments/{id}', [PaymentController::class, 'getPayment']);
+        // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
+        Route::middleware(['checkCandidateRole'])->group(function () {
+            Route::post('applications', [ApplicationController::class, 'store']);
+            Route::put('applications/{application}', [ApplicationController::class, 'update']);
+            Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
+
+            // Rutas para suscripciones
+            Route::post('subscriptions', [SubscriptionController::class, 'subscribe']);
+            Route::put('subscriptions/{id}', [SubscriptionController::class, 'updateSubscription']);
+            Route::delete('subscriptions/{id}', [SubscriptionController::class, 'cancelSubscription']);
+
+            // Rutas para pagos
+            Route::post('payments', [PaymentController::class, 'makePayment']);
+            Route::get('payments', [PaymentController::class, 'getPayments']);
+            Route::get('payments/{id}', [PaymentController::class, 'getPayment']);
+        });
     }
 );

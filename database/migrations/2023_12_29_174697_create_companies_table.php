@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('contact_person');
             $table->string('logo_path')->nullable(); // Campo para almacenar la ruta del logo
             $table->string('banner_path')->nullable(); // Campo para almacenar la ruta del banner
+            $table->json('company_social_networks')->nullable();
             $table->enum('status', ['Active', 'Inactive']);
             $table->timestamps();
         });
