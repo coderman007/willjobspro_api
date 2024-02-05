@@ -22,7 +22,6 @@ class UpdateCandidateRequest extends FormRequest
             'phone_number' => 'string|max:20',
             'work_experience' => 'string',
             'education' => 'string',
-            'skills' => 'string',
             'certifications' => 'string',
             'languages' => 'string',
             'references' => 'string',

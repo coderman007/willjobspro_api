@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
+use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -101,7 +102,6 @@ class CandidateController extends Controller
                 'phone_number' => $validatedData['phone_number'],
                 'work_experience' => $validatedData['work_experience'],
                 'education' => $validatedData['education'],
-                'skills' => $validatedData['skills'],
                 'certifications' => $validatedData['certifications'],
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
@@ -123,6 +123,58 @@ class CandidateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while creating the candidate!',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Add skills to the candidate.
+     *
+     * @param Request $request
+     * @param Candidate $candidate
+     * @param Skill $skill
+     * @return JsonResponse
+     */
+    public function addSkill(Request $request, Candidate $candidate, Skill $skill)
+    {
+        try {
+            // Validar la existencia de la habilidad
+            if (!$candidate->skills->contains($skill->id)) {
+                $candidate->addSkill($skill->id);
+                return response()->json(['message' => 'Skill added to candidate successfully!'], 200);
+            } else {
+                return response()->json(['error' => 'Skill already added to candidate!'], 422);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while adding skill to candidate!',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove skills from the candidate.
+     *
+     * @param Request $request
+     * @param Candidate $candidate
+     * @param Skill $skill
+     * @return JsonResponse
+     */
+    public function removeSkill(Request $request, Candidate $candidate, Skill $skill)
+    {
+        try {
+            // Validar la existencia de la habilidad
+            if ($candidate->skills->contains($skill->id)) {
+                $candidate->removeSkill($skill->id);
+                return response()->json(['message' => 'Skill removed from candidate successfully!'], 200);
+            } else {
+                return response()->json(['error' => 'Skill not found in candidate\'s profile!'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while removing skill from candidate!',
                 'details' => $e->getMessage()
             ], 500);
         }

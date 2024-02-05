@@ -4,11 +4,11 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTypeController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
@@ -35,7 +35,7 @@ use Illuminate\Support\Facades\Route;
 Route::post("register", [AuthController::class, 'register']);
 Route::post("login", [AuthController::class, 'login']);
 
-// Rutas comunes a todos los usuarios, protegidas con autenticación.
+// Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
 Route::group(
     [
         'prefix' => 'v1',
@@ -46,19 +46,33 @@ Route::group(
         Route::delete('logout', [AuthController::class, 'logOut']);
         Route::put('update-password', [AuthController::class, 'updatePassword']);
         Route::apiResource('users', UserController::class);
-        Route::apiResource('candidates', CandidateController::class);
-        Route::apiResource('companies', CompanyController::class);
-        Route::apiResource('invoices', InvoiceController::class);
         Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
         Route::get('jobs', [JobController::class, 'index']);
         Route::get('jobs/{id}', [JobController::class, 'show']);
         Route::get('applications', [ApplicationController::class, 'index']);
         Route::get('applications/{id}', [ApplicationController::class, 'show']);
+        Route::get('skills', [SkillController::class, 'index']);
+        Route::get('skills/{id}', [SkillController::class, 'show']);
+
+        // Rutas para gestionar candidatos
+        Route::get('candidates', [CandidateController::class, 'index']);
+        Route::post('candidates', [CandidateController::class, 'store']);
+        Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
+        Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
+        Route::get('candidates/{id}', [CandidateController::class, 'show']);
+        Route::put('candidates/{id}', [CandidateController::class, 'update']);
+        Route::delete('candidates/{id}', [CandidateController::class, 'destroy']);
+
+        // Rutas para gestionar compañías
+        Route::get('companies', [CompanyController::class, 'index']);
+        Route::post('companies', [CompanyController::class, 'store']);
+        Route::get('companies/{id}', [CompanyController::class, 'show']);
+        Route::put('companies/{id}', [CompanyController::class, 'update']);
+        Route::delete('companies/{id}', [CompanyController::class, 'destroy']);
 
 
-
-        //Rutas para usuarios con el rol 'admin'
+        //Rutas protegidas con autenticación y con el middleware 'checkAdminRole'
 
         // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
         Route::middleware(['checkAdminRole'])->group(function () {
@@ -79,7 +93,7 @@ Route::group(
         });
 
 
-        //Rutas para usuarios con el rol 'company'
+        //Rutas protegidas con autenticación y con el middleware 'checkCompanyRole'
 
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::middleware(['checkCompanyRole'])->group(function () {
@@ -88,7 +102,7 @@ Route::group(
             Route::delete('jobs/{job}', [JobController::class, 'destroy']);
         });
 
-        //Rutas para usuarios con el rol 'candidate'
+        //Rutas protegidas con autenticación y con el middleware 'checkCandidateRole'
 
         // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
         Route::middleware(['checkCandidateRole'])->group(function () {

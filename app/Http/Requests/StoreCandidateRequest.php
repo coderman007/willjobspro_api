@@ -22,7 +22,6 @@ class StoreCandidateRequest extends FormRequest
             'phone_number' => 'nullable|string|max:20',
             'work_experience' => 'nullable|string',
             'education' => 'nullable|string',
-            'skills' => 'nullable|string',
             'certifications' => 'nullable|string',
             'languages' => 'nullable|string',
             'references' => 'nullable|string',

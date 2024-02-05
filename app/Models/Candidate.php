@@ -56,4 +56,17 @@ class Candidate extends Model
     {
         return $this->hasMany(Application::class);
     }
+
+    // Agregar habilidad al candidato
+
+    public function addSkill($skillId)
+    {
+        $this->skills()->attach($skillId);
+    }
+
+    // Quitar habilidad al candidato
+    public function removeSkill($skillId)
+    {
+        $this->skills()->detach($skillId);
+    }
 }
