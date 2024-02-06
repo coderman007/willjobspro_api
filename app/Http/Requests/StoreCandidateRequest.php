@@ -26,9 +26,8 @@ class StoreCandidateRequest extends FormRequest
             'languages' => 'nullable|string',
             'references' => 'nullable|string',
             'expected_salary' => 'nullable|numeric|min:0',
-            'cv_path' => 'nullable|string|max:255',
-            'photo_path' => 'nullable|string|max:255',
-            'banner_path' => 'nullable|string|max:255',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // Maximum file size: 5 MB
+            'photo' => 'nullable|file|mimes:jpeg,png,jpg|max:5120', // Maximum file size: 5 MB
             'candidate_social_networks' => 'nullable|json',
             'status' => 'required|in:Active,Inactive',
         ];

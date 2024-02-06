@@ -70,7 +70,10 @@ class CompanyController extends Controller
 
             return response()->json(['data' => $companies, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la lista de compañías.'], 500);
+            return response()->json([
+                'error' => 'Error al obtener la lista de compañías.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -112,9 +115,13 @@ class CompanyController extends Controller
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'Ha ocurrido un error en la base de datos al intentar crear la compañía.',
+                'details' => $e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al crear la compañía.'], 500);
+            return response()->json([
+                'error' => 'Error al crear la compañía.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 

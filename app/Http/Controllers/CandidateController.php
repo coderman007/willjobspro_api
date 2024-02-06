@@ -106,15 +106,43 @@ class CandidateController extends Controller
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
                 'expected_salary' => $validatedData['expected_salary'],
-                'cv_path' => $validatedData['cv_path'],
-                'photo_path' => $validatedData['photo_path'],
                 'candidate_social_networks' => $validatedData['candidate_social_networks'],
+
                 'status' => $validatedData['status'],
             ]);
 
+            // Validar y asociar habilidades al candidato
+            if ($request->filled('skills')) {
+                $skills = explode(',', $request->input('skills'));
+
+                foreach ($skills as $skillName) {
+                    $skillName = trim($skillName);
+
+                    // Validar que la habilidad exista en la base de datos
+                    $skill = Skill::where('name', $skillName)->first();
+
+                    if ($skill) {
+                        $candidate->addSkill($skill->id);
+                    } else {
+                        return response()->json(['error' => "Skill '$skillName' not found in the database."], 422);
+                    }
+                }
+            }
+
+            // Validar y almacenar hoja de vida (CV)
+            if ($request->hasFile('cv_file')) {
+                $cvFile = $request->file('cv_file');
+                // Lógica de validación y almacenamiento del archivo CV aquí
+            }
+
+            // Validar y almacenar foto de perfil
+            if ($request->hasFile('photo')) {
+                $photo = $request->file('photo');
+                // Lógica de validación y almacenamiento de la foto aquí
+            }
+
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
         } catch (QueryException $e) {
-
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'An error occurred in database while creating the candidate!',
@@ -127,6 +155,9 @@ class CandidateController extends Controller
             ], 500);
         }
     }
+
+
+
 
     /**
      * Add skills to the candidate.
