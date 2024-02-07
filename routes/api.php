@@ -65,6 +65,9 @@ Route::group(
             Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);
 
             // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
+
+            Route::get('job-types', [JobController::class, 'index']);
+            Route::get('job-types/{id}', [JobController::class, 'show']);
             Route::post('job-types', [JobTypeController::class, 'store']);
             Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
             Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
@@ -84,6 +87,8 @@ Route::group(
 
             Route::get('candidates', [CandidateController::class, 'index']);
             Route::post('candidates', [CandidateController::class, 'store']);
+            Route::get('job-types', [JobTypeController::class, 'index']);
+            Route::get('job-types/{id}', [JobTypeController::class, 'show']);
             Route::post('jobs', [JobController::class, 'store']);
             Route::put('jobs/{job}', [JobController::class, 'update']);
             Route::delete('jobs/{job}', [JobController::class, 'destroy']);
