@@ -142,17 +142,11 @@ class JobController extends Controller
  * @param Job $job
  * @return JsonResponse
  */
-public function show(Job $job)
+public function show($id)
 {
     try {
-        // Verificar si el usuario tiene permiso para ver este trabajo
-        $companyId = $job->company_id;
-        if (!$this->userOwnsCompany($companyId)) {
-            return response()->json(['error' => 'Unauthorized action.'], 403);
-        }
 
-        // Retornar los detalles del trabajo
-        return response()->json(['data' => $job], 200);
+        return response()->json(['data' => Job::find($id)->get()], 200);
     } catch (\Exception $e) {
         return response()->json([
             'error' => 'An error occurred while trying to retrieve job details.',
