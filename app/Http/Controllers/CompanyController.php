@@ -56,6 +56,7 @@ class CompanyController extends Controller
 
             // Extracting emails
             $email = $companies->pluck('user.email')->toArray();
+            $job = $companies->pluck('companies.jobs')->toArray();
 
             $paginationData = [
                 'total' => $companies->total(),
