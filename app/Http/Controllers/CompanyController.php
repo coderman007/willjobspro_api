@@ -22,7 +22,7 @@ class CompanyController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $query = Company::query()->with('user'); // Eager loading user relationship
+            $query = Company::query()->with('user', 'jobs');
 
             // Search
             if ($request->filled('search')) {
