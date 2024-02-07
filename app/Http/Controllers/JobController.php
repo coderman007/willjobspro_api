@@ -148,11 +148,6 @@ class JobController extends Controller
             // Recuperar el trabajo por su ID
             $job = Job::findOrFail($id);
 
-            // Verificar si el usuario tiene acceso al trabajo
-            if (!$this->userOwnsCompany($job->company_id)) {
-                return response()->json(['error' => 'Unauthorized action.'], 403);
-            }
-
             // Retornar los detalles del trabajo
             return response()->json(['data' => $job], 200);
         } catch (\Exception $e) {
@@ -162,6 +157,7 @@ class JobController extends Controller
             ], 500);
         }
     }
+
 
 
 
