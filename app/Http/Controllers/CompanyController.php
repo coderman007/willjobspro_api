@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use App\Http\Resources\CompanyResource;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
@@ -18,12 +18,11 @@ class CompanyController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-
     public function index(Request $request): JsonResponse
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $query = Company::query();
+            $query = Company::query()->with('user'); // Eager loading user relationship
 
             // Search
             if ($request->filled('search')) {
@@ -46,7 +45,7 @@ class CompanyController extends Controller
                 }
             }
 
-            // Ordenación
+            // Sorting
             if ($request->filled('sort_by') && $request->filled('sort_order')) {
                 $sortBy = $request->query('sort_by');
                 $sortOrder = $request->query('sort_order');
@@ -55,11 +54,14 @@ class CompanyController extends Controller
 
             $companies = $query->paginate($perPage);
 
+            // Extracting emails
+            $email = $companies->pluck('user.email')->toArray();
+
             $paginationData = [
                 'total' => $companies->total(),
-                // 'per_page' => $companies->perPage(),
-                // 'current_page' => $companies->currentPage(),
-                // 'last_page' => $companies->lastPage(),
+                'per_page' => $companies->perPage(),
+                'current_page' => $companies->currentPage(),
+                'last_page' => $companies->lastPage(),
                 // 'from' => $companies->firstItem(),
                 // 'to' => $companies->lastItem(),
                 // 'next_page_url' => $companies->nextPageUrl(),
@@ -68,17 +70,14 @@ class CompanyController extends Controller
                 // 'data' => $companies->items(),
             ];
 
-            $email = $companies->user->email;
-
-            return response()->json(['data' => $companies, 'email' => $email, 'pagination' => $paginationData], 200);
+            return response()->json(['data' => CompanyResource::collection($companies), 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error al obtener la lista de compañías.',
+                'error' => 'An error occurred while trying to retrieve company information',
                 'details' => $e->getMessage(),
             ], 500);
         }
     }
-
 
     /**
      * Store a newly created company instance in storage.
@@ -112,20 +111,22 @@ class CompanyController extends Controller
                 'status' => $validatedData['status'],
             ]);
 
-            return response()->json(['data' => $company, 'message' => 'Company Created Successfully!'], 201);
+            return response()->json(['data' => new CompanyResource($company), 'message' => 'Company Created Successfully!'], 201);
         } catch (QueryException $e) {
             // Manejo de errores de base de datos
             return response()->json([
-                'error' => 'Ha ocurrido un error en la base de datos al intentar crear la compañía.',
-                'details' => $e->getMessage(),
+                'error' => 'Error en la base de datos al intentar crear la compañía.',
+                'details' => 'Internal Server Error',
             ], 500);
         } catch (\Exception $e) {
+            // Otros errores
             return response()->json([
                 'error' => 'Error al crear la compañía.',
-                'details' => $e->getMessage(),
+                'details' => 'Internal Server Error',
             ], 500);
         }
     }
+
 
     /**
      * Display the specified resource.
