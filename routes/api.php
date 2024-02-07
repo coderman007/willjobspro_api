@@ -66,8 +66,8 @@ Route::group(
 
             // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
 
-            Route::get('job-types', [JobController::class, 'index']);
-            Route::get('job-types/{id}', [JobController::class, 'show']);
+            // Route::get('job-types', [JobController::class, 'index']);
+            // Route::get('job-types/{id}', [JobController::class, 'show']);
             Route::post('job-types', [JobTypeController::class, 'store']);
             Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
             Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
