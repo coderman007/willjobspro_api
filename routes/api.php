@@ -12,45 +12,26 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
 
 // Rutas abiertas
 Route::post("register", [AuthController::class, 'register']);
 Route::post("login", [AuthController::class, 'login']);
+Route::get('jobs', [JobController::class, 'index']);
+Route::get('jobs/{id}', [JobController::class, 'show']);
 Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{id}', [CompanyController::class, 'show']);
-Route::get('jobs', [JobController::class, 'index']);
-Route::get('jobs/{job}', [JobController::class, 'show']);
 
-
-// Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
 Route::group(
     [
         'prefix' => 'v1',
         'middleware' => ['auth:sanctum'],
     ],
     function () {
+        // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
         Route::get('profile', [AuthController::class, 'profile']);
-        Route::delete('logout', [AuthController::class, 'logOut']);
         Route::put('update-password', [AuthController::class, 'updatePassword']);
-        Route::apiResource('users', UserController::class);
+        Route::delete('logout', [AuthController::class, 'logOut']);
         Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
         Route::get('applications', [ApplicationController::class, 'index']);
@@ -58,26 +39,27 @@ Route::group(
         Route::get('skills', [SkillController::class, 'index']);
         Route::get('skills/{id}', [SkillController::class, 'show']);
 
-        // Rutas para gestionar candidatos
-        Route::get('candidates', [CandidateController::class, 'index']);
-        Route::post('candidates', [CandidateController::class, 'store']);
-        Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
-        Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
-        Route::get('candidates/{id}', [CandidateController::class, 'show']);
-        Route::put('candidates/{id}', [CandidateController::class, 'update']);
-        Route::delete('candidates/{id}', [CandidateController::class, 'destroy']);
-
-        // Rutas para gestionar compañías
-        
-        Route::post('companies', [CompanyController::class, 'store']);
-        Route::put('companies/{id}', [CompanyController::class, 'update']);
-        Route::delete('companies/{id}', [CompanyController::class, 'destroy']);
-
-
         //Rutas protegidas con autenticación y con el middleware 'checkAdminRole'
-
-        // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
         Route::middleware(['checkAdminRole'])->group(function () {
+
+            // Rutas para gestionar usuarios
+            Route::apiResource('users', UserController::class);
+
+            // Rutas para gestionar compañías
+            Route::post('companies', [CompanyController::class, 'store']);
+            Route::put('companies/{id}', [CompanyController::class, 'update']);
+            Route::delete('companies/{id}', [CompanyController::class, 'destroy']);
+
+            // Rutas para gestionar candidatos
+            Route::get('candidates', [CandidateController::class, 'index']);
+            Route::post('candidates', [CandidateController::class, 'store']);
+            Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
+            Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
+            Route::get('candidates/{id}', [CandidateController::class, 'show']);
+            Route::put('candidates/{id}', [CandidateController::class, 'update']);
+            Route::delete('candidates/{id}', [CandidateController::class, 'destroy']);
+
+            // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
             Route::post('job-categories', [JobCategoryController::class, 'store']);
             Route::put('job-categories/{job_category}', [JobCategoryController::class, 'update']);
             Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);
@@ -99,6 +81,9 @@ Route::group(
 
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::middleware(['checkCompanyRole'])->group(function () {
+
+            Route::get('candidates', [CandidateController::class, 'index']);
+            Route::post('candidates', [CandidateController::class, 'store']);
             Route::post('jobs', [JobController::class, 'store']);
             Route::put('jobs/{job}', [JobController::class, 'update']);
             Route::delete('jobs/{job}', [JobController::class, 'destroy']);
