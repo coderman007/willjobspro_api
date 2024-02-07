@@ -69,14 +69,14 @@ class UserController extends Controller
             // Pagination metadata
             $paginationData = [
                 'total' => $paginatedUsers->total(),
-                'per_page' => $paginatedUsers->perPage(),
-                'current_page' => $paginatedUsers->currentPage(),
-                'last_page' => $paginatedUsers->lastPage(),
-                'from' => $paginatedUsers->firstItem(),
-                'to' => $paginatedUsers->lastItem(),
-                'next_page_url' => $paginatedUsers->nextPageUrl(),
-                'prev_page_url' => $paginatedUsers->previousPageUrl(),
-                'path' => $paginatedUsers->path(),
+                // 'per_page' => $paginatedUsers->perPage(),
+                // 'current_page' => $paginatedUsers->currentPage(),
+                // 'last_page' => $paginatedUsers->lastPage(),
+                // 'from' => $paginatedUsers->firstItem(),
+                // 'to' => $paginatedUsers->lastItem(),
+                // 'next_page_url' => $paginatedUsers->nextPageUrl(),
+                // 'prev_page_url' => $paginatedUsers->previousPageUrl(),
+                // 'path' => $paginatedUsers->path(),
             ];
 
             return response()->json(['data' => $data, 'pagination' => $paginationData], 200);
@@ -174,10 +174,12 @@ class UserController extends Controller
         try {
             $user->delete();
 
-            // You can return a success message or other necessary data
             return response()->json(['message' => 'User deleted'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while deleting the user.'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while deleting the user.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 }

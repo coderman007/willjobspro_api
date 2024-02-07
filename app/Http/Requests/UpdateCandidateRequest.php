@@ -29,7 +29,7 @@ class UpdateCandidateRequest extends FormRequest
             'cv_path' => 'nullable|string|max:255',
             'photo_path' => 'nullable|string|max:255',
             'banner_path' => 'nullable|string|max:255',
-            'candidate_social_networks' => 'nullable|json',
+            'social_networks' => 'nullable|json',
             'status' => 'in:Active,Inactive',
         ];
     }

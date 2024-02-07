@@ -34,16 +34,16 @@ class PaymentController extends Controller
             // Metadatos de paginación
             $paginationData = [
                 'total' => $payments->total(),
-                'per_page' => $payments->perPage(),
-                'current_page' => $payments->currentPage(),
-                'last_page' => $payments->lastPage(),
-                'from' => $payments->firstItem(),
-                'to' => $payments->lastItem(),
-                'next_page_url' => $payments->nextPageUrl(),
-                'prev_page_url' => $payments->previousPageUrl(),
-                'path' => $payments->path(),
-                'data' => $payments->items(),
-                'links' => $payments->render(),
+                // 'per_page' => $payments->perPage(),
+                // 'current_page' => $payments->currentPage(),
+                // 'last_page' => $payments->lastPage(),
+                // 'from' => $payments->firstItem(),
+                // 'to' => $payments->lastItem(),
+                // 'next_page_url' => $payments->nextPageUrl(),
+                // 'prev_page_url' => $payments->previousPageUrl(),
+                // 'path' => $payments->path(),
+                // 'data' => $payments->items(),
+                // 'links' => $payments->render(),
             ];
 
             return response()->json(['data' => $payments, 'pagination' => $paginationData], 200);

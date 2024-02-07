@@ -117,7 +117,10 @@ class ApplicationController extends Controller
         try {
             return response()->json(['data' => $application], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while getting the application!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the application!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -135,7 +138,10 @@ class ApplicationController extends Controller
             $application->update($validatedData);
             return response()->json(['data' => $application, 'message' => 'Application updated successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while updating the application!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while updating the application!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -151,7 +157,10 @@ class ApplicationController extends Controller
             $application->delete();
             return response()->json(['message' => 'Application deleted!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while deleting the application!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while deleting the application!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -34,16 +34,16 @@ class InvoiceController extends Controller
             // Metadatos de paginación
             $paginationData = [
                 'total' => $invoices->total(),
-                'per_page' => $invoices->perPage(),
-                'current_page' => $invoices->currentPage(),
-                'last_page' => $invoices->lastPage(),
-                'from' => $invoices->firstItem(),
-                'to' => $invoices->lastItem(),
-                'next_page_url' => $invoices->nextPageUrl(),
-                'prev_page_url' => $invoices->previousPageUrl(),
-                'path' => $invoices->path(),
-                'data' => $invoices->items(),
-                'links' => $invoices->render(),
+                // 'per_page' => $invoices->perPage(),
+                // 'current_page' => $invoices->currentPage(),
+                // 'last_page' => $invoices->lastPage(),
+                // 'from' => $invoices->firstItem(),
+                // 'to' => $invoices->lastItem(),
+                // 'next_page_url' => $invoices->nextPageUrl(),
+                // 'prev_page_url' => $invoices->previousPageUrl(),
+                // 'path' => $invoices->path(),
+                // 'data' => $invoices->items(),
+                // 'links' => $invoices->render(),
             ];
 
             return response()->json(['data' => $invoices, 'pagination' => $paginationData], 200);

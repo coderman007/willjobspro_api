@@ -11,7 +11,7 @@ class Company extends Model
 
     protected $fillable = [
         'user_id',
-        'company_name',
+        'name',
         'industry',
         'address',
         'phone_number',
@@ -20,12 +20,17 @@ class Company extends Model
         'contact_person',
         'logo_path',
         'banner_path',
-        'company_social_networks',
+        'social_networks',
         'status',
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     protected $casts = [
-        'company_social_networks' => 'json',
+        'social_networks' => 'json',
     ];
 
     // Relación con el usuario

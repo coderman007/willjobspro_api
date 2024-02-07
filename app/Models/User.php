@@ -32,6 +32,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -52,30 +54,5 @@ class User extends Authenticatable
     public function company()
     {
         return $this->hasOne(Company::class);
-    }
-
-    public function jobs()
-    {
-        return $this->hasMany(Job::class);
-    }
-
-    public function applications()
-    {
-        return $this->hasMany(Application::class);
-    }
-
-    public function payments()
-    {
-        return $this->hasMany(Payment::class);
-    }
-
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
-    public function transactionHistory()
-    {
-        return $this->hasMany(TransactionHistory::class);
     }
 }

@@ -29,7 +29,7 @@ return new class extends Migration
             $table->text('cv_path')->nullable()->default('N/A');
             $table->text('photo_path')->nullable()->default('N/A');
             $table->text('banner_path')->nullable()->default('N/A');
-            $table->json('candidate_social_networks')->nullable();
+            $table->json('social_networks')->nullable();
             $table->enum('status', ['Active', 'Inactive']);
             $table->timestamps();
 

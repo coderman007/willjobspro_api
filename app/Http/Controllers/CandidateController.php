@@ -57,19 +57,22 @@ class CandidateController extends Controller
 
             $paginationData = [
                 'total' => $candidates->total(),
-                'per_page' => $candidates->perPage(),
-                'current_page' => $candidates->currentPage(),
-                'last_page' => $candidates->lastPage(),
-                'from' => $candidates->firstItem(),
-                'to' => $candidates->lastItem(),
-                'next_page_url' => $candidates->nextPageUrl(),
-                'prev_page_url' => $candidates->previousPageUrl(),
-                'path' => $candidates->path(),
+                // 'per_page' => $candidates->perPage(),
+                // 'current_page' => $candidates->currentPage(),
+                // 'last_page' => $candidates->lastPage(),
+                // 'from' => $candidates->firstItem(),
+                // 'to' => $candidates->lastItem(),
+                // 'next_page_url' => $candidates->nextPageUrl(),
+                // 'prev_page_url' => $candidates->previousPageUrl(),
+                // 'path' => $candidates->path(),
             ];
 
             return response()->json(['data' => $candidates, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while getting the candidate list!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the candidate list!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -106,7 +109,7 @@ class CandidateController extends Controller
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
                 'expected_salary' => $validatedData['expected_salary'],
-                'candidate_social_networks' => $validatedData['candidate_social_networks'],
+                'social_networks' => $validatedData['social_networks'],
 
                 'status' => $validatedData['status'],
             ]);
@@ -222,7 +225,6 @@ class CandidateController extends Controller
         try {
             return response()->json([
                 'data' => $candidate,
-                'role' => 'candidate',
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

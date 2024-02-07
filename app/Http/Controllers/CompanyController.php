@@ -29,7 +29,7 @@ class CompanyController extends Controller
             if ($request->filled('search')) {
                 $searchTerm = $request->query('search');
                 $query->where(function ($subquery) use ($searchTerm) {
-                    $subquery->where('company_name', 'like', '%' . $searchTerm . '%')
+                    $subquery->where('name', 'like', '%' . $searchTerm . '%')
                         ->orWhere('industry', 'like', '%' . $searchTerm . '%')
                         ->orWhere('contact_person', 'like', '%' . $searchTerm . '%');
                 });
@@ -37,7 +37,7 @@ class CompanyController extends Controller
 
             // Filters
             $filters = [
-                'company_name', 'industry', 'status', 'contact_person'
+                'name', 'industry', 'status', 'contact_person'
             ];
 
             foreach ($filters as $filter) {
@@ -57,18 +57,20 @@ class CompanyController extends Controller
 
             $paginationData = [
                 'total' => $companies->total(),
-                'per_page' => $companies->perPage(),
-                'current_page' => $companies->currentPage(),
-                'last_page' => $companies->lastPage(),
-                'from' => $companies->firstItem(),
-                'to' => $companies->lastItem(),
-                'next_page_url' => $companies->nextPageUrl(),
-                'prev_page_url' => $companies->previousPageUrl(),
-                'path' => $companies->path(),
-                'data' => $companies->items(),
+                // 'per_page' => $companies->perPage(),
+                // 'current_page' => $companies->currentPage(),
+                // 'last_page' => $companies->lastPage(),
+                // 'from' => $companies->firstItem(),
+                // 'to' => $companies->lastItem(),
+                // 'next_page_url' => $companies->nextPageUrl(),
+                // 'prev_page_url' => $companies->previousPageUrl(),
+                // 'path' => $companies->path(),
+                // 'data' => $companies->items(),
             ];
 
-            return response()->json(['data' => $companies, 'pagination' => $paginationData], 200);
+            $email = $companies->user->email;
+
+            return response()->json(['data' => $companies, 'email' => $email, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error al obtener la lista de compañías.',
@@ -98,7 +100,7 @@ class CompanyController extends Controller
             // Crear instancia en la tabla 'companies'
             $company = Company::create([
                 'user_id' => $user->id,
-                'company_name' => $validatedData['company_name'],
+                'name' => $validatedData['name'],
                 'industry' => $validatedData['industry'],
                 'address' => $validatedData['address'],
                 'phone_number' => $validatedData['phone_number'],
@@ -106,7 +108,7 @@ class CompanyController extends Controller
                 'description' => $validatedData['description'],
                 'contact_person' => $validatedData['contact_person'],
                 'logo_path' => $validatedData['logo_path'],
-                'company_social_networks' => $validatedData['company_social_networks'],
+                'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);
 
@@ -134,14 +136,15 @@ class CompanyController extends Controller
     public function show(Company $company): JsonResponse
     {
         try {
-            return response()->json([
-                'data' => $company,
-                'role' => 'company',
-            ], 200);
+            return response()->json(['data' => $company], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al obtener la compañía.'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the company!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -157,7 +160,10 @@ class CompanyController extends Controller
             $company->update($validatedData);
             return response()->json(['data' => $company, 'message' => 'Compañía actualizada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al actualizar la compañía.'], 500);
+            return response()->json([
+                'error' => 'Error al actualizar la compañía.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -173,7 +179,10 @@ class CompanyController extends Controller
             $company->delete();
             return response()->json(['message' => 'Compañía eliminada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error al eliminar la compañía.'], 500);
+            return response()->json([
+                'error' => 'Error al eliminar la compañía.',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

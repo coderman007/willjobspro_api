@@ -55,14 +55,14 @@ class JobController extends Controller
 
             $paginationData = [
                 'total' => $jobs->total(),
-                'per_page' => $jobs->perPage(),
-                'current_page' => $jobs->currentPage(),
-                'last_page' => $jobs->lastPage(),
-                'from' => $jobs->firstItem(),
-                'to' => $jobs->lastItem(),
-                'next_page_url' => $jobs->nextPageUrl(),
-                'prev_page_url' => $jobs->previousPageUrl(),
-                'path' => $jobs->path(),
+                // 'per_page' => $jobs->perPage(),
+                // 'current_page' => $jobs->currentPage(),
+                // 'last_page' => $jobs->lastPage(),
+                // 'from' => $jobs->firstItem(),
+                // 'to' => $jobs->lastItem(),
+                // 'next_page_url' => $jobs->nextPageUrl(),
+                // 'prev_page_url' => $jobs->previousPageUrl(),
+                // 'path' => $jobs->path(),
             ];
 
             return response()->json(['data' => $jobs, 'pagination' => $paginationData], 200);

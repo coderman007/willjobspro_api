@@ -30,14 +30,14 @@ class SubscriptionPlanController extends Controller
             // Metadatos de paginación 
             $paginationData = [
                 'total' => $subscriptionPlans->total(),
-                'per_page' => $subscriptionPlans->perPage(),
-                'current_page' => $subscriptionPlans->currentPage(),
-                'last_page' => $subscriptionPlans->lastPage(),
-                'from' => $subscriptionPlans->firstItem(),
-                'to' => $subscriptionPlans->lastItem(),
-                'next_page_url' => $subscriptionPlans->nextPageUrl(),
-                'prev_page_url' => $subscriptionPlans->previousPageUrl(),
-                'path' => $subscriptionPlans->path(),
+                // 'per_page' => $subscriptionPlans->perPage(),
+                // 'current_page' => $subscriptionPlans->currentPage(),
+                // 'last_page' => $subscriptionPlans->lastPage(),
+                // 'from' => $subscriptionPlans->firstItem(),
+                // 'to' => $subscriptionPlans->lastItem(),
+                // 'next_page_url' => $subscriptionPlans->nextPageUrl(),
+                // 'prev_page_url' => $subscriptionPlans->previousPageUrl(),
+                // 'path' => $subscriptionPlans->path(),
             ];
 
             // Devolver la respuesta JSON con datos y metadatos de paginación

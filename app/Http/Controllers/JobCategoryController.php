@@ -25,21 +25,24 @@ class JobCategoryController extends Controller
             // Metadatos de paginación
             $paginationData = [
                 'total' => $jobCategories->total(),
-                'per_page' => $jobCategories->perPage(),
-                'current_page' => $jobCategories->currentPage(),
-                'last_page' => $jobCategories->lastPage(),
-                'from' => $jobCategories->firstItem(),
-                'to' => $jobCategories->lastItem(),
-                'next_page_url' => $jobCategories->nextPageUrl(),
-                'prev_page_url' => $jobCategories->previousPageUrl(),
-                'path' => $jobCategories->path(),
-                'data' => $jobCategories->items(),
-                'links' => $jobCategories->render(),
+                // 'per_page' => $jobCategories->perPage(),
+                // 'current_page' => $jobCategories->currentPage(),
+                // 'last_page' => $jobCategories->lastPage(),
+                // 'from' => $jobCategories->firstItem(),
+                // 'to' => $jobCategories->lastItem(),
+                // 'next_page_url' => $jobCategories->nextPageUrl(),
+                // 'prev_page_url' => $jobCategories->previousPageUrl(),
+                // 'path' => $jobCategories->path(),
+                // 'data' => $jobCategories->items(),
+                // 'links' => $jobCategories->render(),
             ];
 
             return response()->json(['data' => $jobCategories, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while getting the job category list!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the job category list!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -57,7 +60,10 @@ class JobCategoryController extends Controller
             $jobCategory = JobCategory::create($validatedData);
             return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo creada con éxito.'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while creating the job category!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while creating the job category!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -72,7 +78,10 @@ class JobCategoryController extends Controller
         try {
             return response()->json(['data' => $jobCategory], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while getting the job category!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while getting the job category!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -90,7 +99,10 @@ class JobCategoryController extends Controller
             $jobCategory->update($validatedData);
             return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo actualizada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while updating the job category!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while updating the job category!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -106,7 +118,10 @@ class JobCategoryController extends Controller
             $jobCategory->delete();
             return response()->json(['message' => 'Categoría de trabajo eliminada con éxito.'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while deleting the job category!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while deleting the job category!',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 }

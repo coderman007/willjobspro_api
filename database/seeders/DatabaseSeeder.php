@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,20 +15,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        // Storage::deleteDirectory('cvs');
+        // Storage::makeDirectory('cvs');
+
+        // Storage::deleteDirectory('photos');
+        // Storage::makeDirectory('photos');
+
+        // Storage::deleteDirectory('banners');
+        // Storage::makeDirectory('banners');
+
         $this->call([
             RoleSeeder::class,
+            UserSeeder::class,
             SubscriptionPlanSeeder::class,
             JobCategorySeeder::class,
             SkillCategorySeeder::class,
             JobTypeSeeder::class,
             SkillSeeder::class,
+            CandidateSeeder::class,
+            // CompanySeeder::class,
         ]);
-
-        $user = User::factory()->create([
-            'name' => 'jaime Sierra',
-            'email' => 'coderman1980@gmail.com',
-            'password' => bcrypt('Coderman1980$'),
-        ]);
-        $user->assignRole('admin');
     }
 }

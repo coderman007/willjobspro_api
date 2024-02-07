@@ -28,7 +28,7 @@ class StoreCandidateRequest extends FormRequest
             'expected_salary' => 'nullable|numeric|min:0',
             'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // Maximum file size: 5 MB
             'photo' => 'nullable|file|mimes:jpeg,png,jpg|max:5120', // Maximum file size: 5 MB
-            'candidate_social_networks' => 'nullable|json',
+            'social_networks' => 'nullable|json',
             'status' => 'required|in:Active,Inactive',
         ];
     }
@@ -53,7 +53,7 @@ class StoreCandidateRequest extends FormRequest
             'cv_path.nullable' => 'The cv path field is optional.',
             'photo_path.nullable' => 'The photo path field is optional.',
             'banner_path.nullable' => 'The banner path field is optional.',
-            'candidate_social_networks.nullable' => 'The candidate social networks field is optional.',
+            'social_networks.nullable' => 'The candidate social networks field is optional.',
             'status.required' => 'The status field is required.',
 
         ];

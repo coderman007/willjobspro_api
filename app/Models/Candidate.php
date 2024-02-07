@@ -27,12 +27,12 @@ class Candidate extends Model
         'cv_path',
         'photo_path',
         'banner_path',
-        'candidate_social_networks',
+        'social_networks',
         'status',
     ];
 
     protected $casts = [
-        'candidate_social_networks' => 'json',
+        'social_networks' => 'json',
     ];
 
     // Relación con el usuario

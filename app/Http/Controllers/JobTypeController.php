@@ -25,16 +25,16 @@ class JobTypeController extends Controller
             // Metadatos de paginación
             $paginationData = [
                 'total' => $jobTypes->total(),
-                'per_page' => $jobTypes->perPage(),
-                'current_page' => $jobTypes->currentPage(),
-                'last_page' => $jobTypes->lastPage(),
-                'from' => $jobTypes->firstItem(),
-                'to' => $jobTypes->lastItem(),
-                'next_page_url' => $jobTypes->nextPageUrl(),
-                'prev_page_url' => $jobTypes->previousPageUrl(),
-                'path' => $jobTypes->path(),
-                'data' => $jobTypes->items(),
-                'links' => $jobTypes->render(),
+                // 'per_page' => $jobTypes->perPage(),
+                // 'current_page' => $jobTypes->currentPage(),
+                // 'last_page' => $jobTypes->lastPage(),
+                // 'from' => $jobTypes->firstItem(),
+                // 'to' => $jobTypes->lastItem(),
+                // 'next_page_url' => $jobTypes->nextPageUrl(),
+                // 'prev_page_url' => $jobTypes->previousPageUrl(),
+                // 'path' => $jobTypes->path(),
+                // 'data' => $jobTypes->items(),
+                // 'links' => $jobTypes->render(),
             ];
 
             return response()->json(['data' => $jobTypes, 'pagination' => $paginationData], 200);
@@ -56,7 +56,10 @@ class JobTypeController extends Controller
             $jobType = JobType::create($validatedData);
             return response()->json(['data' => $jobType, 'message' => 'Job type created successfully!'], 201);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while creating the job type!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while creating the job type!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -71,7 +74,10 @@ class JobTypeController extends Controller
         try {
             return response()->json(['data' => $jobType], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while getting the job type!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while getting the job type!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -89,7 +95,10 @@ class JobTypeController extends Controller
             $jobType->update($validatedData);
             return response()->json(['data' => $jobType, 'message' => 'Job type updated successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while updating the job type!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while updating the job type!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -105,7 +114,10 @@ class JobTypeController extends Controller
             $jobType->delete();
             return response()->json(['message' => 'Job type deleted!'], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error ocurred while deleting the job type!'], 500);
+            return response()->json([
+                'error' => 'An error ocurred while deleting the job type!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 }
