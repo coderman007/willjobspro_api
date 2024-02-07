@@ -9,6 +9,7 @@ use App\Http\Resources\CompanyResource;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class CompanyController extends Controller
 {
@@ -56,7 +57,7 @@ class CompanyController extends Controller
 
             // Extracting emails
             $email = $companies->pluck('user.email')->toArray();
-            $job = $companies->pluck('companies.jobs')->toArray();
+            // $job = $companies->pluck('companies.jobs')->toArray();
 
             $paginationData = [
                 'total' => $companies->total(),
@@ -138,11 +139,14 @@ class CompanyController extends Controller
     public function show(Company $company): JsonResponse
     {
         try {
-            return response()->json(['data' => $company], 200);
+            // Get company details
+            $companyDetail = new CompanyResource($company);
+            
+            return response()->json(['data' => $companyDetail], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error occurred while getting the company!',
-                'details' => $e->getMessage()
+                'error' => 'An error occurred while trying to retrieve company information',
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
