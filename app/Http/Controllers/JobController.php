@@ -137,22 +137,30 @@ class JobController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param Job $job
-     * @return JsonResponse
-     */
-    public function show(Job $job): JsonResponse
-    {
-        try {
-            return response()->json(['data' => $job], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error ocurred whiled getting the job offer!',
-                'details' => $e->getMessage(),
-            ], 500);
+ * Display the specified resource.
+ *
+ * @param Job $job
+ * @return JsonResponse
+ */
+public function show(Job $job)
+{
+    try {
+        // Verificar si el usuario tiene permiso para ver este trabajo
+        $companyId = $job->company_id;
+        if (!$this->userOwnsCompany($companyId)) {
+            return response()->json(['error' => 'Unauthorized action.'], 403);
         }
+
+        // Retornar los detalles del trabajo
+        return response()->json(['data' => $job], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'An error occurred while trying to retrieve job details.',
+            'details' => $e->getMessage(),
+        ], 500);
     }
+}
+
 
     /**
      * Update the specified resource in storage.

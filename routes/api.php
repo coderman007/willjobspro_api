@@ -34,6 +34,11 @@ use Illuminate\Support\Facades\Route;
 // Rutas abiertas
 Route::post("register", [AuthController::class, 'register']);
 Route::post("login", [AuthController::class, 'login']);
+Route::get('companies', [CompanyController::class, 'index']);
+Route::get('companies/{id}', [CompanyController::class, 'show']);
+Route::get('jobs', [JobController::class, 'index']);
+Route::get('jobs/{job}', [JobController::class, 'show']);
+
 
 // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
 Route::group(
@@ -48,8 +53,6 @@ Route::group(
         Route::apiResource('users', UserController::class);
         Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
-        Route::get('jobs', [JobController::class, 'index']);
-        Route::get('jobs/{id}', [JobController::class, 'show']);
         Route::get('applications', [ApplicationController::class, 'index']);
         Route::get('applications/{id}', [ApplicationController::class, 'show']);
         Route::get('skills', [SkillController::class, 'index']);
@@ -65,9 +68,8 @@ Route::group(
         Route::delete('candidates/{id}', [CandidateController::class, 'destroy']);
 
         // Rutas para gestionar compañías
-        Route::get('companies', [CompanyController::class, 'index']);
+        
         Route::post('companies', [CompanyController::class, 'store']);
-        Route::get('companies/{company}', [CompanyController::class, 'show']);
         Route::put('companies/{id}', [CompanyController::class, 'update']);
         Route::delete('companies/{id}', [CompanyController::class, 'destroy']);
 
