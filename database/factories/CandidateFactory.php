@@ -26,6 +26,11 @@ class CandidateFactory extends Factory
             $query->where('name', 'candidate');
         })->inRandomOrder()->first();
 
+        if (!$user) {
+            $user = User::factory()->create();
+            $user->assignRole('candidate');
+        }
+
         return [
             'user_id' => $user->id,
             'full_name' => $this->faker->name,
@@ -40,10 +45,10 @@ class CandidateFactory extends Factory
             'references' => $this->faker->text,
             'expected_salary' => $this->faker->randomFloat(2, 1000, 10000),
             'cv_path' => 'N/A',
-            'photo_path' => 'N/A',
-            'banner_path' => 'N/A',
+            'photo_path' => $this->faker->imageUrl(),
+            'banner_path' => $this->faker->imageUrl(),
             'social_networks' => json_encode(['facebook' => 'example.com/facebook']),
-            'status' => $this->faker->randomElement(['Active', 'Inactive']),
+            'status' => $this->faker->randomElement(['Active', 'Blocked']),
         ];
     }
 }

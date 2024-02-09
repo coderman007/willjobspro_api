@@ -15,16 +15,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
-        // Storage::deleteDirectory('cvs');
-        // Storage::makeDirectory('cvs');
-
-        // Storage::deleteDirectory('photos');
-        // Storage::makeDirectory('photos');
-
-        // Storage::deleteDirectory('banners');
-        // Storage::makeDirectory('banners');
-
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
@@ -34,7 +24,7 @@ class DatabaseSeeder extends Seeder
             JobTypeSeeder::class,
             SkillSeeder::class,
             CandidateSeeder::class,
-            // CompanySeeder::class,
+            CompanySeeder::class,
         ]);
     }
 }

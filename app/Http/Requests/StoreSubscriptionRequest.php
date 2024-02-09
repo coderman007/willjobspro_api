@@ -27,7 +27,7 @@ class StoreSubscriptionRequest extends FormRequest
             'payment_method' => 'nullable|in:credit_card,paypal',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
-            'status' => 'required|in:Active,Inactive',
+            'status' => 'required|in:Active,Blocked',
             'payment_status' => 'required|in:Pending,Completed,Failed',
         ];
     }

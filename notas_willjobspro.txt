@@ -27,3 +27,6 @@ COMPAÑÍAS
 
 
 
+---------------------------------------------------------------------------
+
+* Hacer que la compañía pueda visualizar la lista de candidatos que hayan aplicado a alguna de sus ofertas de trabajo.

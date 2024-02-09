@@ -29,7 +29,7 @@ class StoreCandidateRequest extends FormRequest
             'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // Maximum file size: 5 MB
             'photo' => 'nullable|file|mimes:jpeg,png,jpg|max:5120', // Maximum file size: 5 MB
             'social_networks' => 'nullable|json',
-            'status' => 'required|in:Active,Inactive',
+            'status' => 'required|in:Active,Blocked',
         ];
     }
 

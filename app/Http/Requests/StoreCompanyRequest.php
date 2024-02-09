@@ -33,7 +33,7 @@ class StoreCompanyRequest extends FormRequest
             'logo_path' => 'nullable|string|max:255',
             'banner_path' => 'nullable|string|max:255',
             'social_networks' => 'nullable|json',
-            'status' => 'required|in:Active,Inactive',
+            'status' => 'required|in:Active,Blocked',
         ];
     }
     /**

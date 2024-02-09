@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('logo_path')->nullable();
             $table->text('banner_path')->nullable();
             $table->json('social_networks')->nullable();
-            $table->enum('status', ['Active', 'Inactive']);
+            $table->enum('status', ['Active', 'Blocked']);
             $table->timestamps();
         });
     }

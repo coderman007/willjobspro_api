@@ -27,7 +27,7 @@ class UpdateSubscriptionRequest extends FormRequest
             'payment_method' => 'in:credit_card,paypal',
             'start_date' => 'date',
             'end_date' => 'date',
-            'status' => 'in:Active,Inactive',
+            'status' => 'in:Active,Blocked',
             'payment_status' => 'in:Pending,Completed,Failed',
         ];
     }

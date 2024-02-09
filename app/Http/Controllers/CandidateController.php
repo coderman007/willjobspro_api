@@ -9,6 +9,7 @@ use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CandidateController extends Controller
 {
@@ -75,8 +76,6 @@ class CandidateController extends Controller
             ], 500);
         }
     }
-
-
 
     /**
      * Store a newly created candidate instance in storage.
@@ -160,8 +159,6 @@ class CandidateController extends Controller
     }
 
 
-
-
     /**
      * Add skills to the candidate.
      *
@@ -215,21 +212,40 @@ class CandidateController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified candidate profile.
      *
-     * @param Candidate $candidate
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(Candidate $candidate): JsonResponse
+    public function show($id): JsonResponse
     {
         try {
+            // Get candidate by ID with eager loaded user relationship
+            $candidate = Candidate::with('user')->findOrFail($id);
+
+            // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
+            $authenticatedUser = auth()->user();
+            if (!($authenticatedUser->hasRole('candidate') && $authenticatedUser->id === $candidate->user_id) && !$authenticatedUser->hasRole('admin')) {
+                return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
+            }
+
+            // Puedes incluir aquí la lógica para obtener las habilidades del candidato si es necesario
+
             return response()->json([
+                'message' => 'Candidate Profile Successfully Obtained!',
                 'data' => $candidate,
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Handle the case where the candidate is not found
             return response()->json([
-                'error' => 'An error occurred while getting the candidate!',
-                'details' => $e->getMessage()
+                'error' => 'Candidate not found.',
+                'details' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            // Handle any other exception and return an error response
+            return response()->json([
+                'error' => 'An error occurred while getting the candidate profile.',
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -245,9 +261,30 @@ class CandidateController extends Controller
     {
         try {
             $validatedData = $request->validated();
+
+            // Validar que el usuario autenticado tenga permisos para actualizar este candidato
+            $authenticatedUser = auth()->user();
+            if (!$authenticatedUser->hasRole('candidate') || $authenticatedUser->id !== $candidate->user_id) {
+                return response()->json(['error' => 'Unauthorized to update this candidate'], 403);
+            }
+
+            // Realizar la actualización
             $candidate->update($validatedData);
-            return response()->json(['data' => $candidate, 'message' => 'Candidate updated successfully!'], 200);
+
+            // Obtener la instancia actualizada del candidato
+            $updatedCandidate = $candidate->fresh();
+
+            // Registrar actividad o log si es necesario
+
+            return response()->json(['data' => $updatedCandidate, 'message' => 'Candidate updated successfully!'], 200);
+        } catch (QueryException $e) {
+            // Manejar errores de base de datos
+            return response()->json([
+                'error' => 'An error occurred in the database while updating the candidate!',
+                'details' => $e->getMessage()
+            ], 500);
         } catch (\Exception $e) {
+            // Manejar otros errores
             return response()->json([
                 'error' => 'An error occurred while updating the candidate!',
                 'details' => $e->getMessage()
@@ -255,20 +292,32 @@ class CandidateController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param Candidate $candidate
-     * @return JsonResponse
-     */
     public function destroy(Candidate $candidate): JsonResponse
     {
         try {
+            // Validar que el usuario autenticado tenga permisos para eliminar este candidato
+            $authenticatedUser = auth()->user();
+            if (!$authenticatedUser->hasRole('admin') && $authenticatedUser->id !== $candidate->user_id) {
+                return response()->json(['error' => 'Unauthorized to delete this candidate'], 403);
+            }
+
+            // Iniciar una transacción de base de datos
+            DB::beginTransaction();
+
+            // Eliminar al candidato y al usuario asociado
             $candidate->delete();
+            $candidate->user()->delete();
+
+            // Commit de la transacción
+            DB::commit();
+
             return response()->json(['message' => 'Candidate deleted!'], 200);
         } catch (\Exception $e) {
+            // Rollback de la transacción en caso de error
+            DB::rollBack();
+
             return response()->json([
-                'error' => 'An error occurred while deleting the candidate!',
+                'error' => 'An error occurred while deleting the candidate and associated user!',
                 'details' => $e->getMessage()
             ], 500);
         }

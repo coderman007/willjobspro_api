@@ -141,7 +141,7 @@ class CompanyController extends Controller
         try {
             // Get company details
             $companyDetail = new CompanyResource($company);
-            
+
             return response()->json(['data' => $companyDetail], 200);
         } catch (\Exception $e) {
             return response()->json([

@@ -30,7 +30,7 @@ return new class extends Migration
             $table->text('photo_path')->nullable()->default('N/A');
             $table->text('banner_path')->nullable()->default('N/A');
             $table->json('social_networks')->nullable();
-            $table->enum('status', ['Active', 'Inactive']);
+            $table->enum('status', ['Active', 'Blocked']);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

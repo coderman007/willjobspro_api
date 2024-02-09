@@ -29,7 +29,7 @@ class UpdateSubscriptionPlanRequest extends FormRequest
             'description' => 'nullable|string',
             'price' => 'numeric|min:0',
             'duration' => 'integer|min:1',
-            'status' => 'in:Active,Inactive',
+            'status' => 'in:Active,Blocked',
         ];
     }
 }

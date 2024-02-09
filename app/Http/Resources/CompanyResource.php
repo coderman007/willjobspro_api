@@ -27,6 +27,7 @@ class CompanyResource extends JsonResource
             'description' => $this->description,
             'contact_person' => $this->contact_person,
             'logo_path' => $this->logo_path,
+            'banner_path' => $this->banner_path,
             'social_networks' => $this->social_networks,
             'status' => $this->status,
         ];

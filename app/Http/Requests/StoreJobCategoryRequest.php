@@ -19,7 +19,7 @@ class StoreJobCategoryRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'required|in:Active,Inactive',
+            'status' => 'required|in:Active,Blocked',
         ];
     }
 }
