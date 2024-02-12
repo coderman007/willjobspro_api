@@ -9,6 +9,7 @@ use App\Models\Job;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -28,6 +29,28 @@ class ApplicationController extends Controller
 
             // Inicializar la consulta de Eloquent
             $query = Application::with(['candidate', 'job']);
+
+            // Obtén el tipo de usuario autenticado
+            $userType = Auth::user()->getUserType();
+
+            switch ($userType) {
+                case 'admin':
+                    // Si es un administrador, mostrar todas las aplicaciones
+                    break;
+                case 'company':
+                    // Si es una compañía, mostrar solo las aplicaciones de sus propios trabajos
+                    $query->whereHas('job', function ($jobQuery) {
+                        $jobQuery->where('company_id', Auth::user()->company->id);
+                    });
+                    break;
+                case 'candidate':
+                    // Si es un candidato, mostrar solo sus aplicaciones
+                    $query->where('candidate_id', Auth::user()->candidate->id);
+                    break;
+                default:
+                    // Tipo de usuario no reconocido
+                    return response()->json(['error' => 'User type not recognized'], 403);
+            }
 
             // Aplicar búsqueda por el título del trabajo
             if ($request->filled('search')) {

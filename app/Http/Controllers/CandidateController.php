@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Candidate;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
+use App\Http\Resources\CandidateResource;
 use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -220,7 +221,7 @@ class CandidateController extends Controller
     public function show($id): JsonResponse
     {
         try {
-            // Get candidate by ID with eager loaded user relationship
+            // Obtener el candidato por ID con la relación de usuario cargada de forma ansiosa
             $candidate = Candidate::with('user')->findOrFail($id);
 
             // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
@@ -229,26 +230,35 @@ class CandidateController extends Controller
                 return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
             }
 
-            // Puedes incluir aquí la lógica para obtener las habilidades del candidato si es necesario
+            // Obtener las habilidades del candidato
+            $skills = $candidate->skills;
+
+            // Transformar el candidato a un recurso CandidateResource
+            $candidateResource = new CandidateResource($candidate);
 
             return response()->json([
                 'message' => 'Candidate Profile Successfully Obtained!',
-                'data' => $candidate,
+                'data' => [
+                    'candidate' => $candidateResource,
+                    'skills' => $skills,
+                ],
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Handle the case where the candidate is not found
+            // Manejar el caso en el que no se encuentra al candidato
             return response()->json([
                 'error' => 'Candidate not found.',
                 'details' => $e->getMessage(),
             ], 404);
         } catch (\Exception $e) {
-            // Handle any other exception and return an error response
+            // Manejar cualquier otra excepción y devolver una respuesta de error
             return response()->json([
                 'error' => 'An error occurred while getting the candidate profile.',
                 'details' => $e->getMessage(),
             ], 500);
         }
     }
+
+
 
     /**
      * Update the specified resource in storage.

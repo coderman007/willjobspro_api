@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Helpers\CompanyOwnershipValidator;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+
 
 class CompanyController extends Controller
 {
@@ -55,10 +56,6 @@ class CompanyController extends Controller
 
             $companies = $query->paginate($perPage);
 
-            // Extracting emails
-            $email = $companies->pluck('user.email')->toArray();
-            // $job = $companies->pluck('companies.jobs')->toArray();
-
             $paginationData = [
                 'total' => $companies->total(),
                 'per_page' => $companies->perPage(),
@@ -87,6 +84,7 @@ class CompanyController extends Controller
      * @param StoreCompanyRequest $request
      * @return JsonResponse
      */
+
     public function store(StoreCompanyRequest $request): JsonResponse
     {
         try {
@@ -118,16 +116,17 @@ class CompanyController extends Controller
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'Error en la base de datos al intentar crear la compañía.',
-                'details' => 'Internal Server Error',
+                'details' => $e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
             // Otros errores
             return response()->json([
                 'error' => 'Error al crear la compañía.',
-                'details' => 'Internal Server Error',
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
+
 
 
     /**
@@ -159,19 +158,48 @@ class CompanyController extends Controller
      * @param Company $company
      * @return JsonResponse
      */
-    public function update(UpdateCompanyRequest $request, Company $company): JsonResponse
+    public function update(UpdateCompanyRequest $request, Company $company)
     {
         try {
             $validatedData = $request->validated();
-            $company->update($validatedData);
-            return response()->json(['data' => $company, 'message' => 'Compañía actualizada con éxito.'], 200);
+
+            // Validar propiedad de la compañía
+            if (!CompanyOwnershipValidator::validateOwnership($company->id)) {
+                return response()->json(['error' => 'Unauthorized action.'], 403);
+            }
+
+            // Actualizar los campos de la compañía
+            $company->update([
+                'name' => $validatedData['name'],
+                'industry' => $validatedData['industry'],
+                'address' => $validatedData['address'],
+                'phone_number' => $validatedData['phone_number'],
+                'website' => $validatedData['website'],
+                'description' => $validatedData['description'],
+                'contact_person' => $validatedData['contact_person'],
+                'logo_path' => $validatedData['logo_path'],
+                'social_networks' => $validatedData['social_networks'],
+                'status' => $validatedData['status'],
+            ]);
+
+            // Devolver una respuesta exitosa
+            return response()->json(['data' => new CompanyResource($company), 'message' => 'Company Updated Successfully!'], 200);
+        } catch (QueryException $e) {
+            // Manejo de errores de base de datos
+            return response()->json([
+                'error' => 'Error en la base de datos al intentar actualizar la compañía.',
+                'details' => $e->getMessage(),
+            ], 500);
         } catch (\Exception $e) {
+            // Otros errores
             return response()->json([
                 'error' => 'Error al actualizar la compañía.',
                 'details' => $e->getMessage(),
             ], 500);
         }
     }
+
+
 
     /**
      * Remove the specified resource from storage.
@@ -182,12 +210,49 @@ class CompanyController extends Controller
     public function destroy(Company $company): JsonResponse
     {
         try {
+            // Validar propiedad de la compañía
+            if (!CompanyOwnershipValidator::validateOwnership($company->id)) {
+                return response()->json(['error' => 'Unauthorized action.'], 403);
+            }
+
             $company->delete();
-            return response()->json(['message' => 'Compañía eliminada con éxito.'], 200);
+            return response()->json(['message' => 'Company has been deleted.'], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error al eliminar la compañía.',
+                'error' => 'An error ocurred while trying to delete the company.',
                 'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    /**
+     * Display all candidates who applied to jobs posted by the company.
+     *
+     * @param Company $company
+     * @return JsonResponse
+     */
+    public function getCompanyApplicants(Company $company): JsonResponse
+    {
+        try {
+            // Obtener todos los trabajos publicados por la compañía
+            $jobs = $company->jobs;
+
+            // Obtener los candidatos que aplicaron a esos trabajos
+            $applicants = [];
+            foreach ($jobs as $job) {
+                $applications = $job->applications()->with('candidate')->get();
+                $applicants = array_merge($applicants, $applications->pluck('candidate')->toArray());
+            }
+
+            // Eliminar duplicados de la lista de candidatos
+            $uniqueApplicants = collect($applicants)->unique('id')->values();
+
+            return response()->json(['data' => $uniqueApplicants], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while getting company applicants!',
+                'details' => $e->getMessage(),
             ], 500);
         }
     }

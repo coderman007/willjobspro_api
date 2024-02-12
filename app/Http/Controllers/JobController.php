@@ -96,7 +96,7 @@ class JobController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'You can\'t create a new job offer with thid company id.'], 403);
+                return response()->json(['error' => 'You can\'t create a new job offer with this company id.'], 403);
             }
 
             // Verificar si se proporcionó un plan de suscripción

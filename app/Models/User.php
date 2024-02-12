@@ -46,6 +46,32 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * Get the type of the user (admin, company, candidate).
+     *
+     * @return string|null
+     */
+    public function getUserType(): ?string
+    {
+        // Verificar si el usuario tiene el rol 'admin'
+        if ($this->hasRole('admin')) {
+            return 'admin';
+        }
+
+        // Verificar si el usuario tiene el rol 'company'
+        if ($this->hasRole('company')) {
+            return 'company';
+        }
+
+        // Verificar si el usuario tiene el rol 'candidate'
+        if ($this->hasRole('candidate')) {
+            return 'candidate';
+        }
+
+        // Si no tiene ninguno de los roles anteriores, retorna null o un valor predeterminado según tu lógica
+        return null;
+    }
+
     public function candidate()
     {
         return $this->hasOne(Candidate::class);

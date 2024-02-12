@@ -55,49 +55,53 @@ Route::group(
         Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);
 
         // Rutas para gestionar compañías
+
+
         Route::post('companies', [CompanyController::class, 'store']);
-        Route::put('companies/{id}', [CompanyController::class, 'update']);
+        Route::put('companies/{company}', [CompanyController::class, 'update']);
         Route::delete('companies/{company}', [CompanyController::class, 'destroy']);
 
-
         //Rutas protegidas con autenticación y con el middleware 'checkAdminRole'
-        Route::middleware(['checkAdminRole'])->group(function () {
+        // Route::middleware(['checkAdminRole'])->group(function () {
 
-            // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
-            Route::get('job-categories{job_category}', [JobCategoryController::class, 'show']);
-            Route::post('job-categories', [JobCategoryController::class, 'store']);
-            Route::put('job-categories/{job_category}', [JobCategoryController::class, 'update']);
-            Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);
+        // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
+        Route::get('job-categories{job_category}', [JobCategoryController::class, 'show']);
+        Route::post('job-categories', [JobCategoryController::class, 'store']);
+        Route::put('job-categories/{job_category}', [JobCategoryController::class, 'update']);
+        Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);
 
-            // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
-            Route::get('job-types/{job_type}', [JobTypeController::class, 'show']);
-            Route::post('job-types', [JobTypeController::class, 'store']);
-            Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
-            Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
+        // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
+        Route::get('job-types/{job_type}', [JobTypeController::class, 'show']);
+        Route::post('job-types', [JobTypeController::class, 'store']);
+        Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
+        Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
 
 
-            // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
-            Route::post('subscription-plans', [SubscriptionPlanController::class, 'store']);
-            Route::put('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'update']);
-            Route::delete('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'destroy']);
-            Route::apiResource('users', UserController::class);
-        });
+        // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
+        Route::post('subscription-plans', [SubscriptionPlanController::class, 'store']);
+        Route::put('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'update']);
+        Route::delete('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'destroy']);
+        Route::apiResource('users', UserController::class);
+        // });
 
 
         //Rutas protegidas con autenticación y con el middleware 'checkCompanyRole'
-        Route::middleware(['checkCompanyRole'])->group(function () {
+        // Route::middleware(['checkCompanyRole'])->group(function () {
 
-            // Rutas para crear, actualizar y eliminar ofertas de trabajo
-            Route::post('jobs', [JobController::class, 'store']);
-            Route::put('jobs/{job}', [JobController::class, 'update']);
-            Route::delete('jobs/{job}', [JobController::class, 'destroy']);
-        });
+        // Rutas para crear, actualizar y eliminar ofertas de trabajo
+        Route::post('jobs', [JobController::class, 'store']);
+        Route::put('jobs/{job}', [JobController::class, 'update']);
+        Route::delete('jobs/{job}', [JobController::class, 'destroy']);
+        Route::get('/companies/{company}/applicants', [CompanyController::class, 'getCompanyApplicants']);
+        // });
 
 
         //Rutas protegidas con autenticación y con el middleware 'checkCandidateRole'
         Route::middleware(['checkCandidateRole'])->group(function () {
 
             // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
+            Route::get('applications', [ApplicationController::class, 'index']);
+            Route::get('applications/{application}', [ApplicationController::class, 'show']);
             Route::post('applications', [ApplicationController::class, 'store']);
             Route::put('applications/{application}', [ApplicationController::class, 'update']);
             Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);

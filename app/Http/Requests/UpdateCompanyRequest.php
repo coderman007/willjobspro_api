@@ -28,7 +28,7 @@ class UpdateCompanyRequest extends FormRequest
             'address' => 'string|max:255',
             'phone_number' => 'string|max:20',
             'website' => 'nullable|string|max:255',
-            'description' => 'string',
+            'description' => 'nullable|string',
             'contact_person' => 'string|max:255',
             'logo_path' => 'nullable|string|max:255',
             'banner_path' => 'nullable|string|max:255',
