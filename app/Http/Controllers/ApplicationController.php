@@ -92,6 +92,15 @@ class ApplicationController extends Controller
                 return response()->json(['error' => 'Job not found.'], 404);
             }
 
+            // Verificar si ya existe una aplicación con los mismos candidate_id y job_id
+            $existingApplication = Application::where('candidate_id', $validatedData['candidate_id'])
+                ->where('job_id', $validatedData['job_id'])
+                ->first();
+
+            if ($existingApplication) {
+                return response()->json(['error' => 'An application with the same candidate and job already exists.'], 422);
+            }
+
             // Crear la aplicación
             $application = Application::create($validatedData);
 
