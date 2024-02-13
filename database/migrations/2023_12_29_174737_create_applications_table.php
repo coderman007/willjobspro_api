@@ -18,8 +18,8 @@ return new class extends Migration
 
             $table->dateTime('application_date')->nullable();
             $table->dateTime('rejection_date')->nullable();
-            $table->text('cover_letter');
-            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected']);
+            $table->text('cover_letter')->nullable();
+            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected'])->nullable();
             $table->timestamps();
 
             $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');

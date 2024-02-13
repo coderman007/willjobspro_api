@@ -12,7 +12,7 @@ class StoreApplicationRequest extends FormRequest
     public function authorize(): bool
     {
         // Verificar si el usuario tiene el rol 'candidate'
-        return auth()->user()->hasRole('candidate'); //Debe ser true para continuar.
+        return true;
     }
 
     /**
