@@ -101,11 +101,11 @@ Route::group(
         // Route::middleware(['checkCandidateRole'])->group(function () {
 
         // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
-        // Route::get('applications', [ApplicationController::class, 'index']);
-        // Route::get('applications/{application}', [ApplicationController::class, 'show']);
-        // Route::post('applications', [ApplicationController::class, 'store']);
-        // Route::put('applications/{application}', [ApplicationController::class, 'update']);
-        // Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
+        Route::get('applications', [ApplicationController::class, 'index']);
+        Route::get('applications/{application}', [ApplicationController::class, 'show']);
+        Route::post('applications', [ApplicationController::class, 'store']);
+        Route::put('applications/{application}', [ApplicationController::class, 'update']);
+        Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
 
         // Rutas para suscripciones
         Route::post('subscriptions', [SubscriptionController::class, 'subscribe']);
