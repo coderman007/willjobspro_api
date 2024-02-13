@@ -69,12 +69,13 @@ class CompanyController extends Controller
                 // 'data' => $companies->items(),
             ];
 
-            return response()->json(['data' => CompanyResource::collection($companies), 'pagination' => $paginationData], 200);
+            return $this->jsonResponse(CompanyResource::collection($companies), 'Companies retrieved successfully!', 200)
+                ->header('X-Total-Count', $companies->total())
+                ->header('X-Per-Page', $companies->perPage())
+                ->header('X-Current-Page', $companies->currentPage())
+                ->header('X-Last-Page', $companies->lastPage());
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while trying to retrieve company information',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error retrieving companies: ' . $e->getMessage(), 500);
         }
     }
 
@@ -84,7 +85,6 @@ class CompanyController extends Controller
      * @param StoreCompanyRequest $request
      * @return JsonResponse
      */
-
     public function store(StoreCompanyRequest $request): JsonResponse
     {
         try {
@@ -111,23 +111,11 @@ class CompanyController extends Controller
                 'status' => $validatedData['status'],
             ]);
 
-            return response()->json(['data' => new CompanyResource($company), 'message' => 'Company Created Successfully!'], 201);
-        } catch (QueryException $e) {
-            // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'Error en la base de datos al intentar crear la compañía.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonResponse(new CompanyResource($company), 'Company created successfully!', 201);
         } catch (\Exception $e) {
-            // Otros errores
-            return response()->json([
-                'error' => 'Error al crear la compañía.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error creating company: ' . $e->getMessage(), 500);
         }
     }
-
-
 
     /**
      * Display the specified resource.
@@ -141,15 +129,11 @@ class CompanyController extends Controller
             // Get company details
             $companyDetail = new CompanyResource($company);
 
-            return response()->json(['data' => $companyDetail], 200);
+            return $this->jsonResponse($companyDetail, 'Company details retrieved successfully!', 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while trying to retrieve company information',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error retrieving company details: ' . $e->getMessage(), 500);
         }
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -158,7 +142,7 @@ class CompanyController extends Controller
      * @param Company $company
      * @return JsonResponse
      */
-    public function update(UpdateCompanyRequest $request, Company $company)
+    public function update(UpdateCompanyRequest $request, Company $company): JsonResponse
     {
         try {
             $validatedData = $request->validated();
@@ -169,37 +153,13 @@ class CompanyController extends Controller
             }
 
             // Actualizar los campos de la compañía
-            $company->update([
-                'name' => $validatedData['name'],
-                'industry' => $validatedData['industry'],
-                'address' => $validatedData['address'],
-                'phone_number' => $validatedData['phone_number'],
-                'website' => $validatedData['website'],
-                'description' => $validatedData['description'],
-                'contact_person' => $validatedData['contact_person'],
-                'logo_path' => $validatedData['logo_path'],
-                'social_networks' => $validatedData['social_networks'],
-                'status' => $validatedData['status'],
-            ]);
+            $company->update($validatedData);
 
-            // Devolver una respuesta exitosa
-            return response()->json(['data' => new CompanyResource($company), 'message' => 'Company Updated Successfully!'], 200);
-        } catch (QueryException $e) {
-            // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'Error en la base de datos al intentar actualizar la compañía.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonResponse(new CompanyResource($company), 'Company updated successfully!', 200);
         } catch (\Exception $e) {
-            // Otros errores
-            return response()->json([
-                'error' => 'Error al actualizar la compañía.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error updating company: ' . $e->getMessage(), 500);
         }
     }
-
-
 
     /**
      * Remove the specified resource from storage.
@@ -216,15 +176,12 @@ class CompanyController extends Controller
             }
 
             $company->delete();
-            return response()->json(['message' => 'Company has been deleted.'], 200);
+
+            return $this->jsonResponse(null, 'Company deleted successfully!', 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error ocurred while trying to delete the company.',
-                'details' => $e->getMessage()
-            ], 500);
+            return $this->jsonErrorResponse('Error deleting company: ' . $e->getMessage(), 500);
         }
     }
-
 
     /**
      * Display all candidates who applied to jobs posted by the company.
@@ -248,12 +205,45 @@ class CompanyController extends Controller
             // Eliminar duplicados de la lista de candidatos
             $uniqueApplicants = collect($applicants)->unique('id')->values();
 
-            return response()->json(['data' => $uniqueApplicants], 200);
+            return $this->jsonResponse($uniqueApplicants, 'Company applicants retrieved successfully!', 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while getting company applicants!',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error retrieving company applicants: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Function to generate a consistent JSON response
+     *
+     * @param mixed $data The data to include in the response
+     * @param string $message The response message
+     * @param int $status The HTTP status code
+     * @return JsonResponse
+     */
+    protected function jsonResponse($data = null, $message = null, $status = 200): JsonResponse
+    {
+        $response = [
+            'success' => true,
+            'data' => $data,
+            'message' => $message,
+        ];
+
+        return response()->json($response, $status);
+    }
+
+    /**
+     * Function to generate a consistent JSON error response
+     *
+     * @param string $message The error message
+     * @param int $status The HTTP status code
+     * @return JsonResponse
+     */
+    protected function jsonErrorResponse($message = null, $status = 500): JsonResponse
+    {
+        $response = [
+            'success' => false,
+            'error' => $message,
+        ];
+
+        return response()->json($response, $status);
     }
 }

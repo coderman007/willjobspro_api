@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -80,12 +81,6 @@ class JobController extends Controller
      * @param StoreJobRequest $request
      * @return JsonResponse
      */
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param StoreJobRequest $request
-     * @return JsonResponse
-     */
     public function store(StoreJobRequest $request)
     {
         try {
@@ -96,7 +91,7 @@ class JobController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'You can\'t create a new job offer with this company id.'], 403);
+                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
             }
 
             // Verificar si se proporcionó un plan de suscripción
@@ -133,8 +128,23 @@ class JobController extends Controller
     protected function userOwnsCompany($companyId)
     {
         $user = auth()->user();
-        return $user && $user->company && $user->company->id == $companyId;
+
+        // Verificar si el usuario está autenticado y tiene el rol 'company'
+        if ($user && $user->hasRole('company')) {
+            // Obtener la compañía asociada al usuario
+            $userCompany = $user->company;
+
+            // Verificar si la compañía existe y su ID coincide con $companyId
+            if ($userCompany && $userCompany->id == $companyId) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+
+
 
     /**
      * Display the specified resource.
@@ -150,7 +160,14 @@ class JobController extends Controller
 
             // Retornar los detalles del trabajo
             return response()->json(['data' => $job], 200);
+        } catch (ModelNotFoundException $e) {
+            // Manejar la excepción cuando el modelo no se encuentra
+            return response()->json([
+                'error' => 'Job not found.',
+                'details' => $e->getMessage(),
+            ], 404);
         } catch (\Exception $e) {
+            // Manejar otras excepciones generales
             return response()->json([
                 'error' => 'An error occurred while trying to retrieve job details.',
                 'details' => $e->getMessage(),
@@ -179,7 +196,7 @@ class JobController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'Unauthorized action.'], 403);
+                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
             }
 
             // Verificar si se proporcionó un nuevo plan de suscripción
@@ -223,7 +240,7 @@ class JobController extends Controller
             $companyId = $job->company_id;
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'Unauthorized action.'], 403);
+                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
             }
 
             $job->delete();

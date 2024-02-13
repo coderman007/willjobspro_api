@@ -21,10 +21,10 @@ Route::post("register", [AuthController::class, 'register']);
 Route::post("login", [AuthController::class, 'login']);
 Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{company}', [CompanyController::class, 'show']);
+Route::get('job-categories', [JobCategoryController::class, 'index']);
+Route::get('job-types', [JobTypeController::class, 'index']);;
 Route::get('jobs', [JobController::class, 'index']);
 Route::get('jobs/{id}', [JobController::class, 'show']);
-Route::get('job-categories', [JobCategoryController::class, 'index']);
-Route::get('job-types', [JobTypeController::class, 'index']);
 
 
 // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
@@ -40,13 +40,14 @@ Route::group(
 
         Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
-        Route::get('applications', [ApplicationController::class, 'index']);
-        Route::get('applications/{id}', [ApplicationController::class, 'show']);
+        // Route::get('applications', [ApplicationController::class, 'index']);
+        // Route::get('applications/{id}', [ApplicationController::class, 'show']);
         Route::get('skills', [SkillController::class, 'index']);
         Route::get('skills/{id}', [SkillController::class, 'show']);
 
         // Rutas para gestionar candidatos
         Route::get('candidates', [CandidateController::class, 'index']);
+        // Route::get('applications', [ApplicationController::class, 'index']);
         Route::post('candidates', [CandidateController::class, 'store']);
         Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
         Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
@@ -97,24 +98,24 @@ Route::group(
 
 
         //Rutas protegidas con autenticación y con el middleware 'checkCandidateRole'
-        Route::middleware(['checkCandidateRole'])->group(function () {
+        // Route::middleware(['checkCandidateRole'])->group(function () {
 
-            // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
-            Route::get('applications', [ApplicationController::class, 'index']);
-            Route::get('applications/{application}', [ApplicationController::class, 'show']);
-            Route::post('applications', [ApplicationController::class, 'store']);
-            Route::put('applications/{application}', [ApplicationController::class, 'update']);
-            Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
+        // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
+        // Route::get('applications', [ApplicationController::class, 'index']);
+        // Route::get('applications/{application}', [ApplicationController::class, 'show']);
+        // Route::post('applications', [ApplicationController::class, 'store']);
+        // Route::put('applications/{application}', [ApplicationController::class, 'update']);
+        // Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
 
-            // Rutas para suscripciones
-            Route::post('subscriptions', [SubscriptionController::class, 'subscribe']);
-            Route::put('subscriptions/{id}', [SubscriptionController::class, 'updateSubscription']);
-            Route::delete('subscriptions/{id}', [SubscriptionController::class, 'cancelSubscription']);
+        // Rutas para suscripciones
+        Route::post('subscriptions', [SubscriptionController::class, 'subscribe']);
+        Route::put('subscriptions/{id}', [SubscriptionController::class, 'updateSubscription']);
+        Route::delete('subscriptions/{id}', [SubscriptionController::class, 'cancelSubscription']);
 
-            // Rutas para pagos
-            Route::post('payments', [PaymentController::class, 'makePayment']);
-            Route::get('payments', [PaymentController::class, 'getPayments']);
-            Route::get('payments/{id}', [PaymentController::class, 'getPayment']);
-        });
+        // Rutas para pagos
+        Route::post('payments', [PaymentController::class, 'makePayment']);
+        Route::get('payments', [PaymentController::class, 'getPayments']);
+        Route::get('payments/{id}', [PaymentController::class, 'getPayment']);
+        // });
     }
 );

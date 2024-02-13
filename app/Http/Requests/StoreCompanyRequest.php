@@ -22,7 +22,6 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
             'name' => 'required|string|max:255',
             'industry' => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
@@ -44,8 +43,6 @@ class StoreCompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'The user field is required.',
-            'user_id.exists' => 'The user field does not exist.',
             'name.required' => 'The company name field is required.',
             'industry.nullable' => 'The industry field is optional.',
             'address.nullable' => 'The address field is optional.',
