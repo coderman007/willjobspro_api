@@ -11,6 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateController extends Controller
 {
@@ -135,13 +136,25 @@ class CandidateController extends Controller
             // Validar y almacenar hoja de vida (CV)
             if ($request->hasFile('cv_file')) {
                 $cvFile = $request->file('cv_file');
-                // Lógica de validación y almacenamiento del archivo CV aquí
+                $cvFileName = 'cv_' . $user->id . '.' . $cvFile->getClientOriginalExtension();
+
+                // Almacenar el archivo en la carpeta de almacenamiento correspondiente
+                Storage::disk('public')->putFileAs('cvs', $cvFile, $cvFileName);
+
+                // Actualizar el campo 'cv_path' en la instancia del candidato
+                $candidate->update(['cv_path' => $cvFileName]);
             }
 
             // Validar y almacenar foto de perfil
             if ($request->hasFile('photo')) {
                 $photo = $request->file('photo');
-                // Lógica de validación y almacenamiento de la foto aquí
+                $photoFileName = 'photo_' . $user->id . '.' . $photo->getClientOriginalExtension();
+
+                // Almacenar el archivo en la carpeta de almacenamiento correspondiente
+                Storage::disk('public')->putFileAs('photos', $photo, $photoFileName);
+
+                // Actualizar el campo 'photo_path' en la instancia del candidato
+                $candidate->update(['photo_path' => $photoFileName]);
             }
 
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
