@@ -158,8 +158,16 @@ class JobController extends Controller
             // Recuperar el trabajo por su ID
             $job = Job::findOrFail($id);
 
+            $category = $job->jobCategory->name;
+            $type = $job->jobType->name;
+
             // Retornar los detalles del trabajo
-            return response()->json(['data' => $job], 200);
+            return response()->json([
+                'message' => 'Job offer detail obtained successfully',
+                'data' => $job,
+                'category_name' => $category,
+                'type_name' => $type,
+            ], 200);
         } catch (ModelNotFoundException $e) {
             // Manejar la excepción cuando el modelo no se encuentra
             return response()->json([

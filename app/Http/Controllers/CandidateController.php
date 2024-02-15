@@ -100,13 +100,7 @@ class CandidateController extends Controller
             $cvName = $this->generateFileName($request->cv_file);
             $photoName = $this->generateFileName($request->photo_file);
             $bannerName = $this->generateFileName($request->banner_file);
-            var_dump([
 
-                'photo_path' => $photoName,
-                'cv_path' => $cvName,
-                'banner_path' => $bannerName,
-
-            ]);
             // Crear instancia en la tabla 'candidates'
             $candidate = Candidate::create([
                 'user_id' => $user->id,
