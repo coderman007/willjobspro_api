@@ -87,91 +87,115 @@ class CandidateController extends Controller
      */
     public function store(StoreCandidateRequest $request): JsonResponse
     {
-        try {
-            $validatedData = $request->validated();
-            $user = auth()->user();
+        $validatedData = $request->validated();
+        $user = auth()->user();
 
-            // Verificar si el usuario tiene el rol 'candidate'
-            if (!$user->hasRole('candidate')) {
-                return response()->json(['error' => 'User does not have the candidate role'], 403);
-            }
+        if (!$user->hasRole('candidate')) {
+            return response()->json(['error' => 'User does not have the candidate role'], 403);
+        }
+
+        try {
+            DB::beginTransaction();
 
             // Crear instancia en la tabla 'candidates'
-            $candidate = Candidate::create([
-                'user_id' => $user->id,
-                'full_name' => $validatedData['full_name'],
-                'gender' => $validatedData['gender'],
-                'date_of_birth' => $validatedData['date_of_birth'],
-                'address' => $validatedData['address'],
-                'phone_number' => $validatedData['phone_number'],
-                'work_experience' => $validatedData['work_experience'],
-                'education' => $validatedData['education'],
-                'certifications' => $validatedData['certifications'],
-                'languages' => $validatedData['languages'],
-                'references' => $validatedData['references'],
-                'expected_salary' => $validatedData['expected_salary'],
-                'social_networks' => $validatedData['social_networks'],
-
-                'status' => $validatedData['status'],
-            ]);
+            $candidate = $this->createCandidate($user, $validatedData);
 
             // Validar y asociar habilidades al candidato
-            if ($request->filled('skills')) {
-                $skills = explode(',', $request->input('skills'));
+            $this->attachSkills($request, $candidate);
 
-                foreach ($skills as $skillName) {
-                    $skillName = trim($skillName);
+            // Almacenar archivos adjuntos
+            $this->storeFiles($request, $candidate, $user);
 
-                    // Validar que la habilidad exista en la base de datos
-                    $skill = Skill::where('name', $skillName)->first();
-
-                    if ($skill) {
-                        $candidate->addSkill($skill->id);
-                    } else {
-                        return response()->json(['error' => "Skill '$skillName' not found in the database."], 422);
-                    }
-                }
-            }
-
-            // Validar y almacenar hoja de vida (CV)
-            if ($request->hasFile('cv_file')) {
-                $cvFile = $request->file('cv_file');
-                $cvFileName = 'cv_' . $user->id . '.' . $cvFile->getClientOriginalExtension();
-
-                // Almacenar el archivo en la carpeta de almacenamiento correspondiente
-                Storage::disk('public')->putFileAs('cvs', $cvFile, $cvFileName);
-
-                // Actualizar el campo 'cv_path' en la instancia del candidato
-                $candidate->update(['cv_path' => $cvFileName]);
-            }
-
-            // Validar y almacenar foto de perfil
-            if ($request->hasFile('photo')) {
-                $photo = $request->file('photo');
-                $photoFileName = 'photo_' . $user->id . '.' . $photo->getClientOriginalExtension();
-
-                // Almacenar el archivo en la carpeta de almacenamiento correspondiente
-                Storage::disk('public')->putFileAs('photos', $photo, $photoFileName);
-
-                // Actualizar el campo 'photo_path' en la instancia del candidato
-                $candidate->update(['photo_path' => $photoFileName]);
-            }
+            DB::commit();
 
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
         } catch (QueryException $e) {
-            // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'An error occurred in database while creating the candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            return $this->handleDatabaseError($e);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while creating the candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            DB::rollBack();
+            return $this->handleGenericError($e);
         }
     }
 
+
+    private function createCandidate($user, $validatedData)
+    {
+        return Candidate::create([
+            'user_id' => $user->id,
+            'full_name' => $validatedData['full_name'],
+            'gender' => $validatedData['gender'],
+            'date_of_birth' => $validatedData['date_of_birth'],
+            'address' => $validatedData['address'],
+            'phone_number' => $validatedData['phone_number'],
+            'work_experience' => $validatedData['work_experience'],
+            'education' => $validatedData['education'],
+            'certifications' => $validatedData['certifications'],
+            'languages' => $validatedData['languages'],
+            'references' => $validatedData['references'],
+            'expected_salary' => $validatedData['expected_salary'],
+            'social_networks' => $validatedData['social_networks'],
+            'status' => $validatedData['status'],
+        ]);
+    }
+
+    private function attachSkills(Request $request, Candidate $candidate): void
+    {
+        if ($request->filled('skills')) {
+            $skills = explode(',', $request->input('skills'));
+
+            foreach ($skills as $skillName) {
+                $this->validateAndAttachSkill($candidate, $skillName);
+            }
+        }
+    }
+
+    private function validateAndAttachSkill(Candidate $candidate, $skillName)
+    {
+        $skillName = trim($skillName);
+        $skill = Skill::where('name', $skillName)->first();
+
+        if ($skill) {
+            $candidate->addSkill($skill->id);
+        } else {
+            throw new \Exception("Skill '$skillName' not found in the database.");
+        }
+    }
+
+    private function storeFiles(Request $request, Candidate $candidate, $user): void
+    {
+        $this->storeFile($request, $candidate, $user, 'cv_file', 'cvs');
+        $this->storeFile($request, $candidate, $user, 'photo_file', 'photos');
+        $this->storeFile($request, $candidate, $user, 'banner_file', 'banners');
+    }
+
+    private function storeFile(Request $request, Candidate $candidate, $user, $fileKey, $storageFolder): void
+    {
+        if ($request->hasFile($fileKey)) {
+            $file = $request->file($fileKey);
+            $fileName = $fileKey . '_' . $user->id . '.' . $file->getClientOriginalExtension();
+
+            Storage::disk('public')->putFileAs($storageFolder, $file, $fileName);
+
+            $candidate->update([$fileKey . '_path' => $fileName]);
+        }
+    }
+
+    private function handleDatabaseError(QueryException $e): JsonResponse
+    {
+        return response()->json([
+            'error' => 'An error occurred in the database while creating the candidate!',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+
+    private function handleGenericError(\Exception $e): JsonResponse
+    {
+        return response()->json([
+            'error' => 'An error occurred while creating the candidate!',
+            'details' => $e->getMessage()
+        ], 500);
+    }
 
     /**
      * Add skills to the candidate.
@@ -181,23 +205,36 @@ class CandidateController extends Controller
      * @param Skill $skill
      * @return JsonResponse
      */
-    public function addSkill(Request $request, Candidate $candidate, Skill $skill)
+    public function addSkill(Request $request, Candidate $candidate)
     {
         try {
-            // Validar la existencia de la habilidad
-            if (!$candidate->skills->contains($skill->id)) {
-                $candidate->addSkill($skill->id);
-                return response()->json(['message' => 'Skill added to candidate successfully!'], 200);
-            } else {
-                return response()->json(['error' => 'Skill already added to candidate!'], 422);
+            $skillsNotFound = [];
+            $skills = $request->input('skills');
+
+            foreach ($skills as $skillName) {
+                $skillName = trim($skillName);
+
+                // Validar que la habilidad exista en la base de datos
+                $skill = Skill::where('name', $skillName)->first();
+
+                if ($skill) {
+                    $candidate->addSkill($skill->id);
+                } else {
+                    $skillsNotFound[] = $skillName;
+                }
             }
+
+            if (!empty($skillsNotFound)) {
+                return response()->json(['error' => 'Skills not found in the database.', 'skills_not_found' => $skillsNotFound], 422);
+            }
+
+            return response()->json(['message' => 'Skills added to candidate successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while adding skill to candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'An error occurred while adding skills to candidate.', 'details' => $e->getMessage()], 500);
         }
     }
+
+
 
     /**
      * Remove skills from the candidate.

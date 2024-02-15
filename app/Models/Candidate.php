@@ -11,8 +11,6 @@ class Candidate extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id',
-        'subscription_id',
         'full_name',
         'gender',
         'date_of_birth',
@@ -24,9 +22,9 @@ class Candidate extends Model
         'languages',
         'references',
         'expected_salary',
-        'cv_path',
-        'photo_path',
-        'banner_path',
+        'cv_file',
+        'photo_file',
+        'banner_file',
         'social_networks',
         'status',
     ];

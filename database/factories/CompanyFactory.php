@@ -38,7 +38,7 @@ class CompanyFactory extends Factory
             'contact_person' => $this->faker->name,
             'logo_path' => $this->faker->imageUrl(),
             'banner_path' => $this->faker->imageUrl(),
-            'social_networks' => ['twitter' => $this->faker->userName, 'linkedin' => $this->faker->userName],
+            'social_networks' =>  json_encode(['twitter' => $this->faker->userName, 'linkedin' => $this->faker->userName]),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
         ];
     }

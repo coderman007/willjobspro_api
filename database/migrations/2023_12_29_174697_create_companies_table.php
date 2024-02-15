@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
             $table->string('name');
             $table->string('industry')->nullable();
-            $table->string('address')->nullable();
+            $table->string('address');
             $table->string('phone_number')->nullable();
             $table->string('website')->nullable();
             $table->text('description')->nullable();
@@ -27,6 +27,8 @@ return new class extends Migration
             $table->json('social_networks')->nullable();
             $table->enum('status', ['Active', 'Blocked']);
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

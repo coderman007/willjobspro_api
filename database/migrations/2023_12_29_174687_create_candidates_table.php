@@ -16,10 +16,10 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->unique();
 
             $table->string('full_name');
-            $table->string('gender');
+            $table->string('gender')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('address');
-            $table->string('phone_number');
+            $table->string('phone_number')->nullable();
             $table->text('work_experience')->nullable();
             $table->text('education')->nullable();
             $table->text('certifications')->nullable();

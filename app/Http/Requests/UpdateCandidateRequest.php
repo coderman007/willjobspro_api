@@ -14,7 +14,6 @@ class UpdateCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'exists:users,id',
             'full_name' => 'string|max:255',
             'gender' => 'string|max:20',
             'date_of_birth' => 'date',
