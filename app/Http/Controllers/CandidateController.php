@@ -123,9 +123,9 @@ class CandidateController extends Controller
             ]);
 
             // Guardar cv, photo y banner en el directorio 'Storage'
-            $this->storeFile($cvName, $request->cv_file);
-            $this->storeFile($photoName, $request->photo_file);
-            $this->storeFile($bannerName, $request->banner_file);
+            $this->storeFile($cvName, $request->cv_file, 'cvs');
+            $this->storeFile($photoName, $request->photo_file, 'photos');
+            $this->storeFile($bannerName, $request->banner_file, 'banners');
 
             // Validar y asociar habilidades al candidato
             $this->attachSkills($request, $candidate);
@@ -196,9 +196,9 @@ class CandidateController extends Controller
      * @param \Illuminate\Http\UploadedFile $file
      * @return void
      */
-    private function storeFile($fileName, $file): void
+    private function storeFile($fileName, $file, $directory): void
     {
-        Storage::disk('public')->put($fileName, file_get_contents($file));
+        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file));
     }
 
     /**
