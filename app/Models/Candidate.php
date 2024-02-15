@@ -23,9 +23,9 @@ class Candidate extends Model
         'languages',
         'references',
         'expected_salary',
-        'cv_file',
-        'photo_file',
-        'banner_file',
+        'cv_path',
+        'photo_path',
+        'banner_path',
         'social_networks',
         'status',
     ];
