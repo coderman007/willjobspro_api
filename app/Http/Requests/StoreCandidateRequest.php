@@ -16,9 +16,9 @@ class StoreCandidateRequest extends FormRequest
         return [
             'user_id' => 'required|exists:users,id',
             'full_name' => 'required|string|max:255',
-            'gender' => 'required|string|max:20',
+            'gender' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
-            'address' => 'nullable|string|max:255',
+            'address' => 'required|string|max:255',
             'phone_number' => 'nullable|string|max:20',
             'work_experience' => 'nullable|string',
             'education' => 'nullable|string',
@@ -26,8 +26,9 @@ class StoreCandidateRequest extends FormRequest
             'languages' => 'nullable|string',
             'references' => 'nullable|string',
             'expected_salary' => 'nullable|numeric|min:0',
-            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120', // Maximum file size: 5 MB
-            'photo' => 'nullable|file|mimes:jpeg,png,jpg|max:5120', // Maximum file size: 5 MB
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Maximum file size: 2 MB
+            'photo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Maximum file size: 2 MB
+            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Maximum file size: 2 MB
             'social_networks' => 'nullable|json',
             'status' => 'required|in:Active,Blocked',
         ];
@@ -39,9 +40,9 @@ class StoreCandidateRequest extends FormRequest
             'user_id.required' => 'The user field is required.',
             'user_id.exists' => 'The user field does not exist.',
             'full_name.required' => 'The full name field is required.',
-            'gender.required' => 'The gender field is required.',
+            'gender.nullable' => 'The gender field is optional.',
             'date_of_birth.nullable' => 'The date of birth field is optional.',
-            'address.nullable' => 'The address field is optional.',
+            'address.required' => 'The address field is required.',
             'phone_number.nullable' => 'The phone number field is optional.',
             'work_experience.nullable' => 'The work experience field is optional.',
             'education.nullable' => 'The education field is optional.',
@@ -50,9 +51,9 @@ class StoreCandidateRequest extends FormRequest
             'languages.nullable' => 'The languages field is optional.',
             'references.nullable' => 'The references field is optional.',
             'expected_salary.nullable' => 'The expected salary field is optional.',
-            'cv_path.nullable' => 'The cv path field is optional.',
-            'photo_path.nullable' => 'The photo path field is optional.',
-            'banner_path.nullable' => 'The banner path field is optional.',
+            'cv_file.nullable' => 'The cv file field is optional.',
+            'photo_file.nullable' => 'The photo file field is optional.',
+            'banner_file.nullable' => 'The banner file field is optional.',
             'social_networks.nullable' => 'The candidate social networks field is optional.',
             'status.required' => 'The status field is required.',
 

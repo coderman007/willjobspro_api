@@ -11,6 +11,8 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CandidateController extends Controller
 {
@@ -86,14 +88,18 @@ class CandidateController extends Controller
      */
     public function store(StoreCandidateRequest $request): JsonResponse
     {
-        try {
-            $validatedData = $request->validated();
-            $user = auth()->user();
+        $validatedData = $request->validated();
+        $user = auth()->user();
 
-            // Verificar si el usuario tiene el rol 'candidate'
-            if (!$user->hasRole('candidate')) {
-                return response()->json(['error' => 'User does not have the candidate role'], 403);
-            }
+        if (!$user->hasRole('candidate')) {
+            return response()->json(['error' => 'User does not have the candidate role'], 403);
+        }
+
+        try {
+            // Lógica para la generación de nombres simplificada
+            $cvName = $this->generateFileName($request->cv_file);
+            $photoName = $this->generateFileName($request->photo_file);
+            $bannerName = $this->generateFileName($request->banner_file);
 
             // Crear instancia en la tabla 'candidates'
             $candidate = Candidate::create([
@@ -109,56 +115,91 @@ class CandidateController extends Controller
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
                 'expected_salary' => $validatedData['expected_salary'],
+                'cv_path' => $cvName,
+                'photo_path' => $photoName,
+                'banner_path' => $bannerName,
                 'social_networks' => $validatedData['social_networks'],
-
                 'status' => $validatedData['status'],
             ]);
 
+            // Guardar cv, photo y banner en el directorio 'Storage'
+            $this->storeFile($cvName, $request->cv_file);
+            $this->storeFile($photoName, $request->photo_file);
+            $this->storeFile($bannerName, $request->banner_file);
+
             // Validar y asociar habilidades al candidato
-            if ($request->filled('skills')) {
-                $skills = explode(',', $request->input('skills'));
-
-                foreach ($skills as $skillName) {
-                    $skillName = trim($skillName);
-
-                    // Validar que la habilidad exista en la base de datos
-                    $skill = Skill::where('name', $skillName)->first();
-
-                    if ($skill) {
-                        $candidate->addSkill($skill->id);
-                    } else {
-                        return response()->json(['error' => "Skill '$skillName' not found in the database."], 422);
-                    }
-                }
-            }
-
-            // Validar y almacenar hoja de vida (CV)
-            if ($request->hasFile('cv_file')) {
-                $cvFile = $request->file('cv_file');
-                // Lógica de validación y almacenamiento del archivo CV aquí
-            }
-
-            // Validar y almacenar foto de perfil
-            if ($request->hasFile('photo')) {
-                $photo = $request->file('photo');
-                // Lógica de validación y almacenamiento de la foto aquí
-            }
+            $this->attachSkills($request, $candidate);
 
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
         } catch (QueryException $e) {
-            // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'An error occurred in database while creating the candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            return $this->handleDatabaseError($e);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while creating the candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            return $this->handleGenericError($e);
         }
     }
 
+
+    private function attachSkills(Request $request, Candidate $candidate): void
+    {
+        if ($request->filled('skills')) {
+            $skills = explode(',', $request->input('skills'));
+
+            foreach ($skills as $skillName) {
+                $this->validateAndAttachSkill($candidate, $skillName);
+            }
+        }
+    }
+
+    private function validateAndAttachSkill(Candidate $candidate, $skillName)
+    {
+        $skillName = trim($skillName);
+        $skill = Skill::where('name', $skillName)->first();
+
+        if ($skill) {
+            $candidate->addSkill($skill->id);
+        } else {
+            throw new \Exception("Skill '$skillName' not found in the database.");
+        }
+    }
+
+    private function handleDatabaseError(QueryException $e): JsonResponse
+    {
+        return response()->json([
+            'error' => 'An error occurred in the database while creating the candidate!',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+
+    private function handleGenericError(\Exception $e): JsonResponse
+    {
+        return response()->json([
+            'error' => 'An error occurred while creating the candidate!',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+
+    /**
+     * Genera un nombre de archivo único.
+     *
+     * @param \Illuminate\Http\UploadedFile|null $file
+     * @return string|null
+     */
+    private function generateFileName($file): ?string
+    {
+        return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
+    }
+
+    /**
+     * Almacena un archivo en el disco.
+     *
+     * @param string $fileName
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return void
+     */
+    private function storeFile($fileName, $file): void
+    {
+        Storage::disk('public')->put($fileName, file_get_contents($file));
+    }
 
     /**
      * Add skills to the candidate.
@@ -168,21 +209,32 @@ class CandidateController extends Controller
      * @param Skill $skill
      * @return JsonResponse
      */
-    public function addSkill(Request $request, Candidate $candidate, Skill $skill)
+    public function addSkill(Request $request, Candidate $candidate)
     {
         try {
-            // Validar la existencia de la habilidad
-            if (!$candidate->skills->contains($skill->id)) {
-                $candidate->addSkill($skill->id);
-                return response()->json(['message' => 'Skill added to candidate successfully!'], 200);
-            } else {
-                return response()->json(['error' => 'Skill already added to candidate!'], 422);
+            $skillsNotFound = [];
+            $skills = $request->input('skills');
+
+            foreach ($skills as $skillName) {
+                $skillName = trim($skillName);
+
+                // Validar que la habilidad exista en la base de datos
+                $skill = Skill::where('name', $skillName)->first();
+
+                if ($skill) {
+                    $candidate->addSkill($skill->id);
+                } else {
+                    $skillsNotFound[] = $skillName;
+                }
             }
+
+            if (!empty($skillsNotFound)) {
+                return response()->json(['error' => 'Skills not found in the database.', 'skills_not_found' => $skillsNotFound], 422);
+            }
+
+            return response()->json(['message' => 'Skills added to candidate successfully!'], 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while adding skill to candidate!',
-                'details' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'An error occurred while adding skills to candidate.', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -258,8 +310,6 @@ class CandidateController extends Controller
         }
     }
 
-
-
     /**
      * Update the specified resource in storage.
      *
@@ -302,6 +352,12 @@ class CandidateController extends Controller
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param Candidate $candidate
+     * @return JsonResponse
+     */
     public function destroy(Candidate $candidate): JsonResponse
     {
         try {
