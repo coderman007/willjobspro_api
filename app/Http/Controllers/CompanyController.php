@@ -10,6 +10,7 @@ use App\Http\Resources\CompanyResource;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 
@@ -138,6 +139,18 @@ class CompanyController extends Controller
     private function generateFileName($file): ?string
     {
         return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
+    }
+
+    /**
+     * Almacena un archivo en el disco.
+     *
+     * @param string $fileName
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return void
+     */
+    private function storeFile($fileName, $file, $directory): void
+    {
+        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file));
     }
 
     /**
