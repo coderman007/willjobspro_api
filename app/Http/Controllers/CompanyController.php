@@ -120,7 +120,7 @@ class CompanyController extends Controller
             ]);
 
             // Guardar logo y banner en el directorio 'Storage'
-            $this->storeFile($logoName, $request->photo_file, 'logos');
+            $this->storeFile($logoName, $request->logo_file, 'logos');
             $this->storeFile($bannerName, $request->banner_file, 'banners');
 
 
