@@ -14,6 +14,7 @@ class StoreCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_id' => 'required|exists:users,id',
             'full_name' => 'required|string|max:255',
             'gender' => 'nullable|string|max:20',
             'date_of_birth' => 'nullable|date',
@@ -25,11 +26,37 @@ class StoreCandidateRequest extends FormRequest
             'languages' => 'nullable|string',
             'references' => 'nullable|string',
             'expected_salary' => 'nullable|numeric|min:0',
-            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // PDF, DOC, DOCX, tamaño máximo de 2MB
-            'photo_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // JPEG, PNG, tamaño máximo de 2MB
-            'banner_file' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', // Opcional: JPEG, PNG, tamaño máximo de 2MB
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Maximum file size: 2 MB
+            'photo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Maximum file size: 2 MB
+            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Maximum file size: 2 MB
             'social_networks' => 'nullable|json',
             'status' => 'required|in:Active,Blocked',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'user_id.required' => 'The user field is required.',
+            'user_id.exists' => 'The user field does not exist.',
+            'full_name.required' => 'The full name field is required.',
+            'gender.nullable' => 'The gender field is optional.',
+            'date_of_birth.nullable' => 'The date of birth field is optional.',
+            'address.required' => 'The address field is required.',
+            'phone_number.nullable' => 'The phone number field is optional.',
+            'work_experience.nullable' => 'The work experience field is optional.',
+            'education.nullable' => 'The education field is optional.',
+            'skills.nullable' => 'The skills field is optional.',
+            'certifications.nullable' => 'The certifications field is optional.',
+            'languages.nullable' => 'The languages field is optional.',
+            'references.nullable' => 'The references field is optional.',
+            'expected_salary.nullable' => 'The expected salary field is optional.',
+            'cv_file.nullable' => 'The cv file field is optional.',
+            'photo_file.nullable' => 'The photo file field is optional.',
+            'banner_file.nullable' => 'The banner file field is optional.',
+            'social_networks.nullable' => 'The candidate social networks field is optional.',
+            'status.required' => 'The status field is required.',
+
         ];
     }
 }

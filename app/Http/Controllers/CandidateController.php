@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CandidateController extends Controller
 {
@@ -95,49 +96,48 @@ class CandidateController extends Controller
         }
 
         try {
-            DB::beginTransaction();
+            // Lógica para la generación de nombres simplificada
+            $cvName = $this->generateFileName($request->cv_file);
+            $photoName = $this->generateFileName($request->photo_file);
+            $bannerName = $this->generateFileName($request->banner_file);
 
             // Crear instancia en la tabla 'candidates'
-            $candidate = $this->createCandidate($user, $validatedData);
+            $candidate = Candidate::create([
+                'user_id' => $user->id,
+                'full_name' => $validatedData['full_name'],
+                'gender' => $validatedData['gender'],
+                'date_of_birth' => $validatedData['date_of_birth'],
+                'address' => $validatedData['address'],
+                'phone_number' => $validatedData['phone_number'],
+                'work_experience' => $validatedData['work_experience'],
+                'education' => $validatedData['education'],
+                'certifications' => $validatedData['certifications'],
+                'languages' => $validatedData['languages'],
+                'references' => $validatedData['references'],
+                'expected_salary' => $validatedData['expected_salary'],
+                'cv_path' => $cvName,
+                'photo_path' => $photoName,
+                'banner_path' => $bannerName,
+                'social_networks' => $validatedData['social_networks'],
+                'status' => $validatedData['status'],
+            ]);
+
+            // Guardar cv, photo y banner en el directorio 'Storage'
+            $this->storeFile($cvName, $request->cv_file);
+            $this->storeFile($photoName, $request->photo_file);
+            $this->storeFile($bannerName, $request->banner_file);
 
             // Validar y asociar habilidades al candidato
             $this->attachSkills($request, $candidate);
 
-            // Almacenar archivos adjuntos
-            $this->storeFiles($request, $candidate, $user);
-
-            DB::commit();
-
             return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
         } catch (QueryException $e) {
-            DB::rollBack();
             return $this->handleDatabaseError($e);
         } catch (\Exception $e) {
-            DB::rollBack();
             return $this->handleGenericError($e);
         }
     }
 
-
-    private function createCandidate($user, $validatedData)
-    {
-        return Candidate::create([
-            'user_id' => $user->id,
-            'full_name' => $validatedData['full_name'],
-            'gender' => $validatedData['gender'],
-            'date_of_birth' => $validatedData['date_of_birth'],
-            'address' => $validatedData['address'],
-            'phone_number' => $validatedData['phone_number'],
-            'work_experience' => $validatedData['work_experience'],
-            'education' => $validatedData['education'],
-            'certifications' => $validatedData['certifications'],
-            'languages' => $validatedData['languages'],
-            'references' => $validatedData['references'],
-            'expected_salary' => $validatedData['expected_salary'],
-            'social_networks' => $validatedData['social_networks'],
-            'status' => $validatedData['status'],
-        ]);
-    }
 
     private function attachSkills(Request $request, Candidate $candidate): void
     {
@@ -162,25 +162,6 @@ class CandidateController extends Controller
         }
     }
 
-    private function storeFiles(Request $request, Candidate $candidate, $user): void
-    {
-        $this->storeFile($request, $candidate, $user, 'cv_file', 'cvs');
-        $this->storeFile($request, $candidate, $user, 'photo_file', 'photos');
-        $this->storeFile($request, $candidate, $user, 'banner_file', 'banners');
-    }
-
-    private function storeFile(Request $request, Candidate $candidate, $user, $fileKey, $storageFolder): void
-    {
-        if ($request->hasFile($fileKey)) {
-            $file = $request->file($fileKey);
-            $fileName = $fileKey . '_' . $user->id . '.' . $file->getClientOriginalExtension();
-
-            Storage::disk('public')->putFileAs($storageFolder, $file, $fileName);
-
-            $candidate->update([$fileKey . '_path' => $fileName]);
-        }
-    }
-
     private function handleDatabaseError(QueryException $e): JsonResponse
     {
         return response()->json([
@@ -195,6 +176,29 @@ class CandidateController extends Controller
             'error' => 'An error occurred while creating the candidate!',
             'details' => $e->getMessage()
         ], 500);
+    }
+
+    /**
+     * Genera un nombre de archivo único.
+     *
+     * @param \Illuminate\Http\UploadedFile|null $file
+     * @return string|null
+     */
+    private function generateFileName($file): ?string
+    {
+        return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
+    }
+
+    /**
+     * Almacena un archivo en el disco.
+     *
+     * @param string $fileName
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return void
+     */
+    private function storeFile($fileName, $file): void
+    {
+        Storage::disk('public')->put($fileName, file_get_contents($file));
     }
 
     /**
@@ -233,8 +237,6 @@ class CandidateController extends Controller
             return response()->json(['error' => 'An error occurred while adding skills to candidate.', 'details' => $e->getMessage()], 500);
         }
     }
-
-
 
     /**
      * Remove skills from the candidate.
@@ -308,8 +310,6 @@ class CandidateController extends Controller
         }
     }
 
-
-
     /**
      * Update the specified resource in storage.
      *
@@ -352,6 +352,12 @@ class CandidateController extends Controller
         }
     }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param Candidate $candidate
+     * @return JsonResponse
+     */
     public function destroy(Candidate $candidate): JsonResponse
     {
         try {
