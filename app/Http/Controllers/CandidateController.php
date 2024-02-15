@@ -100,7 +100,7 @@ class CandidateController extends Controller
             $cvName = $this->generateFileName($request->cv_file);
             $photoName = $this->generateFileName($request->photo_file);
             $bannerName = $this->generateFileName($request->banner_file);
-            dd([
+            var_dump([
 
                 'photo_path' => $photoName,
                 'cv_path' => $cvName,
