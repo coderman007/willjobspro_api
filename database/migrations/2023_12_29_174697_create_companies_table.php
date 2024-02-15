@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->text('description')->nullable();
             $table->string('contact_person');
-            $table->text('logo_path')->nullable()->default('N/A');
-            $table->text('banner_path')->nullable()->default('N/A');
+            $table->string('logo_path')->nullable()->default('N/A');
+            $table->string('banner_path')->nullable()->default('N/A');
             $table->json('social_networks')->nullable();
             $table->enum('status', ['Active', 'Blocked']);
             $table->timestamps();

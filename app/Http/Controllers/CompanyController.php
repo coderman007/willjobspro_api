@@ -112,7 +112,8 @@ class CompanyController extends Controller
                 'website' => $validatedData['website'],
                 'description' => $validatedData['description'],
                 'contact_person' => $validatedData['contact_person'],
-                'logo_path' => $validatedData['logo_path'],
+                'logo_path' => $logoName,
+                'banner_path' => $bannerName,
                 'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);

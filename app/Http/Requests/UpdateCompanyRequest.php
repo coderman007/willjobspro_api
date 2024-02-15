@@ -30,8 +30,8 @@ class UpdateCompanyRequest extends FormRequest
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'contact_person' => 'string|max:255',
-            'logo_path' => 'nullable|string|max:255',
-            'banner_path' => 'nullable|string|max:255',
+            'logo_file' => 'nullable|string|max:255',
+            'banner_file' => 'nullable|string|max:255',
             'social_networks' => 'nullable|json',
             'status' => 'in:Active,Blocked',
         ];
