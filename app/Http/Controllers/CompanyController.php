@@ -10,6 +10,7 @@ use App\Http\Resources\CompanyResource;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 
 class CompanyController extends Controller
@@ -87,14 +88,19 @@ class CompanyController extends Controller
      */
     public function store(StoreCompanyRequest $request): JsonResponse
     {
-        try {
-            $validatedData = $request->validated();
-            $user = auth()->user();
 
-            // Verificar si el usuario tiene el rol 'company'
-            if (!$user->hasRole('company')) {
-                return response()->json(['error' => 'User does not have the company role'], 403);
-            }
+        $validatedData = $request->validated();
+        $user = auth()->user();
+
+        // Verificar si el usuario tiene el rol 'company'
+        if (!$user->hasRole('company')) {
+            return response()->json(['error' => 'User does not have the company role'], 403);
+        }
+
+        try {
+            // Lógica para la generación de nombres simplificada
+            $logoName = $this->generateFileName($request->logo_file);
+            $bannerName = $this->generateFileName($request->banner_file);
 
             // Crear instancia en la tabla 'companies'
             $company = Company::create([
@@ -111,10 +117,26 @@ class CompanyController extends Controller
                 'status' => $validatedData['status'],
             ]);
 
+            // Guardar logo y banner en el directorio 'Storage'
+            $this->storeFile($logoName, $request->photo_file, 'logos');
+            $this->storeFile($bannerName, $request->banner_file, 'banners');
+
+
             return $this->jsonResponse(new CompanyResource($company), 'Company created successfully!', 201);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error creating company: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Genera un nombre de archivo único.
+     *
+     * @param \Illuminate\Http\UploadedFile|null $file
+     * @return string|null
+     */
+    private function generateFileName($file): ?string
+    {
+        return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
     }
 
     /**
