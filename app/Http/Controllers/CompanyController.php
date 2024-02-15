@@ -150,9 +150,6 @@ class CompanyController extends Controller
      */
     private function storeFile($fileName, $file, $directory): void
     {
-        var_dump(
-            $file
-        );
         Storage::disk('public')->put("$directory/$fileName", file_get_contents($file));
     }
 
