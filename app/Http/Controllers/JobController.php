@@ -54,19 +54,44 @@ class JobController extends Controller
 
             $jobs = $query->paginate($perPage);
 
-            $paginationData = [
-                'total' => $jobs->total(),
-                // 'per_page' => $jobs->perPage(),
-                // 'current_page' => $jobs->currentPage(),
-                // 'last_page' => $jobs->lastPage(),
-                // 'from' => $jobs->firstItem(),
-                // 'to' => $jobs->lastItem(),
-                // 'next_page_url' => $jobs->nextPageUrl(),
-                // 'prev_page_url' => $jobs->previousPageUrl(),
-                // 'path' => $jobs->path(),
-            ];
+            $formattedJobs = $jobs->map(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'company_id' => $job->company_id,
+                    'job_category_id' => $job->job_category_id,
+                    'job_type_id' => $job->job_type_id,
+                    'title' => $job->title,
+                    'subscription_plan_id' => $job->subscription_plan_id,
+                    'description' => $job->description,
+                    'posted_date' => $job->posted_date,
+                    'deadline' => $job->deadline,
+                    'location' => $job->location,
+                    'salary' => $job->salary,
+                    'contact_email' => $job->contact_email,
+                    'contact_phone' => $job->contact_phone,
+                    'status' => $job->status,
+                    'created_at' => $job->created_at,
+                    'updated_at' => $job->updated_at,
+                    'company' => [
+                        'id' => $job->company->id,
+                        'user_id' => $job->company->user_id,
+                    ],
+                    'job_category' => [
+                        'id' => $job->jobCategory->id,
+                        'name' => $job->jobCategory->name,
+                    ],
+                    'job_type' => [
+                        'id' => $job->jobType->id,
+                        'name' => $job->jobType->name,
+                    ],
+                    'subscription_plan' => [
+                        'id' => $job->subscriptionPlan->id,
+                        'name' => $job->subscriptionPlan->name,
+                    ],
+                ];
+            });
 
-            return response()->json(['data' => $jobs, 'pagination' => $paginationData], 200);
+            return response()->json(['data' => $formattedJobs], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the job offer list!',
