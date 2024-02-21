@@ -96,10 +96,10 @@ class CandidateController extends Controller
         }
 
         try {
-            // Lógica para la generación de nombres simplificada
-            $cvName = $this->generateFileName($request->cv_file);
-            $photoName = $this->generateFileName($request->photo_file);
-            $bannerName = $this->generateFileName($request->banner_file);
+            // Lógica para la generación de nombres de archivos del candidato
+            $cvName = 'cv_file_' . $user->id . $this->generateFileName($request->cv_file);
+            $photoName = 'photo_file_' . $user->id . $this->generateFileName($request->photo_file);
+            $bannerName = 'banner_file_' . $user->id . $this->generateFileName($request->banner_file);
 
             // Crear instancia en la tabla 'candidates'
             $candidate = Candidate::create([
@@ -115,17 +115,17 @@ class CandidateController extends Controller
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
                 'expected_salary' => $validatedData['expected_salary'],
-                'cv_path' => $cvName,
-                'photo_path' => $photoName,
-                'banner_path' => $bannerName,
+                'cv_path' => 'candidates/cvs/' .  $cvName,
+                'photo_path' => 'candidates/profile_photos/' .  $photoName,
+                'banner_path' => 'candidates/banners/' .  $bannerName,
                 'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);
 
-            // Guardar cv, photo y banner en el directorio 'Storage'
-            $this->storeFile($cvName, $request->cv_file, 'cvs');
-            $this->storeFile($photoName, $request->photo_file, 'photos');
-            $this->storeFile($bannerName, $request->banner_file, 'banners');
+            // Almacenamiento de archivos del candidato en el directorio correspondiente
+            $this->storeFile($cvName, $request->cv_file, 'candidate_uploads/cvs');
+            $this->storeFile($photoName, $request->photo_file, 'candidate_uploads/profile_photos');
+            $this->storeFile($bannerName, $request->banner_file, 'candidate_uploads/banners');
 
             // Validar y asociar habilidades al candidato
             $this->attachSkills($request, $candidate);
@@ -186,7 +186,7 @@ class CandidateController extends Controller
      */
     private function generateFileName($file): ?string
     {
-        return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
+        return $file ? Str::random(10) . "." . $file->getClientOriginalExtension() : null;
     }
 
     /**

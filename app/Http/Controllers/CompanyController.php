@@ -7,12 +7,14 @@ use App\Helpers\CompanyOwnershipValidator;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
+use Illuminate\Validation\UnauthorizedException;
+use Illuminate\Validation\ValidationException;
 
 class CompanyController extends Controller
 {
@@ -26,50 +28,9 @@ class CompanyController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $query = Company::query()->with('user', 'jobs');
-
-            // Search
-            if ($request->filled('search')) {
-                $searchTerm = $request->query('search');
-                $query->where(function ($subquery) use ($searchTerm) {
-                    $subquery->where('name', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('industry', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('contact_person', 'like', '%' . $searchTerm . '%');
-                });
-            }
-
-            // Filters
-            $filters = [
-                'name', 'industry', 'status', 'contact_person'
-            ];
-
-            foreach ($filters as $filter) {
-                if ($request->filled($filter)) {
-                    $query->where($filter, $request->query($filter));
-                }
-            }
-
-            // Sorting
-            if ($request->filled('sort_by') && $request->filled('sort_order')) {
-                $sortBy = $request->query('sort_by');
-                $sortOrder = $request->query('sort_order');
-                $query->orderBy($sortBy, $sortOrder);
-            }
+            $query = $this->buildCompanyQuery($request);
 
             $companies = $query->paginate($perPage);
-
-            $paginationData = [
-                'total' => $companies->total(),
-                'per_page' => $companies->perPage(),
-                'current_page' => $companies->currentPage(),
-                'last_page' => $companies->lastPage(),
-                // 'from' => $companies->firstItem(),
-                // 'to' => $companies->lastItem(),
-                // 'next_page_url' => $companies->nextPageUrl(),
-                // 'prev_page_url' => $companies->previousPageUrl(),
-                // 'path' => $companies->path(),
-                // 'data' => $companies->items(),
-            ];
 
             return $this->jsonResponse(CompanyResource::collection($companies), 'Companies retrieved successfully!', 200)
                 ->header('X-Total-Count', $companies->total())
@@ -80,6 +41,41 @@ class CompanyController extends Controller
             return $this->jsonErrorResponse('Error retrieving companies: ' . $e->getMessage(), 500);
         }
     }
+
+    private function buildCompanyQuery(Request $request)
+    {
+        $query = Company::with('user');
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->query('search');
+            $query->where(function ($subquery) use ($searchTerm) {
+                $subquery->where('name', 'like', "%$searchTerm%")
+                    ->orWhere('industry', 'like', "%$searchTerm%")
+                    ->orWhere('contact_person', 'like', "%$searchTerm%");
+            });
+        }
+
+        $filters = ['name', 'industry', 'status', 'contact_person'];
+
+        foreach ($filters as $filter) {
+            if ($request->filled($filter)) {
+                $query->where($filter, $request->query($filter));
+            }
+        }
+
+        if ($request->filled('sort_by') && $request->filled('sort_order')) {
+            $sortBy = $request->query('sort_by');
+            $sortOrder = $request->query('sort_order');
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        if ($request->has('with_jobs')) {
+            $query->with('jobs');
+        }
+
+        return $query;
+    }
+
 
     /**
      * Store a newly created company instance in storage.
@@ -100,8 +96,8 @@ class CompanyController extends Controller
 
         try {
             // Lógica para la generación de nombres simplificada
-            $logoName = $this->generateFileName($request->logo_file);
-            $bannerName = $this->generateFileName($request->banner_file);
+            $logoName = 'logo_file_' . $user->id . $this->generateFileName($request->logo_file);
+            $bannerName = 'banner_file_' . $user->id . $this->generateFileName($request->banner_file);
 
             // Crear instancia en la tabla 'companies'
             $company = Company::create([
@@ -113,18 +109,24 @@ class CompanyController extends Controller
                 'website' => $validatedData['website'],
                 'description' => $validatedData['description'],
                 'contact_person' => $validatedData['contact_person'],
-                'logo_path' => $logoName,
-                'banner_path' => $bannerName,
+                'logo_path' => 'companies/logos/' . $logoName,
+                'banner_path' => 'companies/banners/' . $bannerName,
                 'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);
 
-            // Guardar logo y banner en el directorio 'Storage'
-            $this->storeFile($logoName, $request->logo_file, 'logos');
-            $this->storeFile($bannerName, $request->banner_file, 'banners');
+            // Almacenamiento de archivos de la compañía en el directorio correspondiente
+            $this->storeFile($logoName, $request->logo_file, 'company_uploads/logos');
+            $this->storeFile($bannerName, $request->banner_file, 'company_uploads/banners');
 
 
             return $this->jsonResponse(new CompanyResource($company), 'Company created successfully!', 201);
+        } catch (UnauthorizedException $e) {
+            return $this->jsonErrorResponse('User does not have the company role: ' . $e->getMessage(), 403);
+        } catch (ValidationException $e) {
+            return $this->jsonErrorResponse('Validation error: ' . $e->getMessage(), 422);
+        } catch (QueryException $e) {
+            return $this->jsonErrorResponse('Database error: ' . $e->getMessage(), 500);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error creating company: ' . $e->getMessage(), 500);
         }
@@ -138,7 +140,7 @@ class CompanyController extends Controller
      */
     private function generateFileName($file): ?string
     {
-        return $file ? Str::random(32) . "." . $file->getClientOriginalExtension() : null;
+        return $file ? Str::random(10) . "." . $file->getClientOriginalExtension() : null;
     }
 
     /**
@@ -156,8 +158,9 @@ class CompanyController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Company $company
+     * @param Company $company The company instance to be displayed.
      * @return JsonResponse
+     * @throws \Exception
      */
     public function show(Company $company): JsonResponse
     {
@@ -166,6 +169,8 @@ class CompanyController extends Controller
             $companyDetail = new CompanyResource($company);
 
             return $this->jsonResponse($companyDetail, 'Company details retrieved successfully!', 200);
+        } catch (ModelNotFoundException $e) {
+            return $this->jsonErrorResponse('Company not found.' . $e->getMessage(), 404);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error retrieving company details: ' . $e->getMessage(), 500);
         }
@@ -174,9 +179,10 @@ class CompanyController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param UpdateCompanyRequest $request
-     * @param Company $company
+     * @param UpdateCompanyRequest $request The update company request.
+     * @param Company $company The company instance to be updated.
      * @return JsonResponse
+     * @throws \Exception
      */
     public function update(UpdateCompanyRequest $request, Company $company): JsonResponse
     {
@@ -185,13 +191,15 @@ class CompanyController extends Controller
 
             // Validar propiedad de la compañía
             if (!CompanyOwnershipValidator::validateOwnership($company->id)) {
-                return response()->json(['error' => 'Unauthorized action.'], 403);
+                throw new UnauthorizedException('Unauthorized action.');
             }
 
             // Actualizar los campos de la compañía
             $company->update($validatedData);
 
             return $this->jsonResponse(new CompanyResource($company), 'Company updated successfully!', 200);
+        } catch (UnauthorizedException $e) {
+            return $this->jsonErrorResponse('Unauthorized action: ' . $e->getMessage(), 403);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error updating company: ' . $e->getMessage(), 500);
         }
