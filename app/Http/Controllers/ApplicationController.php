@@ -54,7 +54,7 @@ class ApplicationController extends Controller
             $paginationData = $applications->toArray();
             unset($paginationData['data']); // Eliminar los datos para evitar redundancia
 
-            return response()->json(['data' => $applications, 'pagination' => $paginationData], 200);
+            return response()->json(['applications' => $applications, 'pagination' => $paginationData], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
@@ -127,10 +127,10 @@ class ApplicationController extends Controller
 
         // Verificar si el usuario está autenticado y tiene el rol 'candidate'
         if ($user && $user->hasRole('candidate')) {
-            // Obtener la compañía asociada al usuario
+            // Obtener el candidato asociado al usuario
             $userCandidate = $user->candidate;
 
-            // Verificar si la compañía existe y su ID coincide con $candidateId
+            // Verificar si el candidato existe y su ID coincide con $candidateId
             if ($userCandidate && $userCandidate->id == $candidateId) {
                 return true;
             }
@@ -172,7 +172,8 @@ class ApplicationController extends Controller
             // Verificar si el 'candidate_id' en la solicitud coincide con el del usuario autenticado
             $candidateId = $request->input('candidate_id');
 
-            if (!$this->userOwnsCandidate($candidateId)) {
+            // Verificar si el usuario autenticado es el propietario de la aplicación
+            if (!$this->userOwnsCandidate($candidateId) || $candidateId != $application->candidate_id) {
                 return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
             }
 
@@ -187,6 +188,7 @@ class ApplicationController extends Controller
         }
     }
 
+
     /**
      * Remove the specified resource from storage.
      *
@@ -196,18 +198,21 @@ class ApplicationController extends Controller
     public function destroy(Application $application): JsonResponse
     {
         try {
-
             if (!$application) {
-                return response()->json(['error' => 'Application offer not found.'], 404);
+                return response()->json(['error' => 'Application not found.'], 404);
             }
-            // Verificar si el 'candidate_id' del trabajo coincide con el del usuario autenticado
+
+            // Verificar si el 'candidate_id' de la aplicación coincide con el del usuario autenticado
             $candidateId = $application->candidate_id;
 
+            // Verificar si el usuario autenticado es el propietario de la aplicación
             if (!$this->userOwnsCandidate($candidateId)) {
                 return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
             }
+
             $application->delete();
-            return response()->json(['message' => 'Application deleted!'], 200);
+
+            return response()->json(['message' => 'Application deleted successfully!'], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while deleting the application!',

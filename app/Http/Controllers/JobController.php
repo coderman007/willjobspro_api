@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Job;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
+use App\Http\Resources\JobResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -18,87 +19,56 @@ class JobController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-
     public function index(Request $request): JsonResponse
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $query = Job::with(['company', 'jobCategory', 'jobType', 'subscriptionPlan']);
-
-            // Búsqueda por título de trabajo
-            if ($request->filled('search')) {
-                $searchTerm = $request->query('search');
-                $query->where('title', 'like', '%' . $searchTerm . '%');
-            }
-
-            // Filtros
-            $filters = [
-                'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
-            ];
-
-            foreach ($filters as $filter) {
-                if ($request->filled($filter)) {
-                    $query->where($filter, $request->query($filter));
-                }
-            }
-
-            // Ordenación
-            if ($request->filled('sort_by') && $request->filled('sort_order')) {
-                $sortBy = $request->query('sort_by');
-                $sortOrder = $request->query('sort_order');
-                $query->orderBy($sortBy, $sortOrder);
-            } else {
-                // Orden por defecto si no se especifica
-                $query->orderBy('created_at', 'desc');
-            }
+            $query = $this->buildJobQuery($request);
 
             $jobs = $query->paginate($perPage);
 
-            $formattedJobs = $jobs->map(function ($job) {
-                return [
-                    'id' => $job->id,
-                    'company_id' => $job->company_id,
-                    'job_category_id' => $job->job_category_id,
-                    'job_type_id' => $job->job_type_id,
-                    'title' => $job->title,
-                    'subscription_plan_id' => $job->subscription_plan_id,
-                    'description' => $job->description,
-                    'posted_date' => $job->posted_date,
-                    'deadline' => $job->deadline,
-                    'location' => $job->location,
-                    'salary' => $job->salary,
-                    'contact_email' => $job->contact_email,
-                    'contact_phone' => $job->contact_phone,
-                    'status' => $job->status,
-                    'created_at' => $job->created_at,
-                    'updated_at' => $job->updated_at,
-                    'company' => [
-                        'id' => $job->company->id,
-                        'user_id' => $job->company->user_id,
-                    ],
-                    'job_category' => [
-                        'id' => $job->jobCategory->id,
-                        'name' => $job->jobCategory->name,
-                    ],
-                    'job_type' => [
-                        'id' => $job->jobType->id,
-                        'name' => $job->jobType->name,
-                    ],
-                    'subscription_plan' => [
-                        'id' => $job->subscriptionPlan->id,
-                        'name' => $job->subscriptionPlan->name,
-                    ],
-                ];
-            });
-
-            return response()->json(['data' => $formattedJobs], 200);
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
+                ->header('X-Total-Count', $jobs->total())
+                ->header('X-Per-Page', $jobs->perPage())
+                ->header('X-Current-Page', $jobs->currentPage())
+                ->header('X-Last-Page', $jobs->lastPage());
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while getting the job offer list!',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error retrieving job offers: ' . $e->getMessage(), 500);
         }
     }
+
+    private function buildJobQuery(Request $request)
+    {
+        $query = Job::with(['company', 'jobCategory', 'jobType', 'subscriptionPlan']);
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->query('search');
+            $query->where('title', 'like', '%' . $searchTerm . '%');
+        }
+
+        $filters = [
+            'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
+        ];
+
+        foreach ($filters as $filter) {
+            if ($request->filled($filter)) {
+                $query->where($filter, $request->query($filter));
+            }
+        }
+
+        if ($request->filled('sort_by') && $request->filled('sort_order')) {
+            $sortBy = $request->query('sort_by');
+            $sortOrder = $request->query('sort_order');
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            // Orden por defecto si no se especifica
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return $query;
+    }
+
+
 
     /**
      * Store a newly created resource in storage.
@@ -106,7 +76,7 @@ class JobController extends Controller
      * @param StoreJobRequest $request
      * @return JsonResponse
      */
-    public function store(StoreJobRequest $request)
+    public function store(StoreJobRequest $request): JsonResponse
     {
         try {
             // Validación y creación del trabajo
@@ -116,7 +86,7 @@ class JobController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
+                return $this->jsonErrorResponse('You do not have permissions to perform this action on this resource.', 403);
             }
 
             // Verificar si se proporcionó un plan de suscripción
@@ -132,24 +102,21 @@ class JobController extends Controller
             // Crear el trabajo con los datos validados
             $job = Job::create($validatedData);
 
-            // Resto de la lógica, si es necesario...
-
-            return response()->json(['message' => 'Job offer created successfully', 'data' => $job], 201);
+            return $this->jsonResponse(['data' => $job], 'Job offer created successfully', 201);
         } catch (QueryException $e) {
-
             // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'An error ocurred in database while creating the job offer.',
-                'details' => $e->getMessage()
-            ], 500);
+            return $this->jsonErrorResponse('An error occurred in the database while creating the job offer.', $e->getMessage(), 500);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error ocurred while creating the job offer.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('An error occurred while creating the job offer.', $e->getMessage(), 500);
         }
     }
 
+    /**
+     * Check if the authenticated user owns the company with the given ID.
+     *
+     * @param int $companyId
+     * @return bool
+     */
     protected function userOwnsCompany($companyId)
     {
         $user = auth()->user();
@@ -160,15 +127,11 @@ class JobController extends Controller
             $userCompany = $user->company;
 
             // Verificar si la compañía existe y su ID coincide con $companyId
-            if ($userCompany && $userCompany->id == $companyId) {
-                return true;
-            }
+            return $userCompany && $userCompany->id == $companyId;
         }
 
         return false;
     }
-
-
 
 
     /**
@@ -180,35 +143,25 @@ class JobController extends Controller
     public function show($id)
     {
         try {
-            // Recuperar el trabajo por su ID
-            $job = Job::findOrFail($id);
+            // Recuperar el trabajo por su ID con la relación de aplicaciones
+            $job = Job::with(['applications', 'jobCategory', 'jobType'])->findOrFail($id);
 
-            $category = $job->jobCategory->name;
-            $type = $job->jobType->name;
+            // Obtener el número de aplicaciones
+            $numApplications = $job->applications->count();
 
-            // Retornar los detalles del trabajo
-            return response()->json([
-                'message' => 'Job offer detail obtained successfully',
-                'data' => $job,
-                'category_name' => $category,
-                'type_name' => $type,
-            ], 200);
+            // Retornar los detalles del trabajo incluyendo el número de aplicaciones
+            return $this->jsonResponse([
+                'job' => new JobResource($job),
+                'num_applications' => $numApplications,
+            ], 'Job offer detail obtained successfully', 200);
         } catch (ModelNotFoundException $e) {
             // Manejar la excepción cuando el modelo no se encuentra
-            return response()->json([
-                'error' => 'Job not found.',
-                'details' => $e->getMessage(),
-            ], 404);
+            return $this->jsonErrorResponse('Job not found.', 404);
         } catch (\Exception $e) {
             // Manejar otras excepciones generales
-            return response()->json([
-                'error' => 'An error occurred while trying to retrieve job details.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage(), 500);
         }
     }
-
-
 
 
 
@@ -219,7 +172,7 @@ class JobController extends Controller
      * @param Job $job
      * @return JsonResponse
      */
-    public function update(UpdateJobRequest $request, Job $job)
+    public function update(UpdateJobRequest $request, Job $job): JsonResponse
     {
         try {
             // Validación y actualización del trabajo
@@ -246,12 +199,9 @@ class JobController extends Controller
 
             // Resto de la lógica, si es necesario...
 
-            return response()->json(['message' => 'Job offer updated successfully', 'data' => $job], 200);
+            return $this->jsonResponse(['data' => $job], 'Job offer updated successfully!', 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error ocurred whiled updating the job offer!.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error updating the job offer: ' . $e->getMessage(), 500);
         }
     }
 
@@ -278,12 +228,45 @@ class JobController extends Controller
 
             $job->delete();
 
-            return response()->json(['message' => 'Job offer deleted!.'], 200);
+            return $this->jsonResponse(null, 'Job offer deleted successfully!', 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error ocurred whiled deleting the job offer!.',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Function to generate a consistent JSON response
+     *
+     * @param mixed $data The data to include in the response
+     * @param string $message The response message
+     * @param int $status The HTTP status code
+     * @return JsonResponse
+     */
+    protected function jsonResponse($data = null, $message = null, $status = 200): JsonResponse
+    {
+        $response = [
+            'success' => true,
+            'data' => $data,
+            'message' => $message,
+        ];
+
+        return response()->json($response, $status);
+    }
+
+    /**
+     * Function to generate a consistent JSON error response
+     *
+     * @param string $message The error message
+     * @param int $status The HTTP status code
+     * @return JsonResponse
+     */
+    protected function jsonErrorResponse($message = null, $status = 500): JsonResponse
+    {
+        $response = [
+            'success' => false,
+            'error' => $message,
+        ];
+
+        return response()->json($response, $status);
     }
 }

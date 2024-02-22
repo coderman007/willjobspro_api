@@ -62,7 +62,6 @@ Route::group(
         Route::put('companies/{company}', [CompanyController::class, 'update']);
         Route::delete('companies/{company}', [CompanyController::class, 'destroy']);
 
-
         // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
         Route::get('job-categories{job_category}', [JobCategoryController::class, 'show']);
         Route::post('job-categories', [JobCategoryController::class, 'store']);
@@ -75,14 +74,11 @@ Route::group(
         Route::put('job-types/{job_type}', [JobTypeController::class, 'update']);
         Route::delete('job-types/{job_type}', [JobTypeController::class, 'destroy']);
 
-
         // Rutas para crear, actualizar y eliminar tipos de ofertas de trabajo
         Route::post('subscription-plans', [SubscriptionPlanController::class, 'store']);
         Route::put('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'update']);
         Route::delete('subscription-plans/{subscription_plan}', [SubscriptionPlanController::class, 'destroy']);
         Route::apiResource('users', UserController::class);
-
-
 
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::post('jobs', [JobController::class, 'store']);
@@ -90,7 +86,6 @@ Route::group(
 
         // Obtener los candidatos que han aplicado a una oferta laboral publicada por la compañía.
         Route::get('/companies/{company}/applicants', [CompanyController::class, 'getCompanyApplicants']);
-
 
         // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
         Route::get('applications', [ApplicationController::class, 'index']);

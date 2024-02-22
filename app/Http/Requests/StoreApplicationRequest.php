@@ -25,7 +25,7 @@ class StoreApplicationRequest extends FormRequest
         return [
             'candidate_id' => 'required|exists:candidates,id',
             'job_id' => 'required|exists:jobs,id',
-            'cover_letter' => 'required|string|max:500',
+            'cover_letter' => 'nullable|string|max:500',
             'status' => 'required|in:Pending,Reviewed,Accepted,Rejected',
             'application_date' => 'nullable|date',
             'rejection_date' => 'nullable|date|after_or_equal:application_date',
