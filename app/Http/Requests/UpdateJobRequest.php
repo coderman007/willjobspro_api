@@ -16,8 +16,8 @@ class UpdateJobRequest extends FormRequest
         return [
             'company_id' => 'exists:companies,id',
             'job_category_id' => 'exists:job_categories,id',
-            'job_type_id' => 'exists:job_types,id',
-            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
+            'job_type_ids' => 'array|exists:job_types,id',
+            'subscription_plan_id' => 'exists:subscription_plans,id',
             'title' => 'string|max:255',
             'description' => 'string',
             'posted_date' => 'date',

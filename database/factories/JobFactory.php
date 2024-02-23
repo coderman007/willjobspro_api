@@ -3,14 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Company;
+use App\Models\Job;
 use App\Models\JobCategory;
-use App\Models\JobType;
 use App\Models\SubscriptionPlan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Job>
- */
 class JobFactory extends Factory
 {
     /**
@@ -21,10 +18,9 @@ class JobFactory extends Factory
     public function definition()
     {
         return [
-            'company_id' => Company::inRandomOrder()->first()->id,
-            'job_category_id' => JobCategory::inRandomOrder()->first()->id,
-            'job_type_id' => JobType::inRandomOrder()->first()->id,
-            'subscription_plan_id' => SubscriptionPlan::inRandomOrder()->first()->id,
+            'company_id' => Company::pluck('id')->random(),
+            'job_category_id' => JobCategory::pluck('id')->random(),
+            'subscription_plan_id' => SubscriptionPlan::pluck('id')->random(),
 
             'title' => $this->faker->jobTitle,
             'description' => $this->faker->paragraph,
@@ -36,5 +32,24 @@ class JobFactory extends Factory
             'contact_phone' => $this->faker->phoneNumber,
             'status' => $this->faker->randomElement(['Open', 'Closed', 'Under Review']),
         ];
+    }
+
+    /**
+     * Configure the model factory.
+     *
+     * @return $this
+     */
+    public function configure()
+    {
+        return $this->afterCreating(function (Job $job) {
+            // Obtener un número aleatorio de tipos de trabajo para asociar con la oferta de trabajo
+            $numJobTypes = $this->faker->numberBetween(1, 3);
+
+            // Obtener IDs aleatorios de tipos de trabajo
+            $jobTypeIds = \App\Models\JobType::inRandomOrder()->limit($numJobTypes)->pluck('id')->toArray();
+
+            // Asociar los tipos de trabajo con la oferta de trabajo recién creada
+            $job->jobTypes()->sync($jobTypeIds);
+        });
     }
 }

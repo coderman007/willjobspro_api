@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Models\JobType;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
@@ -10,9 +11,11 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class JobController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -27,7 +30,17 @@ class JobController extends Controller
 
             $jobs = $query->paginate($perPage);
 
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
+            // Obtener los tipos de trabajo asociados a cada oferta
+            $jobs->load('jobTypes');
+
+            // No sobrescribas la variable $jobs aquí
+            // Transformar la colección de ofertas para incluir los tipos de trabajo
+            $transformedJobs = $jobs->map(function ($job) {
+                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+                return $job;
+            });
+
+            return $this->jsonResponse(JobResource::collection($transformedJobs), 'Job offers retrieved successfully!', 200)
                 ->header('X-Total-Count', $jobs->total())
                 ->header('X-Per-Page', $jobs->perPage())
                 ->header('X-Current-Page', $jobs->currentPage())
@@ -37,9 +50,10 @@ class JobController extends Controller
         }
     }
 
+
     private function buildJobQuery(Request $request)
     {
-        $query = Job::with(['company', 'jobCategory', 'jobType', 'subscriptionPlan']);
+        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'subscriptionPlan']);
 
         if ($request->filled('search')) {
             $searchTerm = $request->query('search');
@@ -67,8 +81,6 @@ class JobController extends Controller
 
         return $query;
     }
-
-
 
     /**
      * Store a newly created resource in storage.
@@ -102,14 +114,21 @@ class JobController extends Controller
             // Crear el trabajo con los datos validados
             $job = Job::create($validatedData);
 
+            // Asociar los tipos de trabajo proporcionados
+            $jobTypeIds = $request->input('job_type_ids', []);
+            $job->jobTypes()->attach($jobTypeIds);
+
+            $job->load('jobTypes');
+
             return $this->jsonResponse(['data' => $job], 'Job offer created successfully', 201);
         } catch (QueryException $e) {
             // Manejo de errores de base de datos
-            return $this->jsonErrorResponse('An error occurred in the database while creating the job offer.', $e->getMessage(), 500);
+            return $this->jsonErrorResponse('An error occurred in the database while creating the job offer.' . $e->getMessage(), 500);
         } catch (\Exception $e) {
-            return $this->jsonErrorResponse('An error occurred while creating the job offer.', $e->getMessage(), 500);
+            return $this->jsonErrorResponse('An error occurred while creating the job offer.' . $e->getMessage(), 500);
         }
     }
+
 
     /**
      * Check if the authenticated user owns the company with the given ID.
@@ -144,7 +163,7 @@ class JobController extends Controller
     {
         try {
             // Recuperar el trabajo por su ID con la relación de aplicaciones
-            $job = Job::with(['applications', 'jobCategory', 'jobType'])->findOrFail($id);
+            $job = Job::with(['applications', 'jobCategory', 'jobTypes'])->findOrFail($id);
 
             // Obtener el número de aplicaciones
             $numApplications = $job->applications->count();
@@ -182,28 +201,33 @@ class JobController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$this->userOwnsCompany($companyId)) {
-                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
-            }
-
-            // Verificar si se proporcionó un nuevo plan de suscripción
-            $subscriptionPlanId = $request->input('subscription_plan_id', null);
-
-            // Lógica para actualizar el plan de suscripción si se proporciona uno
-            if (!is_null($subscriptionPlanId)) {
-                $job->subscription_plan_id = $subscriptionPlanId;
-                // Puedes agregar más lógica según tus necesidades...
+                return $this->jsonErrorResponse('You do not have permissions to perform this action on this resource.', 403);
             }
 
             // Actualizar el trabajo con los datos validados
             $job->update($validatedData);
 
+            // Verificar y actualizar el plan de suscripción si se proporciona uno
+            if ($request->has('subscription_plan_id')) {
+                $subscriptionPlanId = $request->input('subscription_plan_id');
+                // Puedes agregar más lógica según tus necesidades...
+                $job->subscription_plan_id = $subscriptionPlanId;
+            }
+
             // Resto de la lógica, si es necesario...
+
+            // Guardar los cambios en la base de datos
+            $job->save();
+
+            // Recargar la relación jobTypes
+            $job->load('jobTypes');
 
             return $this->jsonResponse(['data' => $job], 'Job offer updated successfully!', 200);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error updating the job offer: ' . $e->getMessage(), 500);
         }
     }
+
 
 
     /**

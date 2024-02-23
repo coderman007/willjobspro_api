@@ -17,11 +17,9 @@ return new class extends Migration
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->unsignedBigInteger('job_category_id');
             $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
-            $table->unsignedBigInteger('job_type_id');
-            $table->foreign('job_type_id')->references('id')->on('job_types')->onDelete('cascade');
-            $table->string('title');
             $table->unsignedBigInteger('subscription_plan_id')->nullable();
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
+            $table->string('title');
             $table->text('description');
             $table->dateTime('posted_date');
             $table->dateTime('deadline');
@@ -30,7 +28,6 @@ return new class extends Migration
             $table->string('contact_email');
             $table->string('contact_phone');
             $table->enum('status', ['Open', 'Closed', 'Under Review']);
-
             $table->timestamps();
         });
     }

@@ -12,7 +12,6 @@ class Job extends Model
     protected $fillable = [
         'company_id',
         'job_category_id',
-        'job_type_id',
         'subscription_plan_id',
         'title',
         'description',
@@ -39,9 +38,9 @@ class Job extends Model
         return $this->belongsTo(JobCategory::class);
     }
 
-    public function jobType()
+    public function jobTypes()
     {
-        return $this->belongsTo(JobType::class);
+        return $this->belongsToMany(JobType::class);
     }
 
     public function subscriptionPlan()
