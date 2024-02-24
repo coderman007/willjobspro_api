@@ -13,6 +13,7 @@ class Job extends Model
         'company_id',
         'job_category_id',
         'subscription_plan_id',
+        'education_level_id',
         'title',
         'description',
         'posted_date',
@@ -21,6 +22,7 @@ class Job extends Model
         'salary',
         'contact_email',
         'contact_phone',
+        'experience_required',
         'status',
     ];
 
@@ -36,6 +38,11 @@ class Job extends Model
     public function jobCategory()
     {
         return $this->belongsTo(JobCategory::class);
+    }
+
+    public function educationLevel()
+    {
+        return $this->belongsTo(EducationLevel::class);
     }
 
     public function jobTypes()

@@ -19,6 +19,7 @@ class JobResource extends JsonResource
             'id' => $this->id,
             'company_id' => $this->company_id,
             'job_category_id' => $this->job_category_id,
+            'education_level_id' => $this->education_level_id,
             'title' => $this->title,
             // 'subscription_plan_id' => $this->subscription_plan_id,
             'description' => $this->description,
@@ -28,6 +29,7 @@ class JobResource extends JsonResource
             'salary' => $this->salary,
             'contact_email' => $this->contact_email,
             'contact_phone' => $this->contact_phone,
+            'min_experience_required' => $this->experience_required,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
@@ -35,6 +37,8 @@ class JobResource extends JsonResource
             'company_name' =>  $this->company->name,
 
             'category_name' => $this->jobCategory->name,
+
+            'education_level_name' => $this->educationLevel->name,
 
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
 

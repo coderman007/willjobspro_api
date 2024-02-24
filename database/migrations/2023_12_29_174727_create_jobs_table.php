@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
             $table->unsignedBigInteger('subscription_plan_id')->nullable();
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
+            $table->unsignedBigInteger('education_level_id');
+            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
             $table->dateTime('posted_date');
@@ -27,6 +29,7 @@ return new class extends Migration
             $table->decimal('salary', 10, 2);
             $table->string('contact_email');
             $table->string('contact_phone');
+            $table->string('experience_required')->nullable();
             $table->enum('status', ['Open', 'Closed', 'Under Review']);
             $table->timestamps();
         });

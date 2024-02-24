@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Company;
+use App\Models\EducationLevel;
 use App\Models\Job;
 use App\Models\JobCategory;
 use App\Models\SubscriptionPlan;
@@ -21,6 +22,7 @@ class JobFactory extends Factory
             'company_id' => Company::pluck('id')->random(),
             'job_category_id' => JobCategory::pluck('id')->random(),
             'subscription_plan_id' => SubscriptionPlan::pluck('id')->random(),
+            'education_level_id' => EducationLevel::pluck('id')->random(),
 
             'title' => $this->faker->jobTitle,
             'description' => $this->faker->paragraph,
@@ -30,6 +32,7 @@ class JobFactory extends Factory
             'salary' => $this->faker->randomFloat(2, 30000, 100000),
             'contact_email' => $this->faker->email,
             'contact_phone' => $this->faker->phoneNumber,
+            'experience_required' => $this->faker->randomElement([null, 1, 2, 3, 4, 5, 6, 12, 18, 24, 36, 48, 60]),
             'status' => $this->faker->randomElement(['Open', 'Closed', 'Under Review']),
         ];
     }

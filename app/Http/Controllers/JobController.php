@@ -53,7 +53,7 @@ class JobController extends Controller
 
     private function buildJobQuery(Request $request)
     {
-        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'subscriptionPlan']);
+        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'educationLevel', 'subscriptionPlan']);
 
         if ($request->filled('search')) {
             $searchTerm = $request->query('search');
@@ -61,7 +61,7 @@ class JobController extends Controller
         }
 
         $filters = [
-            'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
+            'company_id', 'job_category_id', 'job_type_id', 'education_level_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
         ];
 
         foreach ($filters as $filter) {
@@ -120,7 +120,7 @@ class JobController extends Controller
 
             $job->load('jobTypes');
 
-            return $this->jsonResponse(['data' => $job], 'Job offer created successfully', 201);
+            return $this->jsonResponse($job, 'Job offer created successfully', 201);
         } catch (QueryException $e) {
             // Manejo de errores de base de datos
             return $this->jsonErrorResponse('An error occurred in the database while creating the job offer.' . $e->getMessage(), 500);
@@ -168,11 +168,13 @@ class JobController extends Controller
             // Obtener el número de aplicaciones
             $numApplications = $job->applications->count();
 
-            // Retornar los detalles del trabajo incluyendo el número de aplicaciones
-            return $this->jsonResponse([
+            // Transformar el trabajo para incluir los tipos de trabajo
+            $transformedJob = [
                 'job' => new JobResource($job),
                 'num_applications' => $numApplications,
-            ], 'Job offer detail obtained successfully', 200);
+            ];
+
+            return $this->jsonResponse($transformedJob, 'Job offer detail obtained successfully', 200);
         } catch (ModelNotFoundException $e) {
             // Manejar la excepción cuando el modelo no se encuentra
             return $this->jsonErrorResponse('Job not found.', 404);
@@ -181,6 +183,7 @@ class JobController extends Controller
             return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage(), 500);
         }
     }
+
 
 
 
@@ -214,7 +217,11 @@ class JobController extends Controller
                 $job->subscription_plan_id = $subscriptionPlanId;
             }
 
-            // Resto de la lógica, si es necesario...
+            // Actualizar los tipos de trabajo asociados
+            if ($request->has('job_type_ids')) {
+                $jobTypeIds = $request->input('job_type_ids', []);
+                $job->jobTypes()->sync($jobTypeIds);
+            }
 
             // Guardar los cambios en la base de datos
             $job->save();
@@ -222,11 +229,12 @@ class JobController extends Controller
             // Recargar la relación jobTypes
             $job->load('jobTypes');
 
-            return $this->jsonResponse(['data' => $job], 'Job offer updated successfully!', 200);
+            return $this->jsonResponse($job, 'Job offer updated successfully!', 200);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error updating the job offer: ' . $e->getMessage(), 500);
         }
     }
+
 
 
 

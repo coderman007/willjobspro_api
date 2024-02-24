@@ -4,6 +4,7 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTypeController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
+use App\Models\EducationLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,9 +24,11 @@ Route::post("login", [AuthController::class, 'login']);
 Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{company}', [CompanyController::class, 'show']);
 Route::get('job-categories', [JobCategoryController::class, 'index']);
-Route::get('job-types', [JobTypeController::class, 'index']);;
+Route::get('job-types', [JobTypeController::class, 'index']);
 Route::get('jobs', [JobController::class, 'index']);
 Route::get('jobs/{id}', [JobController::class, 'show']);
+Route::get('education-levels', [EducationLevelController::class, 'index']);
+Route::get('education-levels/{id}', [EducationLevelController::class, 'show']);
 
 
 // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
@@ -103,5 +107,10 @@ Route::group(
         Route::post('payments', [PaymentController::class, 'makePayment']);
         Route::get('payments', [PaymentController::class, 'getPayments']);
         Route::get('payments/{id}', [PaymentController::class, 'getPayment']);
+
+        // Rutas para niveles de educación
+        Route::post('education-levels', [EducationLevelController::class, 'store']);
+        Route::put('education-levels/{education_level}', [EducationLevelController::class, 'update']);
+        Route::delete('education-levels/{education_level}', [EducationLevelController::class, 'destroy']);
     }
 );
