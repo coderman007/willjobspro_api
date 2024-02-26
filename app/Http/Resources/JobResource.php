@@ -42,10 +42,7 @@ class JobResource extends JsonResource
 
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
 
-            'num_applications' => $this->when(
-                property_exists($this, 'num_applications'),
-                $this->num_applications
-            ),
+            'num_applications' => $this->when(isset($this->num_applications), $this->num_applications),
 
             // 'subscription_plan_name' =>  $this->subscriptionPlan->name,
 

@@ -35,15 +35,17 @@ class JobController extends Controller
             // Obtener los tipos de trabajo asociados a cada oferta
             $jobs->load('jobTypes');
 
-            // Obtener el número de aplicantes por oferta y adjuntarlo a la respuesta
-            $jobs->each(function ($job) {
-                $job->setAttribute('num_applications', Application::where('job_id', $job->id)->count());
-            });
-
-            // No sobrescribas la variable $jobs aquí
-            // Transformar la colección de ofertas para incluir los tipos de trabajo
+            // Modificar para incluir el número de aplicantes
             $transformedJobs = $jobs->map(function ($job) {
+                // Obtener el número de aplicantes
+                $numApplications = $job->applications->count();
+
+                // Incluir el número de aplicantes en la respuesta
+                $job->setAttribute('num_applications', $numApplications);
+
+                // Transformar la colección de ofertas para incluir los tipos de trabajo
                 $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+
                 return $job;
             });
 
