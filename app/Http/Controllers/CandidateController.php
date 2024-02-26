@@ -267,14 +267,14 @@ class CandidateController extends Controller
     /**
      * Display the specified candidate profile.
      *
-     * @param int $id
+     * @param int $userId
      * @return JsonResponse
      */
     public function show($id): JsonResponse
     {
         try {
-            // Obtener el candidato por ID con la relación de usuario cargada de forma ansiosa
-            $candidate = Candidate::with('user')->findOrFail($id);
+            // Obtener el candidato por user_id con la relación de usuario cargada de forma ansiosa
+            $candidate = Candidate::with('user')->where('user_id', $id)->first();
 
             // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
             $authenticatedUser = auth()->user();
@@ -309,6 +309,7 @@ class CandidateController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Update the specified resource in storage.
