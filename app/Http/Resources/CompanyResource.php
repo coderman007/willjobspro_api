@@ -30,7 +30,7 @@ class CompanyResource extends JsonResource
             'logo_path' => $this->logo_path,
             'banner_path' => $this->banner_path,
             'social_networks' => $this->social_networks,
-            'status' => $this->status,
+            // 'status' => $this->status,
         ];
     }
 }

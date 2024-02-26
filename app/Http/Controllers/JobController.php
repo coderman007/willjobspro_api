@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Application;
 use App\Models\Job;
 use App\Models\JobType;
 use App\Http\Requests\StoreJobRequest;
@@ -22,6 +23,7 @@ class JobController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+
     public function index(Request $request): JsonResponse
     {
         try {
@@ -32,6 +34,11 @@ class JobController extends Controller
 
             // Obtener los tipos de trabajo asociados a cada oferta
             $jobs->load('jobTypes');
+
+            // Obtener el número de aplicantes por oferta y adjuntarlo a la respuesta
+            $jobs->each(function ($job) {
+                $job->setAttribute('num_applications', Application::where('job_id', $job->id)->count());
+            });
 
             // No sobrescribas la variable $jobs aquí
             // Transformar la colección de ofertas para incluir los tipos de trabajo
@@ -49,6 +56,7 @@ class JobController extends Controller
             return $this->jsonErrorResponse('Error retrieving job offers: ' . $e->getMessage(), 500);
         }
     }
+
 
 
     private function buildJobQuery(Request $request)
