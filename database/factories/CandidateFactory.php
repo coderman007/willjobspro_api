@@ -8,18 +8,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CandidateFactory extends Factory
 {
-    /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
-    protected $model = Candidate::class;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array
-     */
     public function definition(): array
     {
         $user = User::whereHas('roles', function ($query) {
@@ -30,6 +18,10 @@ class CandidateFactory extends Factory
             $user = User::factory()->create();
             $user->assignRole('candidate');
         }
+
+        $cvPath = 'candidate_uploads/cvs/' . $this->faker->file('public/storage/candidate_uploads/cvs', storage_path('app/public/candidate_uploads/cvs'), false);
+        $photoPath = 'candidate_uploads/profile_photos/' . $this->faker->image('public/storage/candidate_uploads/profile_photos', 100, 100, null, false);
+        $bannerPath = 'candidate_uploads/banners/' . $this->faker->image('public/storage/candidate_uploads/banners', 800, 400, null, false);
 
         return [
             'user_id' => $user->id,
@@ -44,9 +36,9 @@ class CandidateFactory extends Factory
             'languages' => $this->faker->text,
             'references' => $this->faker->text,
             'expected_salary' => $this->faker->randomFloat(2, 1000, 10000),
-            'cv_path' => 'N/A',
-            'photo_path' => $this->faker->imageUrl(),
-            'banner_path' => $this->faker->imageUrl(),
+            'cv_path' => $cvPath,
+            'photo_path' => $photoPath,
+            'banner_path' => $bannerPath,
             'social_networks' => json_encode(['facebook' => 'example.com/facebook']),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
         ];
