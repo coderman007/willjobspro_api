@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,13 +13,9 @@ return new class extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('company_id');
-            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->unsignedBigInteger('job_category_id');
-            $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
             $table->unsignedBigInteger('subscription_plan_id')->nullable();
-            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
             $table->unsignedBigInteger('education_level_id');
-            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
             $table->string('title');
             $table->text('description');
             $table->dateTime('posted_date');
@@ -32,6 +27,12 @@ return new class extends Migration
             $table->string('experience_required')->nullable();
             $table->enum('status', ['Open', 'Closed', 'Under Review']);
             $table->timestamps();
+
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
+            $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
+            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
+            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
+
         });
     }
 

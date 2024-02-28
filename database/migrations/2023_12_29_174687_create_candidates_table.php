@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,14 +13,13 @@ return new class extends Migration
         Schema::create('candidates', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('education_level_id');
 
             $table->string('full_name');
             $table->string('gender')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->string('address');
             $table->string('phone_number')->nullable();
             $table->text('work_experience')->nullable();
-            $table->text('education')->nullable();
             $table->text('certifications')->nullable();
             $table->text('languages')->nullable();
             $table->text('references')->nullable();
@@ -34,6 +32,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
         });
     }
 

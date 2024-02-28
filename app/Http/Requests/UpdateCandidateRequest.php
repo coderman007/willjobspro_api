@@ -14,13 +14,16 @@ class UpdateCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'education_level_id' => 'exists:education_levels,id',
+            'country_id' => 'exists:countries,id',
+            'state_id' => 'exists:states,id',
+            'city_id' => 'exists:cities,id',
+            'zip_code_id' => 'exists:zip_codes,id',
             'full_name' => 'string|max:255',
             'gender' => 'string|max:20',
             'date_of_birth' => 'date',
-            'address' => 'string|max:255',
             'phone_number' => 'string|max:20',
             'work_experience' => 'string',
-            'education' => 'string',
             'certifications' => 'string',
             'languages' => 'string',
             'references' => 'string',

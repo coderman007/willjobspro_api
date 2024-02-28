@@ -10,15 +10,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Candidate extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'user_id',
+        'education_level_id',
         'full_name',
         'gender',
         'date_of_birth',
-        'address',
         'phone_number',
         'work_experience',
-        'education',
         'certifications',
         'languages',
         'references',
@@ -40,6 +40,11 @@ class Candidate extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function educationLevel(): BelongsTo
+    {
+        return $this->belongsTo(EducationLevel::class);
+    }
+
     public function skills()
     {
         return $this->belongsToMany(Skill::class);
@@ -57,7 +62,6 @@ class Candidate extends Model
     }
 
     // Agregar habilidad al candidato
-
     public function addSkill($skillId)
     {
         $this->skills()->attach($skillId);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -19,6 +20,10 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
+        'country_id',
+        'state_id',
+        'city_id',
+        'zip_code_id',
         'name',
         'email',
         'password',
@@ -81,4 +86,25 @@ class User extends Authenticatable
     {
         return $this->hasOne(Company::class);
     }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function state(): BelongsTo
+    {
+        return $this->belongsTo(State::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function zipCode(): BelongsTo
+    {
+        return $this->belongsTo(ZipCode::class);
+    }
+
 }

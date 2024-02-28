@@ -22,9 +22,13 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'user_id' => 'required|exists:users,id',
+            'country_id' => 'required|exists:countries,id',
+            'state_id' => 'required|exists:states,id',
+            'city_id' => 'required|exists:cities,id',
+            'zip_code_id' => 'required|exists:zip_codes,id',
             'name' => 'required|string|max:255',
             'industry' => 'nullable|string|max:255',
-            'address' => 'required|string|max:255',
             'phone_number' => 'nullable|string|max:20',
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -45,7 +49,6 @@ class StoreCompanyRequest extends FormRequest
         return [
             'name.required' => 'The company name field is required.',
             'industry.nullable' => 'The industry field is optional.',
-            'address.required' => 'The address field is required.',
             'phone_number.nullable' => 'The phone number field is optional.',
             'website.nullable' => 'The website field is optional.',
             'description.nullable' => 'The description field is optional.',

@@ -95,6 +95,14 @@ class CompanyController extends Controller
         }
 
         try {
+            // Actualizar la ubicación del usuario en la tabla 'users'
+            $user->update([
+                'country_id' => $request->input('country_id'),
+                'state_id' => $request->input('state_id'),
+                'city_id' => $request->input('city_id'),
+                'zip_code_id' => $request->input('zip_code_id'),
+            ]);
+
             // Lógica para la generación de nombres simplificada
             $logoName = 'logo_file_' . $user->id . $this->generateFileName($request->logo_file);
             $bannerName = 'banner_file_' . $user->id . $this->generateFileName($request->banner_file);
@@ -104,7 +112,6 @@ class CompanyController extends Controller
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
                 'industry' => $validatedData['industry'],
-                'address' => $validatedData['address'],
                 'phone_number' => $validatedData['phone_number'],
                 'website' => $validatedData['website'],
                 'description' => $validatedData['description'],

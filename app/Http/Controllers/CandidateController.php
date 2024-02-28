@@ -41,7 +41,11 @@ class CandidateController extends Controller
 
             // Filtros
             $filters = [
-                'full_name', 'gender', 'education', 'status', 'date_of_birth', 'skills', 'certifications',
+                'full_name',
+                'gender',
+                'education_level_id',
+                'status',
+                'date_of_birth',
             ];
 
             foreach ($filters as $filter) {
@@ -57,18 +61,13 @@ class CandidateController extends Controller
                 $query->orderBy($sortBy, $sortOrder);
             }
 
+            // Modifica la consulta para cargar la relación 'user' con las ubicaciones
+            $query->with(['user.country', 'user.state', 'user.city', 'user.zipCode']);
+
             $candidates = $query->paginate($perPage);
 
             $paginationData = [
                 'total' => $candidates->total(),
-                // 'per_page' => $candidates->perPage(),
-                // 'current_page' => $candidates->currentPage(),
-                // 'last_page' => $candidates->lastPage(),
-                // 'from' => $candidates->firstItem(),
-                // 'to' => $candidates->lastItem(),
-                // 'next_page_url' => $candidates->nextPageUrl(),
-                // 'prev_page_url' => $candidates->previousPageUrl(),
-                // 'path' => $candidates->path(),
             ];
 
             return response()->json(['data' => $candidates, 'pagination' => $paginationData], 200);
@@ -79,6 +78,54 @@ class CandidateController extends Controller
             ], 500);
         }
     }
+
+
+    /**
+     * Display the specified candidate profile.
+     *
+     * @param int $userId
+     * @return JsonResponse
+     */
+    public function show($id): JsonResponse
+    {
+        try {
+            // Obtener el candidato por user_id con la relación de usuario cargada de forma ansiosa
+            $candidate = Candidate::with(['user.country', 'user.state', 'user.city', 'user.zipCode'])->where('user_id', $id)->first();
+
+            // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
+            $user = auth()->user();
+            if (!($user->hasRole('candidate') && $user->id === $candidate->user_id) && !$user->hasRole('admin')) {
+                return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
+            }
+
+            // Obtener las habilidades del candidato
+            $skills = $candidate->skills;
+
+            // Transformar el candidato a un recurso CandidateResource
+            $candidateResource = new CandidateResource($candidate);
+
+            return response()->json([
+                'message' => 'Candidate Profile Successfully Obtained!',
+                'data' => [
+                    'candidate' => $candidateResource,
+                    'skills' => $skills,
+                ],
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Manejar el caso en el que no se encuentra al candidato
+            return response()->json([
+                'error' => 'Candidate not found.',
+                'details' => $e->getMessage(),
+            ], 404);
+        } catch (\Exception $e) {
+            // Manejar cualquier otra excepción y devolver una respuesta de error
+            return response()->json([
+                'error' => 'An error occurred while getting the candidate profile.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     /**
      * Store a newly created candidate instance in storage.
@@ -96,6 +143,14 @@ class CandidateController extends Controller
         }
 
         try {
+            // Actualizar la ubicación del usuario en la tabla 'users'
+            $user->update([
+                'country_id' => $request->input('country_id'),
+                'state_id' => $request->input('state_id'),
+                'city_id' => $request->input('city_id'),
+                'zip_code_id' => $request->input('zip_code_id'),
+            ]);
+
             // Lógica para la generación de nombres de archivos del candidato
             $cvName = 'cv_file_' . $user->id . $this->generateFileName($request->cv_file);
             $photoName = 'photo_file_' . $user->id . $this->generateFileName($request->photo_file);
@@ -104,20 +159,19 @@ class CandidateController extends Controller
             // Crear instancia en la tabla 'candidates'
             $candidate = Candidate::create([
                 'user_id' => $user->id,
+                'education_level_id' => $validatedData['education_level_id'],
                 'full_name' => $validatedData['full_name'],
                 'gender' => $validatedData['gender'],
                 'date_of_birth' => $validatedData['date_of_birth'],
-                'address' => $validatedData['address'],
                 'phone_number' => $validatedData['phone_number'],
                 'work_experience' => $validatedData['work_experience'],
-                'education' => $validatedData['education'],
                 'certifications' => $validatedData['certifications'],
                 'languages' => $validatedData['languages'],
                 'references' => $validatedData['references'],
                 'expected_salary' => $validatedData['expected_salary'],
-                'cv_path' => 'candidates/cvs/' .  $cvName,
-                'photo_path' => 'candidates/profile_photos/' .  $photoName,
-                'banner_path' => 'candidates/banners/' .  $bannerName,
+                'cv_path' => 'candidates/cvs/' . $cvName,
+                'photo_path' => 'candidates/profile_photos/' . $photoName,
+                'banner_path' => 'candidates/banners/' . $bannerName,
                 'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);
@@ -265,53 +319,6 @@ class CandidateController extends Controller
     }
 
     /**
-     * Display the specified candidate profile.
-     *
-     * @param int $userId
-     * @return JsonResponse
-     */
-    public function show($id): JsonResponse
-    {
-        try {
-            // Obtener el candidato por user_id con la relación de usuario cargada de forma ansiosa
-            $candidate = Candidate::with('user')->where('user_id', $id)->first();
-
-            // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
-            $authenticatedUser = auth()->user();
-            if (!($authenticatedUser->hasRole('candidate') && $authenticatedUser->id === $candidate->user_id) && !$authenticatedUser->hasRole('admin')) {
-                return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
-            }
-
-            // Obtener las habilidades del candidato
-            $skills = $candidate->skills;
-
-            // Transformar el candidato a un recurso CandidateResource
-            $candidateResource = new CandidateResource($candidate);
-
-            return response()->json([
-                'message' => 'Candidate Profile Successfully Obtained!',
-                'data' => [
-                    'candidate' => $candidateResource,
-                    'skills' => $skills,
-                ],
-            ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Manejar el caso en el que no se encuentra al candidato
-            return response()->json([
-                'error' => 'Candidate not found.',
-                'details' => $e->getMessage(),
-            ], 404);
-        } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y devolver una respuesta de error
-            return response()->json([
-                'error' => 'An error occurred while getting the candidate profile.',
-                'details' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-    /**
      * Update the specified resource in storage.
      *
      * @param UpdateCandidateRequest $request
@@ -324,13 +331,24 @@ class CandidateController extends Controller
             $validatedData = $request->validated();
 
             // Validar que el usuario autenticado tenga permisos para actualizar este candidato
-            $authenticatedUser = auth()->user();
-            if (!$authenticatedUser->hasRole('candidate') || $authenticatedUser->id !== $candidate->user_id) {
+            $user = auth()->user();
+            if (!$user->hasRole('candidate') || $user->id !== $candidate->user_id) {
                 return response()->json(['error' => 'Unauthorized to update this candidate'], 403);
             }
 
-            // Realizar la actualización
+            // Actualizar la ubicación del usuario en la tabla 'users'
+            $user->update([
+                'country_id' => $request->input('country_id'),
+                'state_id' => $request->input('state_id'),
+                'city_id' => $request->input('city_id'),
+                'zip_code_id' => $request->input('zip_code_id'),
+            ]);
+
+            // Realizar la actualización de campos básicos
             $candidate->update($validatedData);
+
+            // Actualizar habilidades si se proporcionan
+            $this->updateSkills($request, $candidate);
 
             // Obtener la instancia actualizada del candidato
             $updatedCandidate = $candidate->fresh();
@@ -353,6 +371,22 @@ class CandidateController extends Controller
         }
     }
 
+    private function updateSkills(Request $request, Candidate $candidate): void
+    {
+        if ($request->filled('skills')) {
+            $skills = explode(',', $request->input('skills'));
+
+            // Desasociar habilidades existentes
+            $candidate->skills()->detach();
+
+            // Asociar nuevas habilidades
+            foreach ($skills as $skillName) {
+                $this->validateAndAttachSkill($candidate, $skillName);
+            }
+        }
+    }
+
+
     /**
      * Remove the specified resource from storage.
      *
@@ -363,8 +397,8 @@ class CandidateController extends Controller
     {
         try {
             // Validar que el usuario autenticado tenga permisos para eliminar este candidato
-            $authenticatedUser = auth()->user();
-            if (!$authenticatedUser->hasRole('admin') && $authenticatedUser->id !== $candidate->user_id) {
+            $user = auth()->user();
+            if (!$user->hasRole('admin') && $user->id !== $candidate->user_id) {
                 return response()->json(['error' => 'Unauthorized to delete this candidate'], 403);
             }
 

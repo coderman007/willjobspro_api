@@ -14,18 +14,16 @@ class CandidateResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // return parent::toArray($request);
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
+            'education_level_id' => $this->education_level_id,
             'full_name' => $this->full_name,
             'email' => $this->user->email,
             'gender' => $this->gender,
             'date_of_birth' => $this->date_of_birth,
-            'address' => $this->address,
             'phone_number' => $this->phone_number,
             'work_experience' => $this->work_experience,
-            'education' => $this->education,
             'certifications' => $this->certifications,
             'languages' => $this->languages,
             'references' => $this->references,
@@ -35,6 +33,10 @@ class CandidateResource extends JsonResource
             'banner_path' => $this->banner_path,
             'social_networks' => $this->social_networks,
             'status' => $this->status,
+            'country' => $this->user->country,
+            'state' => $this->user->state,
+            'city' => $this->user->city,
+            'zip_code' => $this->user->zipCode,
         ];
     }
 }

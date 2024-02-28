@@ -23,9 +23,12 @@ class UpdateCompanyRequest extends FormRequest
     {
         return [
             'user_id' => 'exists:users,id',
+            'country_id' => 'exists:countries,id',
+            'state_id' => 'exists:states,id',
+            'city_id' => 'exists:cities,id',
+            'zip_code_id' => 'exists:zip_codes,id',
             'name' => 'string|max:255',
             'industry' => 'string|max:255',
-            'address' => 'string|max:255',
             'phone_number' => 'string|max:20',
             'website' => 'nullable|string|max:255',
             'description' => 'nullable|string',

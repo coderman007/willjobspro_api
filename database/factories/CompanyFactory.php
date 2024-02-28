@@ -30,7 +30,6 @@ class CompanyFactory extends Factory
             'user_id' => $user->id,
             'name' => $this->faker->company,
             'industry' => $this->faker->word,
-            'address' => $this->faker->address,
             'phone_number' => $this->faker->phoneNumber,
             'website' => $this->faker->url,
             'description' => $this->faker->paragraph,

@@ -1,0 +1,1001 @@
+[
+    {
+        "id": 1,
+        "country": "Argentina",
+        "iso_alpha_2": "AR",
+        "regions": [
+            {
+                "id": 1,
+                "region": "Buenos Aires",
+                "code": "BA",
+                "cities": [
+                    {
+                        "city": "La Plata",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "1900",
+                                "zip_code2": "1901"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Mar del Plata",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "7600",
+                                "zip_code2": "7601"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "region": "Córdoba",
+                "code": "CO",
+                "cities": [
+                    {
+                        "city": "Córdoba",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "5000",
+                                "zip_code2": "5001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Villa Maria",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "5900",
+                                "zip_code2": "5901"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "region": "Santa Fe",
+                "code": "SF",
+                "cities": [
+                    {
+                        "city": "Rosario",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "2000",
+                                "zip_code2": "2001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Santa Fe",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "3000",
+                                "zip_code2": "3001"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "region": "Mendoza",
+                "code": "MZA",
+                "cities": [
+                    {
+                        "city": "Mendoza",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "5500",
+                                "zip_code2": "5501"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "San Rafael",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "5600",
+                                "zip_code2": "5601"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "country": "Brazil",
+        "iso_alpha_2": "BR",
+        "regions": [
+            {
+                "id": 5,
+                "region": "São Paulo",
+                "code": "SP",
+                "cities": [
+                    {
+                        "city": "São Paulo",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "01000",
+                                "zip_code2": "01001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Campinas",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "13000",
+                                "zip_code2": "13001"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 6,
+                "region": "Rio de Janeiro",
+                "code": "RJ",
+                "cities": [
+                    {
+                        "city": "Rio de Janeiro",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "20000",
+                                "zip_code2": "20001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Niteroi",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "24000",
+                                "zip_code2": "24001"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "country": "Canada",
+        "iso_alpha_2": "CA",
+        "regions": [
+            {
+                "id": 7,
+                "region": "Ontario",
+                "code": "ON",
+                "cities": [
+                    {
+                        "city": "Toronto",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "M5A",
+                                "zip_code2": "M5B"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Ottawa",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "K1A",
+                                "zip_code2": "K1B"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 8,
+                "region": "Quebec",
+                "code": "QC",
+                "cities": [
+                    {
+                        "city": "Montreal",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "H1A",
+                                "zip_code2": "H1B"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Quebec City",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "G1A",
+                                "zip_code2": "G1B"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "country": "Colombia",
+        "iso_alpha_2": "CO",
+        "regions": [
+            {
+                "id": 9,
+                "region": "Cundinamarca",
+                "code": "CUN",
+                "cities": [
+                    {
+                        "city": "Bogotá",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "110111",
+                                "zip_code2": "110112"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Usaquén",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "110121",
+                                "zip_code2": "110122"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 10,
+                "region": "Antioquia",
+                "code": "ANT",
+                "cities": [
+                    {
+                        "city": "Medellín",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "050001",
+                                "zip_code2": "050002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Envigado",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "055421",
+                                "zip_code2": "055422"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "country": "United States",
+        "iso_alpha_2": "US",
+        "regions": [
+            {
+                "id": 11,
+                "region": "California",
+                "code": "CA",
+                "cities": [
+                    {
+                        "city": "Los Angeles",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "90001",
+                                "zip_code2": "90002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "San Francisco",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "94102",
+                                "zip_code2": "94103"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "San Diego",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "92101",
+                                "zip_code2": "92102"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Sacramento",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "95814",
+                                "zip_code2": "95815"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 12,
+                "region": "New York",
+                "code": "NY",
+                "cities": [
+                    {
+                        "city": "New York City",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "10001",
+                                "zip_code2": "10002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Buffalo",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "14201",
+                                "zip_code2": "14202"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Albany",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "12207",
+                                "zip_code2": "12208"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Rochester",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "14604",
+                                "zip_code2": "14605"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 13,
+                "region": "Texas",
+                "code": "TX",
+                "cities": [
+                    {
+                        "city": "Houston",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "77001",
+                                "zip_code2": "77002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Dallas",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "75201",
+                                "zip_code2": "75202"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Austin",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "78701",
+                                "zip_code2": "78702"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "San Antonio",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "78201",
+                                "zip_code2": "78202"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 14,
+                "region": "Florida",
+                "code": "FL",
+                "cities": [
+                    {
+                        "city": "Miami",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "33101",
+                                "zip_code2": "33102"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Orlando",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "32801",
+                                "zip_code2": "32802"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Tampa",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "33601",
+                                "zip_code2": "33602"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Jacksonville",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "32201",
+                                "zip_code2": "32202"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 15,
+                "region": "Illinois",
+                "code": "IL",
+                "cities": [
+                    {
+                        "city": "Chicago",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "60601",
+                                "zip_code2": "60602"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Springfield",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "62701",
+                                "zip_code2": "62702"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Peoria",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "61601",
+                                "zip_code2": "61602"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Champaign",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "61801",
+                                "zip_code2": "61802"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 16,
+                "region": "Georgia",
+                "code": "GA",
+                "cities": [
+                    {
+                        "city": "Atlanta",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "30301",
+                                "zip_code2": "30302"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Savannah",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "31401",
+                                "zip_code2": "31402"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Augusta",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "30901",
+                                "zip_code2": "30902"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Macon",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "31201",
+                                "zip_code2": "31202"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "country": "Spain",
+        "iso_alpha_2": "ES",
+        "regions": [
+            {
+                "id": 17,
+                "region": "Madrid",
+                "code": "MD",
+                "cities": [
+                    {
+                        "city": "Madrid",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "28001",
+                                "zip_code2": "28002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Alcalá de Henares",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "28801",
+                                "zip_code2": "28802"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 18,
+                "region": "Barcelona",
+                "code": "BCN",
+                "cities": [
+                    {
+                        "city": "Barcelona",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "08001",
+                                "zip_code2": "08002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Badalona",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "08911",
+                                "zip_code2": "08912"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "country": "France",
+        "iso_alpha_2": "FR",
+        "regions": [
+            {
+                "id": 19,
+                "region": "Île-de-France",
+                "code": "IDF",
+                "cities": [
+                    {
+                        "city": "Paris",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "75001",
+                                "zip_code2": "75002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Versailles",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "78000",
+                                "zip_code2": "78001"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 20,
+                "region": "Provence-Alpes-Côte d'Azur",
+                "code": "PACA",
+                "cities": [
+                    {
+                        "city": "Marseille",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "13001",
+                                "zip_code2": "13002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Nice",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "06000",
+                                "zip_code2": "06001"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "country": "Australia",
+        "iso_alpha_2": "AU",
+        "regions": [
+            {
+                "id": 21,
+                "region": "New South Wales",
+                "code": "NSW",
+                "cities": [
+                    {
+                        "city": "Sydney",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "2000",
+                                "zip_code2": "2001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Newcastle",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "2300",
+                                "zip_code2": "2301"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 22,
+                "region": "Victoria",
+                "code": "VIC",
+                "cities": [
+                    {
+                        "city": "Melbourne",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "3000",
+                                "zip_code2": "3001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Geelong",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "3220",
+                                "zip_code2": "3221"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "country": "Mexico",
+        "iso_alpha_2": "MX",
+        "regions": [
+            {
+                "id": 23,
+                "region": "Ciudad de México",
+                "code": "CDMX",
+                "cities": [
+                    {
+                        "city": "Ciudad de México",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "01000",
+                                "zip_code2": "01001"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Coyoacán",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "04000",
+                                "zip_code2": "04001"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 24,
+                "region": "Jalisco",
+                "code": "JAL",
+                "cities": [
+                    {
+                        "city": "Guadalajara",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "44100",
+                                "zip_code2": "44101"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Zapopan",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "45010",
+                                "zip_code2": "45011"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 10,
+        "country": "Italy",
+        "iso_alpha_2": "IT",
+        "regions": [
+            {
+                "id": 25,
+                "region": "Lazio",
+                "code": "LAZ",
+                "cities": [
+                    {
+                        "city": "Rome",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "00100",
+                                "zip_code2": "00101"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Latina",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "04100",
+                                "zip_code2": "04101"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 26,
+                "region": "Lombardy",
+                "code": "LOM",
+                "cities": [
+                    {
+                        "city": "Milan",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "20121",
+                                "zip_code2": "20122"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Bergamo",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "24121",
+                                "zip_code2": "24122"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 11,
+        "country": "Germany",
+        "iso_alpha_2": "DE",
+        "regions": [
+            {
+                "id": 27,
+                "region": "Bavaria",
+                "code": "BY",
+                "cities": [
+                    {
+                        "city": "Munich",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "80331",
+                                "zip_code2": "80332"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Nuremberg",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "90402",
+                                "zip_code2": "90403"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 28,
+                "region": "North Rhine-Westphalia",
+                "code": "NRW",
+                "cities": [
+                    {
+                        "city": "Cologne",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "50667",
+                                "zip_code2": "50668"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Dusseldorf",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "40210",
+                                "zip_code2": "40211"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 12,
+        "country": "Peru",
+        "iso_alpha_2": "PE",
+        "regions": [
+            {
+                "id": 29,
+                "region": "Lima",
+                "code": "LIM",
+                "cities": [
+                    {
+                        "city": "Lima",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "15001",
+                                "zip_code2": "15002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Callao",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "07001",
+                                "zip_code2": "07002"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 30,
+                "region": "Cusco",
+                "code": "CUS",
+                "cities": [
+                    {
+                        "city": "Cusco",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "08001",
+                                "zip_code2": "08002"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Machu Picchu",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "08681",
+                                "zip_code2": "08682"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": 13,
+        "country": "Netherlands",
+        "iso_alpha_2": "NL",
+        "regions": [
+            {
+                "id": 31,
+                "region": "North Holland",
+                "code": "NH",
+                "cities": [
+                    {
+                        "city": "Amsterdam",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "1011",
+                                "zip_code2": "1012"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "Haarlem",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "2011",
+                                "zip_code2": "2012"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": 32,
+                "region": "South Holland",
+                "code": "ZH",
+                "cities": [
+                    {
+                        "city": "Rotterdam",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "3011",
+                                "zip_code2": "3012"
+                            }
+                        ]
+                    },
+                    {
+                        "city": "The Hague",
+                        "zip_codes": [
+                            {
+                                "zip_code1": "2511",
+                                "zip_code2": "2512"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
