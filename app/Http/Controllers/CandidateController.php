@@ -107,7 +107,7 @@ class CandidateController extends Controller
             return response()->json([
                 'message' => 'Candidate Profile Successfully Obtained!',
                 'data' => [
-                    'candidate' => $candidateResource,
+                    'info' => $candidateResource,
                     'skills' => $skills,
                 ],
             ], 200);
