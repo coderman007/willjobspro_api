@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Country;
+use App\Models\State;
+use App\Models\City;
+use App\Models\ZipCode;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -25,12 +28,44 @@ class UserSeeder extends Seeder
         $companyUsers = User::factory(10)->create();
         $companyUsers->each(function ($user) {
             $user->assignRole('company');
+            $this->associateLocation($user);
         });
 
         // Crear 10 usuarios con rol 'candidate'
         $candidateUsers = User::factory(10)->create();
         $candidateUsers->each(function ($user) {
             $user->assignRole('candidate');
+            $this->associateLocation($user);
         });
+    }
+
+    /**
+     * Associate location (country, state, city, zip code) with the user.
+     *
+     * @param User $user
+     * @return void
+     */
+    private function associateLocation(User $user): void
+    {
+        // Asociar ubicación aleatoria (solo como ejemplo)
+        $country = Country::inRandomOrder()->first();
+        if ($country) {
+            $state = $country->states()->inRandomOrder()->first();
+            if ($state) {
+                $city = $state->cities()->inRandomOrder()->first();
+                if ($city) {
+                    $zipCode = $city->zipCodes()->inRandomOrder()->first();
+                    if ($zipCode) {
+                        // Actualizar los campos de ubicación del usuario
+                        $user->update([
+                            'country_id' => $country->id,
+                            'state_id' => $state->id,
+                            'city_id' => $city->id,
+                            'zip_code_id' => $zipCode->id,
+                        ]);
+                    }
+                }
+            }
+        }
     }
 }
