@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Candidate;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
+use App\Models\Candidate;
 use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -79,7 +79,29 @@ class CandidateController extends Controller
         }
     }
 
+    public function getAllApplications(Request $request, Candidate $candidate): JsonResponse
+    {
+        try {
+            // Obtener todas las postulaciones del candidato
+            $applications = $candidate->applications()->with('job')->get();
 
+            // Transformar las postulaciones a un formato de respuesta
+            $applicationsData = [];
+            foreach ($applications as $application) {
+                $applicationsData[] = [
+                    'id' => $application->id,
+                    'cover_letter' => $application->cover_letter,
+                    'status' => $application->status,
+                    'created_at' => $application->created_at,
+                ];
+            }
+
+            // Devolver la información de las postulaciones
+            return response()->json(['data' => $applicationsData], 200);
+        } catch (\Exception $e) {
+            return $this->handleGenericError($e);
+        }
+    }
     /**
      * Display the specified candidate profile.
      *
@@ -125,7 +147,6 @@ class CandidateController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * Store a newly created candidate instance in storage.
@@ -192,7 +213,6 @@ class CandidateController extends Controller
         }
     }
 
-
     private function attachSkills(Request $request, Candidate $candidate): void
     {
         if ($request->filled('skills')) {
@@ -220,7 +240,7 @@ class CandidateController extends Controller
     {
         return response()->json([
             'error' => 'An error occurred in the database while creating the candidate!',
-            'details' => $e->getMessage()
+            'details' => $e->getMessage(),
         ], 500);
     }
 
@@ -228,7 +248,7 @@ class CandidateController extends Controller
     {
         return response()->json([
             'error' => 'An error occurred while creating the candidate!',
-            'details' => $e->getMessage()
+            'details' => $e->getMessage(),
         ], 500);
     }
 
@@ -313,7 +333,7 @@ class CandidateController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while removing skill from candidate!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -360,13 +380,13 @@ class CandidateController extends Controller
             // Manejar errores de base de datos
             return response()->json([
                 'error' => 'An error occurred in the database while updating the candidate!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
             // Manejar otros errores
             return response()->json([
                 'error' => 'An error occurred while updating the candidate!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -385,7 +405,6 @@ class CandidateController extends Controller
             }
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -419,7 +438,7 @@ class CandidateController extends Controller
 
             return response()->json([
                 'error' => 'An error occurred while deleting the candidate and associated user!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }

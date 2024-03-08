@@ -13,10 +13,7 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
-use App\Models\EducationLevel;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 
 // Rutas abiertas
 Route::post("register", [AuthController::class, 'register']);
@@ -29,7 +26,6 @@ Route::get('jobs', [JobController::class, 'index']);
 Route::get('jobs/{id}', [JobController::class, 'show']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{id}', [EducationLevelController::class, 'show']);
-
 
 // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
 Route::group(
@@ -59,6 +55,7 @@ Route::group(
         Route::get('candidates/{id}', [CandidateController::class, 'show']);
         Route::put('candidates/{candidate}', [CandidateController::class, 'update']);
         Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);
+        Route::get('candidates/{candidate}/applications', [CandidateController::class, 'getAllApplications']);
 
         // Rutas para gestionar compañías
 
