@@ -28,16 +28,15 @@ class CandidateResource extends JsonResource
             'languages' => $this->languages,
             'references' => $this->references,
             'expected_salary' => $this->expected_salary,
-            'cv_path' => $this->cv_path,
-            'photo_path' => $this->photo_path,
-            'banner_path' => $this->banner_path,
+            'cv' => $this->cv_path ? url('storage/' . $this->cv_path) : null,
+            'profile_photo' => $this->photo_path ? url('storage/' . $this->photo_path) : null,
+            'banner' => $this->banner_path ? url('storage/' . $this->banner_path) : null,
             'social_networks' => $this->social_networks,
             'status' => $this->status,
             'country' => $this->user->country,
             'state' => $this->user->state,
             'city' => $this->user->city,
             'zip_code' => $this->user->zipCode,
-            'candidate_cv' => $this->cv_path ? url('storage/' . $this->cv_path) : null,
         ];
     }
 }
