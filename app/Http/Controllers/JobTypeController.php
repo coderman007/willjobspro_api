@@ -22,27 +22,15 @@ class JobTypeController extends Controller
             $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
             $jobTypes = JobType::all();
 
-            // Metadatos de paginación
-            $paginationData = [
-                'total' => $jobTypes->total(),
-                // 'per_page' => $jobTypes->perPage(),
-                // 'current_page' => $jobTypes->currentPage(),
-                // 'last_page' => $jobTypes->lastPage(),
-                // 'from' => $jobTypes->firstItem(),
-                // 'to' => $jobTypes->lastItem(),
-                // 'next_page_url' => $jobTypes->nextPageUrl(),
-                // 'prev_page_url' => $jobTypes->previousPageUrl(),
-                // 'path' => $jobTypes->path(),
-                // 'data' => $jobTypes->items(),
-                // 'links' => $jobTypes->render(),
-            ];
-
             return response()->json([
                 'message' => 'Job types successfully retrieved',
                 'data' => $jobTypes],
                 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while getting the job type list!'], 500);
+            return response()->json([
+                'error' => 'An error occurred while getting the job type list!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -78,13 +66,18 @@ class JobTypeController extends Controller
     public function show(JobType $jobType): JsonResponse
     {
         try {
+
             return response()->json([
                 'message' => 'Job type detail successfully retrieved',
-                'data' => $jobType],
-                200);
+                'data' => $jobType,
+            ], 200);
+        } catch (NotFoundException $e) {
+            return response()->json([
+                'error' => 'Job type not found!',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error ocurred while getting the job type!',
+                'error' => 'An error occurred while retrieving the job type!',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -127,7 +120,7 @@ class JobTypeController extends Controller
             $jobType->delete();
             return response()->json([
                 'message' => 'Job type deleted',
-                'data' => $jobType],
+                'data' => null],
                 200);
         } catch (\Exception $e) {
             return response()->json([

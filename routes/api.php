@@ -64,7 +64,7 @@ Route::group(
         Route::delete('companies/{company}', [CompanyController::class, 'destroy']);
 
         // Rutas para crear, actualizar y eliminar categorías de ofertas de trabajo
-        Route::get('job-categories{job_category}', [JobCategoryController::class, 'show']);
+        Route::get('job-categories/{job_category}', [JobCategoryController::class, 'show']);
         Route::post('job-categories', [JobCategoryController::class, 'store']);
         Route::put('job-categories/{job_category}', [JobCategoryController::class, 'update']);
         Route::delete('job-categories/{job_category}', [JobCategoryController::class, 'destroy']);

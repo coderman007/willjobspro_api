@@ -22,21 +22,6 @@ class JobCategoryController extends Controller
             $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
             $jobCategories = JobCategory::all();
 
-            // Metadatos de paginación
-            $paginationData = [
-                'total' => $jobCategories->total(),
-                // 'per_page' => $jobCategories->perPage(),
-                // 'current_page' => $jobCategories->currentPage(),
-                // 'last_page' => $jobCategories->lastPage(),
-                // 'from' => $jobCategories->firstItem(),
-                // 'to' => $jobCategories->lastItem(),
-                // 'next_page_url' => $jobCategories->nextPageUrl(),
-                // 'prev_page_url' => $jobCategories->previousPageUrl(),
-                // 'path' => $jobCategories->path(),
-                // 'data' => $jobCategories->items(),
-                // 'links' => $jobCategories->render(),
-            ];
-
             return response()->json([
                 'message' => 'Job categories successfully retrieved',
                 'data' => $jobCategories],
@@ -83,13 +68,18 @@ class JobCategoryController extends Controller
     public function show(JobCategory $jobCategory): JsonResponse
     {
         try {
+
             return response()->json([
                 'message' => 'Job category detail successfully retrieved',
-                'data' => $jobCategory],
-                200);
+                'data' => $jobCategory,
+            ], 200);
+        } catch (NotFoundException $e) {
+            return response()->json([
+                'error' => 'Job category not found!',
+            ], 404);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error ocurred while getting the job category!',
+                'error' => 'An error occurred while retrieving the job category!',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -132,7 +122,7 @@ class JobCategoryController extends Controller
             $jobCategory->delete();
             return response()->json([
                 'message' => 'Job category deleted',
-                'data' => $jobCategory],
+                'data' => null],
                 200);
         } catch (\Exception $e) {
             return response()->json([

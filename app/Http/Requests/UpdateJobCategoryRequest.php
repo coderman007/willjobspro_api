@@ -16,7 +16,6 @@ class UpdateJobCategoryRequest extends FormRequest
         return [
             'name' => 'string|max:255',
             'description' => 'nullable|string',
-            'status' => 'in:Active,Blocked',
         ];
     }
 }
