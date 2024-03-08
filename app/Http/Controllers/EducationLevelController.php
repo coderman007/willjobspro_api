@@ -44,7 +44,7 @@ class EducationLevelController extends Controller
         $educationLevel = EducationLevel::create($validatedData);
         return response()->json([
             'message' => 'Education level successfully created',
-            $educationLevel, 201]);
+            'data' => $educationLevel], 201);
     }
 
     /**
