@@ -18,7 +18,10 @@ class EducationLevelController extends Controller
     public function index(): JsonResponse
     {
         $educationLevels = EducationLevel::all();
-        return response()->json($educationLevels);
+        return response()->json([
+            'message' => 'Education levels successfully retrieved',
+            'data' => $educationLevels],
+            200);
     }
 
     /**
@@ -29,7 +32,10 @@ class EducationLevelController extends Controller
      */
     public function show(EducationLevel $educationLevel): JsonResponse
     {
-        return response()->json($educationLevel);
+        return response()->json([
+            'message' => 'Education level detail successfully retrieved',
+            'data' => $educationLevels],
+            200);
     }
 
     /**

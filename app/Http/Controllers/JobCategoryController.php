@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JobCategory;
 use App\Http\Requests\StoreJobCategoryRequest;
 use App\Http\Requests\UpdateJobCategoryRequest;
+use App\Models\JobCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,7 +20,7 @@ class JobCategoryController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
-            $jobCategories = JobCategory::paginate($perPage);
+            $jobCategories = JobCategory::all();
 
             // Metadatos de paginación
             $paginationData = [
@@ -37,11 +37,11 @@ class JobCategoryController extends Controller
                 // 'links' => $jobCategories->render(),
             ];
 
-            return response()->json(['data' => $jobCategories, 'pagination' => $paginationData], 200);
+            return response()->json(['data' => $jobCategories], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the job category list!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -62,7 +62,7 @@ class JobCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while creating the job category!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -80,7 +80,7 @@ class JobCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while getting the job category!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -101,7 +101,7 @@ class JobCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while updating the job category!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
@@ -120,7 +120,7 @@ class JobCategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while deleting the job category!',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 500);
         }
     }
