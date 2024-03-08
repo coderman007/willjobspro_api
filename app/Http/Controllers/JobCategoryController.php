@@ -37,7 +37,10 @@ class JobCategoryController extends Controller
                 // 'links' => $jobCategories->render(),
             ];
 
-            return response()->json(['data' => $jobCategories], 200);
+            return response()->json([
+                'message' => 'Job categories successfully retrieved',
+                'data' => $jobCategories],
+                200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the job category list!',
@@ -58,7 +61,11 @@ class JobCategoryController extends Controller
         try {
             $validatedData = $request->validated();
             $jobCategory = JobCategory::create($validatedData);
-            return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo creada con éxito.'], 201);
+            return response()->json([
+                'message' => 'Job category successfully created',
+                'data' => $jobCategory],
+                201);
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while creating the job category!',
@@ -76,7 +83,10 @@ class JobCategoryController extends Controller
     public function show(JobCategory $jobCategory): JsonResponse
     {
         try {
-            return response()->json(['data' => $jobCategory], 200);
+            return response()->json([
+                'message' => 'Job category detail successfully retrieved',
+                'data' => $jobCategory],
+                200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while getting the job category!',
@@ -97,7 +107,11 @@ class JobCategoryController extends Controller
         try {
             $validatedData = $request->validated();
             $jobCategory->update($validatedData);
-            return response()->json(['data' => $jobCategory, 'message' => 'Categoría de trabajo actualizada con éxito.'], 200);
+            return response()->json([
+                'message' => 'Job category successfully updated',
+                'data' => $jobCategory],
+                200);
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while updating the job category!',
@@ -116,7 +130,10 @@ class JobCategoryController extends Controller
     {
         try {
             $jobCategory->delete();
-            return response()->json(['message' => 'Categoría de trabajo eliminada con éxito.'], 200);
+            return response()->json([
+                'message' => 'Job category deleted',
+                'data' => $jobCategory],
+                200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error ocurred while deleting the job category!',

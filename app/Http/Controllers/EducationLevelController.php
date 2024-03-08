@@ -80,6 +80,6 @@ class EducationLevelController extends Controller
         $educationLevel->delete();
         return response()->json([
             'message' => 'Education level deleted',
-            'data' => null], 204);
+            'data' => null], 200);
     }
 }
