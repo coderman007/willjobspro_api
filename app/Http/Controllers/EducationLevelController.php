@@ -58,7 +58,9 @@ class EducationLevelController extends Controller
     {
         $validatedData = $request->validated();
         $educationLevel->update($validatedData);
-        return response()->json($educationLevel, 200);
+        return response()->json([
+            'message' => 'Education level successfully updated',
+            'data' => $educationLevel], 200);
     }
 
     /**
@@ -70,6 +72,8 @@ class EducationLevelController extends Controller
     public function destroy(EducationLevel $educationLevel): JsonResponse
     {
         $educationLevel->delete();
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Education level deleted',
+            'data' => null], 204);
     }
 }
