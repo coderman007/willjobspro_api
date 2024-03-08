@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EducationLevel;
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreEducationLevelRequest;
 use App\Http\Requests\UpdateEducationLevelRequest;
+use App\Models\EducationLevel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class EducationLevelController extends Controller
 {
@@ -42,7 +42,9 @@ class EducationLevelController extends Controller
     {
         $validatedData = $request->validated();
         $educationLevel = EducationLevel::create($validatedData);
-        return response()->json($educationLevel, 201);
+        return response()->json([
+            'message' => 'Education level successfully created',
+            $educationLevel, 201]);
     }
 
     /**
