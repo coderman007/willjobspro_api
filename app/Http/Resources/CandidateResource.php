@@ -24,7 +24,7 @@ class CandidateResource extends JsonResource
             'date_of_birth' => $this->date_of_birth,
             'phone_number' => $this->phone_number,
             'work_experience' => $this->work_experience,
-            'certifications' => $this->certifications,
+            // 'certifications' => $this->certifications,
             'languages' => $this->languages,
             'references' => $this->references,
             'expected_salary' => $this->expected_salary,

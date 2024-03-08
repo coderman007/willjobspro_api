@@ -15,10 +15,10 @@ class StoreCandidateRequest extends FormRequest
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'country_id' => 'required|exists:countries,id',
-            'state_id' => 'required|exists:states,id',
-            'city_id' => 'required|exists:cities,id',
-            'zip_code_id' => 'required|exists:zip_codes,id',
+            'country_id' => 'nullable|exists:countries,id',
+            'state_id' => 'nullable|exists:states,id',
+            'city_id' => 'nullable|exists:cities,id',
+            'zip_code_id' => 'nullable|exists:zip_codes,id',
             'education_level_id' => 'required|exists:education_levels,id',
             'full_name' => 'required|string|max:255',
             'gender' => 'nullable|string|max:20',

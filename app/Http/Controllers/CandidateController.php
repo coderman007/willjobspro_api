@@ -126,11 +126,19 @@ class CandidateController extends Controller
             // Transformar el candidato a un recurso CandidateResource
             $candidateResource = new CandidateResource($candidate);
 
+            // Obtener las URLs completas de las imágenes
+            $cvUrl = $candidate->cv_path ? url('storage/' . $candidate->cv_path) : null;
+            $photoUrl = $candidate->photo_path ? url('storage/' . $candidate->photo_path) : null;
+            $bannerUrl = $candidate->banner_path ? url('storage/' . $candidate->banner_path) : null;
+
+            // Devolver la respuesta incluyendo las URLs de las imágenes
             return response()->json([
                 'message' => 'Candidate Profile Successfully Obtained!',
                 'data' => [
-                    'candidate' => $candidateResource,
-                    'skills' => $skills,
+                    'info' => $candidateResource,
+                    'cv_url' => $cvUrl,
+                    'photo_url' => $photoUrl,
+                    'banner_url' => $bannerUrl,
                 ],
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
