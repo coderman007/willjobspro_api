@@ -37,6 +37,7 @@ class CandidateResource extends JsonResource
             'state' => $this->user->state,
             'city' => $this->user->city,
             'zip_code' => $this->user->zipCode,
+            'candidate_cv' => $this->cv_path ? url('storage/' . $candidate->cv_path) : null,
         ];
     }
 }
