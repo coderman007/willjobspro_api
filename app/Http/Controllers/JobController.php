@@ -16,12 +16,16 @@ use Illuminate\Support\Facades\DB;
 
 class JobController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
      * @param Request $request
      * @return JsonResponse
      */
+
+    // Dentro del método index(Request $request)
+
     public function index(Request $request): JsonResponse
     {
         try {
@@ -30,30 +34,49 @@ class JobController extends Controller
 
             $jobs = $query->paginate($perPage);
 
+            // Verificar si el usuario está autenticado
+            $user = auth()->user();
+
+            if ($user) {
+                // Si el usuario está autenticado, cargar sus aplicaciones
+                $user->load('applications');
+
+                // Modificar el listado de ofertas para incluir información de aplicaciones
+                $jobs->each(function ($job) use ($user) {
+                    // Verificar si el usuario ha aplicado a esta oferta
+                    $hasApplied = $user->applications->contains('job_id', $job->id);
+
+                    // Añadir el campo adicional indicando si el usuario ha aplicado o no
+                    $job->setAttribute('has_applied', $hasApplied);
+                });
+            }
+
             // Obtener los tipos de trabajo asociados a cada oferta
             $jobs->load('jobTypes');
 
-            // Obtener el ID del candidato autenticado
-            $candidateId = auth()->user()->candidate->id ?? null;
+            // Modificar para incluir el número de aplicantes
+            $transformedJobs = $jobs->map(function ($job) {
+                // Obtener el número de aplicantes
+                $numApplications = $job->applications->count();
 
-            // Modificar para incluir la información sobre si el candidato ha aplicado a la oferta
-            $transformedJobs = $jobs->map(function ($job) use ($candidateId) {
-                // Verificar si el candidato ha aplicado a esta oferta
-                $applied = $job->applications()->where('candidate_id', $candidateId)->exists();
+                // Incluir el número de aplicantes en la respuesta
+                $job->setAttribute('num_applications', $numApplications);
 
-                // Incluir la información sobre si el candidato ha aplicado a la oferta
-                $job->setAttribute('applied', $applied);
+                // Transformar la colección de ofertas para incluir los tipos de trabajo
+                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
 
                 return $job;
             });
 
-            return response()->json(JobResource::collection($transformedJobs), 200);
+            return $this->jsonResponse(JobResource::collection($transformedJobs), 'Job offers retrieved successfully!', 200)
+                ->header('X-Total-Count', $jobs->total())
+                ->header('X-Per-Page', $jobs->perPage())
+                ->header('X-Current-Page', $jobs->currentPage())
+                ->header('X-Last-Page', $jobs->lastPage());
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error retrieving job offers: ' . $e->getMessage()], 500);
+            return $this->jsonErrorResponse('Error retrieving job offers: ' . $e->getMessage(), 500);
         }
     }
-
-
 
     private function buildJobQuery(Request $request)
     {

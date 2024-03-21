@@ -31,17 +31,10 @@ class JobResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-
             'company_name' =>  $this->company->name,
-
             'category_name' => $this->jobCategory->name,
-
             'education_level_name' => $this->educationLevel->name,
-
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
-
-            // Nuevo campo para indicar si el candidato ha aplicado a la oferta
-            'applied' => $this->when(isset($this->applied), $this->applied),
         ];
     }
 }
