@@ -22,7 +22,7 @@ Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{company}', [CompanyController::class, 'show']);
 Route::get('job-categories', [JobCategoryController::class, 'index']);
 Route::get('job-types', [JobTypeController::class, 'index']);
-Route::get('jobs', [JobController::class, 'index']);
+Route::get('/jobs{user?}', [JobController::class, 'index']);
 Route::get('jobs/{id}', [JobController::class, 'show']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{id}', [EducationLevelController::class, 'show']);

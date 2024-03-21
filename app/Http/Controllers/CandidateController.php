@@ -91,9 +91,7 @@ class CandidateController extends Controller
             }
 
             // Obtener las aplicaciones del candidato actual
-            $applications = $user->candidate->applications()->with(['job' => function ($query) {
-                $query->select('id', 'title', 'salary'); // Seleccionar solo los campos necesarios de la oferta de trabajo
-            }])->get();
+            $applications = $user->candidate->applications()->with(['job'])->get();
 
             // Transformar las aplicaciones a un formato de respuesta
             $applicationsData = [];
@@ -106,6 +104,8 @@ class CandidateController extends Controller
                     'job_id' => $application->job_id,
                     'job_title' => $application->job->title, // Agregar el título de la oferta de trabajo
                     'job_salary' => $application->job->salary, // Agregar el salario de la oferta de trabajo
+                    'company_id' => $application->job->company_id, // Agregar el ID de la compañía
+                    'company_name' => $application->job->company->name, // Agregar el nombre de la compañía
                 ];
             }
 
@@ -115,6 +115,7 @@ class CandidateController extends Controller
             return $this->handleGenericError($e);
         }
     }
+
 
 
 

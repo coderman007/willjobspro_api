@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Application;
 use App\Models\Job;
-use App\Models\JobType;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
@@ -12,7 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class JobController extends Controller
 {
@@ -24,59 +22,67 @@ class JobController extends Controller
      * @return JsonResponse
      */
 
-    // Dentro del método index(Request $request)
 
     public function index(Request $request): JsonResponse
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $query = $this->buildJobQuery($request);
 
-            $jobs = $query->paginate($perPage);
+            // Obtener el ID del usuario
+            $userId = Auth::id();
 
-            // Verificar si el usuario está autenticado
-            $user = auth()->user();
+            // Consulta Eloquent para obtener las ofertas de trabajo
+            $jobs = Job::with([
+                'applications' => function ($query) use ($userId) {
+                    $query->where('candidate_id', $userId);
+                },
+                'jobTypes',
+            ]);
 
-            if ($user) {
-                // Si el usuario está autenticado, cargar sus aplicaciones
-                $user->load('applications');
-
-                // Modificar el listado de ofertas para incluir información de aplicaciones
-                $jobs->each(function ($job) use ($user) {
-                    // Verificar si el usuario ha aplicado a esta oferta
-                    $hasApplied = $user->applications->contains('job_id', $job->id);
-
-                    // Añadir el campo adicional indicando si el usuario ha aplicado o no
-                    $job->setAttribute('has_applied', $hasApplied);
-                });
+            // Filtrar por búsqueda, si se proporciona
+            if ($request->filled('search')) {
+                $searchTerm = $request->query('search');
+                $jobs->where('title', 'like', '%' . $searchTerm . '%');
             }
 
-            // Obtener los tipos de trabajo asociados a cada oferta
-            $jobs->load('jobTypes');
+            // Filtrar por otros criterios
+            $filters = [
+                'company_id', 'job_category_id', 'job_type_id', 'education_level_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
+            ];
 
-            // Modificar para incluir el número de aplicantes
-            $transformedJobs = $jobs->map(function ($job) {
-                // Obtener el número de aplicantes
-                $numApplications = $job->applications->count();
+            foreach ($filters as $filter) {
+                if ($request->filled($filter)) {
+                    $jobs->where($filter, $request->query($filter));
+                }
+            }
 
-                // Incluir el número de aplicantes en la respuesta
-                $job->setAttribute('num_applications', $numApplications);
+            // Ordenar por criterio especificado o por defecto
+            if ($request->filled('sort_by') && $request->filled('sort_order')) {
+                $sortBy = $request->query('sort_by');
+                $sortOrder = $request->query('sort_order');
+                $jobs->orderBy($sortBy, $sortOrder);
+            } else {
+                $jobs->orderBy('created_at', 'desc');
+            }
 
-                // Transformar la colección de ofertas para incluir los tipos de trabajo
+            // Obtener la colección de ofertas de trabajo
+            $jobs = $jobs->paginate($perPage);
+
+            // Agregar atributo "applied" a cada oferta
+            foreach ($jobs as $job) {
+                $job->setAttribute('applied', $job->applications->count() > 0);
+
+                // Transformar la información de los tipos de trabajo
                 $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+            }
 
-                return $job;
-            });
-
-            return $this->jsonResponse(JobResource::collection($transformedJobs), 'Job offers retrieved successfully!', 200)
-                ->header('X-Total-Count', $jobs->total())
-                ->header('X-Per-Page', $jobs->perPage())
-                ->header('X-Current-Page', $jobs->currentPage())
-                ->header('X-Last-Page', $jobs->lastPage());
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
+                ->header('X-Total-Count', $jobs->total());
         } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error retrieving job offers: ' . $e->getMessage(), 500);
+            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
         }
     }
+
 
     private function buildJobQuery(Request $request)
     {
