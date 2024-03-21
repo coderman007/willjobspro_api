@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class JobResource extends JsonResource
@@ -10,7 +9,7 @@ class JobResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @param  Request  $request
+     * @param \Illuminate\Http\Request $request
      * @return array
      */
     public function toArray($request)
@@ -21,7 +20,6 @@ class JobResource extends JsonResource
             'job_category_id' => $this->job_category_id,
             'education_level_id' => $this->education_level_id,
             'title' => $this->title,
-            // 'subscription_plan_id' => $this->subscription_plan_id,
             'description' => $this->description,
             'posted_date' => $this->posted_date,
             'deadline' => $this->deadline,
@@ -42,10 +40,8 @@ class JobResource extends JsonResource
 
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
 
-            'num_applications' => $this->when(isset($this->num_applications), $this->num_applications),
-
-            // 'subscription_plan_name' =>  $this->subscriptionPlan->name,
-
+            // Nuevo campo para indicar si el candidato ha aplicado a la oferta
+            'applied' => $this->when(isset($this->applied), $this->applied),
         ];
     }
 }

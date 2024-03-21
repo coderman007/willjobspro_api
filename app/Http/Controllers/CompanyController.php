@@ -7,13 +7,16 @@ use App\Helpers\CompanyOwnershipValidator;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\UnauthorizedException;
+
 use Illuminate\Validation\ValidationException;
 
 class CompanyController extends Controller
@@ -87,7 +90,8 @@ class CompanyController extends Controller
     {
 
         $validatedData = $request->validated();
-        $user = auth()->user();
+        /** @var \App\Models\User */
+        $user = Auth::user();
 
         // Verificar si el usuario tiene el rol 'company'
         if (!$user->hasRole('company')) {
@@ -95,13 +99,33 @@ class CompanyController extends Controller
         }
 
         try {
-            // Actualizar la ubicación del usuario en la tabla 'users'
-            $user->update([
-                'country_id' => $request->input('country_id'),
-                'state_id' => $request->input('state_id'),
-                'city_id' => $request->input('city_id'),
-                'zip_code_id' => $request->input('zip_code_id'),
-            ]);
+
+            // Obtener los datos de ubicación del usuario
+            $countryId = $request->input('country_id');
+            $stateId = $request->input('state_id');
+            $cityId = $request->input('city_id');
+            $zipCodeId = $request->input('zip_code_id');
+
+            // Actualizar la ubicación del usuario (solo si se proporcionaron datos)
+            $updateData = [];
+
+            if ($countryId) {
+                $updateData['country_id'] = $countryId;
+            }
+
+            if ($stateId) {
+                $updateData['state_id'] = $stateId;
+            }
+
+            if ($cityId) {
+                $updateData['city_id'] = $cityId;
+            }
+
+            if ($zipCodeId) {
+                $updateData['zip_code_id'] = $zipCodeId;
+            }
+
+            $user->update($updateData);
 
             // Lógica para la generación de nombres simplificada
             $logoName = 'logo_file_' . $user->id . $this->generateFileName($request->logo_file);
@@ -138,6 +162,7 @@ class CompanyController extends Controller
             return $this->jsonErrorResponse('Error creating company: ' . $e->getMessage(), 500);
         }
     }
+
 
     /**
      * Genera un nombre de archivo único.
@@ -191,20 +216,37 @@ class CompanyController extends Controller
      * @return JsonResponse
      * @throws \Exception
      */
-    public function update(UpdateCompanyRequest $request, Company $company): JsonResponse
+    public function update(UpdateCompanyRequest $request, $userId): JsonResponse
     {
         try {
             $validatedData = $request->validated();
 
-            // Validar propiedad de la compañía
-            if (!CompanyOwnershipValidator::validateOwnership($company->id)) {
-                throw new UnauthorizedException('Unauthorized action.');
+            // Validar que el usuario autenticado tenga permisos para actualizar este compañía
+            // /** @var \App\Models\User */
+            // $user = Auth::user();
+
+
+            $user = User::findOrFail($userId);
+
+            if (!$user->hasRole('company') || $user->id !== $user->company->user_id) {
+                return response()->json(['error' => 'Unauthorized to update this company'], 403);
             }
+            // if (!$user->hasRole('company') || $user->id !== $userId) {
+            //     return response()->json(['error' => 'Unauthorized to update this company'], 403);
+            // }
+
+            // Actualizar la ubicación del usuario en la tabla 'users'
+            $user->update([
+                'country_id' => $request->input('country_id'),
+                'state_id' => $request->input('state_id'),
+                'city_id' => $request->input('city_id'),
+                'zip_code_id' => $request->input('zip_code_id'),
+            ]);
 
             // Actualizar los campos de la compañía
-            $company->update($validatedData);
+            $user->company->update($validatedData);
 
-            return $this->jsonResponse(new CompanyResource($company), 'Company updated successfully!', 200);
+            return $this->jsonResponse(new CompanyResource($user->company), 'Company updated successfully!', 200);
         } catch (UnauthorizedException $e) {
             return $this->jsonErrorResponse('Unauthorized action: ' . $e->getMessage(), 403);
         } catch (\Exception $e) {
@@ -222,13 +264,16 @@ class CompanyController extends Controller
     {
         try {
             // Validar propiedad de la compañía
-            if (!CompanyOwnershipValidator::validateOwnership($company->id)) {
-                return response()->json(['error' => 'Unauthorized action.'], 403);
+            /** @var \App\Models\User */
+            $user = Auth::user();
+            if (!$user->hasRole('company') || $user->id !== $company->user_id) {
+                return response()->json(['error' => 'Unauthorized to delete this company'], 403);
             }
 
             $company->delete();
+            $user->delete();
 
-            return $this->jsonResponse(null, 'Company deleted successfully!', 200);
+            return $this->jsonResponse(null, 'Company deleted!', 200);
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error deleting company: ' . $e->getMessage(), 500);
         }
@@ -270,10 +315,9 @@ class CompanyController extends Controller
      * @param int $status The HTTP status code
      * @return JsonResponse
      */
-    protected function jsonResponse($data = null, $message = null, $status = 200): JsonResponse
+    protected function jsonResponse($data, $message = null, $status = 200): JsonResponse
     {
         $response = [
-            'success' => true,
             'data' => $data,
             'message' => $message,
         ];
@@ -291,7 +335,6 @@ class CompanyController extends Controller
     protected function jsonErrorResponse($message = null, $status = 500): JsonResponse
     {
         $response = [
-            'success' => false,
             'error' => $message,
         ];
 

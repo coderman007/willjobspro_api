@@ -10,6 +10,7 @@ use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -79,13 +80,22 @@ class CandidateController extends Controller
         }
     }
 
-    public function getAllApplications(Request $request, Candidate $candidate): JsonResponse
+    public function getAllApplications(Request $request): JsonResponse
     {
         try {
-            // Obtener todas las postulaciones del candidato
-            $applications = $candidate->applications()->with('job')->get();
+            // Verificar si el usuario autenticado tiene el rol 'candidate'
+            /** @var \App\Models\User */
+            $user = Auth::user();
+            if (!$user->hasRole('candidate')) {
+                return response()->json(['error' => 'Unauthorized access to applications'], 403);
+            }
 
-            // Transformar las postulaciones a un formato de respuesta
+            // Obtener las aplicaciones del candidato actual
+            $applications = $user->candidate->applications()->with(['job' => function ($query) {
+                $query->select('id', 'title', 'salary'); // Seleccionar solo los campos necesarios de la oferta de trabajo
+            }])->get();
+
+            // Transformar las aplicaciones a un formato de respuesta
             $applicationsData = [];
             foreach ($applications as $application) {
                 $applicationsData[] = [
@@ -93,15 +103,21 @@ class CandidateController extends Controller
                     'cover_letter' => $application->cover_letter,
                     'status' => $application->status,
                     'created_at' => $application->created_at,
+                    'job_id' => $application->job_id,
+                    'job_title' => $application->job->title, // Agregar el título de la oferta de trabajo
+                    'job_salary' => $application->job->salary, // Agregar el salario de la oferta de trabajo
                 ];
             }
 
-            // Devolver la información de las postulaciones
+            // Devolver la información de las aplicaciones
             return response()->json(['data' => $applicationsData], 200);
         } catch (\Exception $e) {
             return $this->handleGenericError($e);
         }
     }
+
+
+
     /**
      * Display the specified candidate profile.
      *
@@ -115,7 +131,8 @@ class CandidateController extends Controller
             $candidate = Candidate::with(['user.country', 'user.state', 'user.city', 'user.zipCode'])->where('user_id', $id)->first();
 
             // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
-            $user = auth()->user();
+            /** @var \App\Models\User */
+            $user = Auth::user();
             if (!($user->hasRole('candidate') && $user->id === $candidate->user_id) && !$user->hasRole('admin')) {
                 return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
             }
@@ -165,19 +182,25 @@ class CandidateController extends Controller
     public function store(StoreCandidateRequest $request): JsonResponse
     {
         $validatedData = $request->validated();
-        $user = auth()->user();
+        /** @var \App\Models\User */
+        $user = Auth::user();
 
         if (!$user->hasRole('candidate')) {
             return response()->json(['error' => 'User does not have the candidate role'], 403);
         }
 
         try {
+            $request->input('country_id') ? $countryId = $request->input('country_id') : $countryId = null;
+            $request->input('state_id') ? $stateId = $request->input('state_id') : $stateId = null;
+            $request->input('city_id') ? $cityId = $request->input('city_id') : $cityId = null;
+            $request->input('zip_code_id') ? $zipCodeId = $request->input('zip_code_id') : $zipCodeId = null;
+
             // Actualizar la ubicación del usuario en la tabla 'users'
             $user->update([
-                'country_id' => $request->input('country_id'),
-                'state_id' => $request->input('state_id'),
-                'city_id' => $request->input('city_id'),
-                'zip_code_id' => $request->input('zip_code_id'),
+                'country_id' => $countryId,
+                'state_id' => $stateId,
+                'city_id' => $cityId,
+                'zip_code_id' => $zipCodeId,
             ]);
 
             // Lógica para la generación de nombres de archivos del candidato
@@ -359,7 +382,8 @@ class CandidateController extends Controller
             $validatedData = $request->validated();
 
             // Validar que el usuario autenticado tenga permisos para actualizar este candidato
-            $user = auth()->user();
+            /** @var \App\Models\User */
+            $user = Auth::user();
             if (!$user->hasRole('candidate') || $user->id !== $candidate->user_id) {
                 return response()->json(['error' => 'Unauthorized to update this candidate'], 403);
             }
@@ -424,7 +448,8 @@ class CandidateController extends Controller
     {
         try {
             // Validar que el usuario autenticado tenga permisos para eliminar este candidato
-            $user = auth()->user();
+            /** @var \App\Models\User */
+            $user = Auth::user();
             if (!$user->hasRole('admin') && $user->id !== $candidate->user_id) {
                 return response()->json(['error' => 'Unauthorized to delete this candidate'], 403);
             }

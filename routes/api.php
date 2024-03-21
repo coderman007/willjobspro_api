@@ -38,7 +38,6 @@ Route::group(
         Route::delete('logout', [AuthController::class, 'logOut']);
         Route::put('update-password', [AuthController::class, 'updatePassword']);
 
-        Route::delete('jobs/{job}', [JobController::class, 'destroy']);
         Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
         Route::get('subscriptions/{id}', [SubscriptionController::class, 'getSubscription']);
         // Route::get('applications', [ApplicationController::class, 'index']);
@@ -52,11 +51,10 @@ Route::group(
         Route::post('candidates', [CandidateController::class, 'store']);
         Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
         Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
-        Route::get('candidates/{id}', [CandidateController::class, 'show']);
         Route::put('candidates/{candidate}', [CandidateController::class, 'update']);
         Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);
-        Route::get('candidates/{candidate}/applications', [CandidateController::class, 'getAllApplications']);
-
+        Route::get('candidates/applications', [CandidateController::class, 'getAllApplications']);
+        Route::get('candidates/{id}', [CandidateController::class, 'show']);
         // Rutas para gestionar compañías
 
         Route::post('companies', [CompanyController::class, 'store']);
@@ -84,6 +82,7 @@ Route::group(
         // Rutas para crear, actualizar y eliminar ofertas de trabajo
         Route::post('jobs', [JobController::class, 'store']);
         Route::put('jobs/{job}', [JobController::class, 'update']);
+        Route::delete('jobs/{job}', [JobController::class, 'destroy']);
 
         // Obtener los candidatos que han aplicado a una oferta laboral publicada por la compañía.
         Route::get('/companies/{company}/applicants', [CompanyController::class, 'getCompanyApplicants']);

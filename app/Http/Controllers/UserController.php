@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
@@ -61,25 +62,15 @@ class UserController extends Controller
             }
 
             // Get paginated users
-            $paginatedUsers = $users->paginate($perPage);
+            // $paginatedUsers = $users->paginate($perPage);
+            $paginatedUsers = $users->all();
 
             // Only include user data and pagination information
             $data = $paginatedUsers->items();
 
-            // Pagination metadata
-            $paginationData = [
-                'total' => $paginatedUsers->total(),
-                // 'per_page' => $paginatedUsers->perPage(),
-                // 'current_page' => $paginatedUsers->currentPage(),
-                // 'last_page' => $paginatedUsers->lastPage(),
-                // 'from' => $paginatedUsers->firstItem(),
-                // 'to' => $paginatedUsers->lastItem(),
-                // 'next_page_url' => $paginatedUsers->nextPageUrl(),
-                // 'prev_page_url' => $paginatedUsers->previousPageUrl(),
-                // 'path' => $paginatedUsers->path(),
-            ];
 
-            return response()->json(['data' => $data, 'pagination' => $paginationData], 200);
+
+            return response()->json(['data' => $data], 200);
         } catch (\Exception $e) {
             return $this->handleException($e, 'An error occurred while getting users', 500);
         }
@@ -127,7 +118,8 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request): JsonResponse
     {
-        $user = auth()->user();
+        /** @var App/Models/User */
+        $user = Auth::user();
 
         try {
             $updateData = [];
@@ -172,7 +164,11 @@ class UserController extends Controller
     public function destroy(User $user): JsonResponse
     {
         try {
-            $user->delete();
+            if ($user->id !== Auth::id()) {
+                return response()->json([
+                    'error' => 'Unauthorized action! You can\'t delete this user.',
+                ], 403);
+            }
 
             return response()->json(['message' => 'User deleted'], 200);
         } catch (\Exception $e) {

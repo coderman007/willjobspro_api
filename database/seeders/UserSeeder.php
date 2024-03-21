@@ -21,6 +21,10 @@ class UserSeeder extends Seeder
             'name' => 'jaime Sierra',
             'email' => 'coderman1980@gmail.com',
             'password' => bcrypt('Coderman1980$'),
+            'country_id' => 5,
+            'state_id' => 5,
+            'city_id' => 5,
+            'zip_code_id' => 5,
         ]);
         $adminUser->assignRole('admin');
 

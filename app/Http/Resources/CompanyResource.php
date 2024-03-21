@@ -22,7 +22,6 @@ class CompanyResource extends JsonResource
             'email' => $this->user->email,
             // 'jobs' => $this->jobs,
             'industry' => $this->industry,
-            'address' => $this->address,
             'phone_number' => $this->phone_number,
             'website' => $this->website,
             'description' => $this->description,
@@ -30,6 +29,10 @@ class CompanyResource extends JsonResource
             'logo_path' => $this->logo_path,
             'banner_path' => $this->banner_path,
             'social_networks' => $this->social_networks,
+            'country' => $this->user->country->name,
+            'state' => $this->user->state->name,
+            'city' => $this->user->city->name,
+            'zip_code' => $this->user->zipCode->code,
             // 'status' => $this->status,
         ];
     }

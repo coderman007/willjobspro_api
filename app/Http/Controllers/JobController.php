@@ -16,14 +16,12 @@ use Illuminate\Support\Facades\DB;
 
 class JobController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      *
      * @param Request $request
      * @return JsonResponse
      */
-
     public function index(Request $request): JsonResponse
     {
         try {
@@ -35,27 +33,23 @@ class JobController extends Controller
             // Obtener los tipos de trabajo asociados a cada oferta
             $jobs->load('jobTypes');
 
-            // Modificar para incluir el número de aplicantes
-            $transformedJobs = $jobs->map(function ($job) {
-                // Obtener el número de aplicantes
-                $numApplications = $job->applications->count();
+            // Obtener el ID del candidato autenticado
+            $candidateId = auth()->user()->candidate->id ?? null;
 
-                // Incluir el número de aplicantes en la respuesta
-                $job->setAttribute('num_applications', $numApplications);
+            // Modificar para incluir la información sobre si el candidato ha aplicado a la oferta
+            $transformedJobs = $jobs->map(function ($job) use ($candidateId) {
+                // Verificar si el candidato ha aplicado a esta oferta
+                $applied = $job->applications()->where('candidate_id', $candidateId)->exists();
 
-                // Transformar la colección de ofertas para incluir los tipos de trabajo
-                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+                // Incluir la información sobre si el candidato ha aplicado a la oferta
+                $job->setAttribute('applied', $applied);
 
                 return $job;
             });
 
-            return $this->jsonResponse(JobResource::collection($transformedJobs), 'Job offers retrieved successfully!', 200)
-                ->header('X-Total-Count', $jobs->total())
-                ->header('X-Per-Page', $jobs->perPage())
-                ->header('X-Current-Page', $jobs->currentPage())
-                ->header('X-Last-Page', $jobs->lastPage());
+            return response()->json(JobResource::collection($transformedJobs), 200);
         } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error retrieving job offers: ' . $e->getMessage(), 500);
+            return response()->json(['error' => 'Error retrieving job offers: ' . $e->getMessage()], 500);
         }
     }
 
