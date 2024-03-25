@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subscription;
-use App\Http\Requests\StoreSubscriptionRequest;
 use App\Http\Requests\UpdateSubscriptionRequest;
+use App\Models\Subscription;
 use Illuminate\Http\JsonResponse;
 
 class SubscriptionController extends Controller

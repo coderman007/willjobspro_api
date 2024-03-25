@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CompanyOwnershipValidator
 {
-    public static function validateOwnership($companyId)
+    public static function validateOwnership(int $companyId)
     {
         $user = Auth::user();
 

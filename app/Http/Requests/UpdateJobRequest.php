@@ -14,7 +14,6 @@ class UpdateJobRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => 'exists:companies,id',
             'job_category_id' => 'exists:job_categories,id',
             'job_type_ids' => 'array|exists:job_types,id',
             'education_level_id' => 'exists:education_levels,id',
@@ -30,5 +29,20 @@ class UpdateJobRequest extends FormRequest
             'experience_required' => 'nullable|integer',
             'status' => 'in:Open,Closed,Under Review',
         ];
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function validationData(): array
+    {
+        $data = parent::validationData();
+
+        // Agregar el ID del trabajo a los datos de validación
+        $data['job_id'] = $this->route('job')->id;
+
+        return $data;
     }
 }

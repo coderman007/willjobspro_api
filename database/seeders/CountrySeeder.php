@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Country;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Log;
 
 class CountrySeeder extends Seeder
 {
@@ -31,10 +32,9 @@ class CountrySeeder extends Seeder
                     );
                 } catch (\Exception $e) {
                     // Manejar el error, por ejemplo, loguearlo
-                    \Log::error("Error al procesar el país: {$countryData['country']}, ISO: {$countryData['iso_alpha_2']}. Error: {$e->getMessage()}");
+                    Log::error("Error al procesar el país: {$countryData['country']}, ISO: {$countryData['iso_alpha_2']}. Error: {$e->getMessage()}");
                 }
             }
         }
-
     }
 }

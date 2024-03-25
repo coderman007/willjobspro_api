@@ -20,12 +20,12 @@ class JobTypeController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
-            $jobTypes = JobType::all();
+            $jobTypes = JobType::paginate($perPage);
 
             return response()->json([
                 'message' => 'Job types successfully retrieved',
-                'data' => $jobTypes],
-                200);
+                'data' => $jobTypes
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the job type list!',
@@ -45,13 +45,14 @@ class JobTypeController extends Controller
         try {
             $validatedData = $request->validated();
             $jobType = JobType::create($validatedData);
+
             return response()->json([
                 'message' => 'Job type successfully created',
-                'data' => $jobType],
-                201);
+                'data' => $jobType
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error ocurred while creating the job type!',
+                'error' => 'An error occurred while creating the job type!',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -66,15 +67,10 @@ class JobTypeController extends Controller
     public function show(JobType $jobType): JsonResponse
     {
         try {
-
             return response()->json([
                 'message' => 'Job type detail successfully retrieved',
                 'data' => $jobType,
             ], 200);
-        } catch (NotFoundException $e) {
-            return response()->json([
-                'error' => 'Job type not found!',
-            ], 404);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while retrieving the job type!',
@@ -95,14 +91,14 @@ class JobTypeController extends Controller
         try {
             $validatedData = $request->validated();
             $jobType->update($validatedData);
-            return response()->json([
-                'message' => 'Job types successfully updated',
-                'data' => $jobType],
-                200);
 
+            return response()->json([
+                'message' => 'Job type successfully updated',
+                'data' => $jobType
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error ocurred while updating the job type!',
+                'error' => 'An error occurred while updating the job type!',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -118,13 +114,14 @@ class JobTypeController extends Controller
     {
         try {
             $jobType->delete();
+
             return response()->json([
                 'message' => 'Job type deleted',
-                'data' => null],
-                200);
+                'data' => null
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error ocurred while deleting the job type!',
+                'error' => 'An error occurred while deleting the job type!',
                 'details' => $e->getMessage(),
             ], 500);
         }

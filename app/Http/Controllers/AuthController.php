@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdatePasswordRequest;
-use Illuminate\Http\JsonResponse;
 use App\Models\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -17,8 +17,6 @@ class AuthController extends Controller
      * Registra un nuevo usuario y crea la instancia correspondiente (candidato o empresa).
      *
      * @param RegisterRequest $registerRequest
-     * @param StoreCandidateRequest $candidateRequest
-     * @param StoreCompanyRequest $companyRequest
      * @return JsonResponse
      */
     public function register(RegisterRequest $registerRequest): JsonResponse
@@ -117,7 +115,7 @@ class AuthController extends Controller
         $user = auth()->user();
 
         try {
-            // Actualización de contraseña. 
+            // Actualización de contraseña.
             $user->update([
                 'password' => Hash::make($request->password),
             ]);

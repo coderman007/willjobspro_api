@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Company;
-use App\Helpers\CompanyOwnershipValidator;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
+use App\Models\Company;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\UnauthorizedException;
-
 use Illuminate\Validation\ValidationException;
 
 class CompanyController extends Controller
@@ -45,10 +45,11 @@ class CompanyController extends Controller
         }
     }
 
-    private function buildCompanyQuery(Request $request)
+    private function buildCompanyQuery(Request $request): Builder
     {
         $query = Company::with('user');
 
+        // Búsqueda por término de búsqueda global
         if ($request->filled('search')) {
             $searchTerm = $request->query('search');
             $query->where(function ($subquery) use ($searchTerm) {
@@ -58,20 +59,23 @@ class CompanyController extends Controller
             });
         }
 
+        // Filtrado por campos específicos
         $filters = ['name', 'industry', 'status', 'contact_person'];
 
         foreach ($filters as $filter) {
             if ($request->filled($filter)) {
-                $query->where($filter, $request->query($filter));
+                $query->where($filter, 'like', '%' . $request->query($filter) . '%');
             }
         }
 
+        // Ordenamiento
         if ($request->filled('sort_by') && $request->filled('sort_order')) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
             $query->orderBy($sortBy, $sortOrder);
         }
 
+        // Carga condicional de relaciones
         if ($request->has('with_jobs')) {
             $query->with('jobs');
         }
@@ -79,59 +83,35 @@ class CompanyController extends Controller
         return $query;
     }
 
-
     /**
      * Store a newly created company instance in storage.
      *
-     * @param StoreCompanyRequest $request
+     * @param StoreCompanyRequest $request The request containing company data.
      * @return JsonResponse
      */
     public function store(StoreCompanyRequest $request): JsonResponse
     {
-
-        $validatedData = $request->validated();
-        /** @var \App\Models\User */
-        $user = Auth::user();
-
-        // Verificar si el usuario tiene el rol 'company'
-        if (!$user->hasRole('company')) {
-            return response()->json(['error' => 'User does not have the company role'], 403);
-        }
-
         try {
+            // Validar y obtener los datos enviados en la solicitud
+            $validatedData = $request->validated();
 
-            // Obtener los datos de ubicación del usuario
-            $countryId = $request->input('country_id');
-            $stateId = $request->input('state_id');
-            $cityId = $request->input('city_id');
-            $zipCodeId = $request->input('zip_code_id');
+            // Obtener el usuario autenticado
+            /* @var App\Models\User */
+            $user = Auth::user();
 
-            // Actualizar la ubicación del usuario (solo si se proporcionaron datos)
-            $updateData = [];
-
-            if ($countryId) {
-                $updateData['country_id'] = $countryId;
+            // Verificar si el usuario tiene el rol 'company'
+            if (!$user->hasRole('company')) {
+                return response()->json(['error' => 'User does not have the company role'], 403);
             }
 
-            if ($stateId) {
-                $updateData['state_id'] = $stateId;
-            }
+            // Actualizar la ubicación del usuario (si se proporcionaron datos)
+            $this->updateUserLocation($request, $user);
 
-            if ($cityId) {
-                $updateData['city_id'] = $cityId;
-            }
+            // Generar nombres únicos para los archivos de imagen
+            $logoName = $this->generateUniqueFileName($request->logo_file);
+            $bannerName = $this->generateUniqueFileName($request->banner_file);
 
-            if ($zipCodeId) {
-                $updateData['zip_code_id'] = $zipCodeId;
-            }
-
-            $user->update($updateData);
-
-            // Lógica para la generación de nombres simplificada
-            $logoName = 'logo_file_' . $user->id . $this->generateFileName($request->logo_file);
-            $bannerName = 'banner_file_' . $user->id . $this->generateFileName($request->banner_file);
-
-            // Crear instancia en la tabla 'companies'
+            // Crear la instancia de compañía en la base de datos
             $company = Company::create([
                 'user_id' => $user->id,
                 'name' => $validatedData['name'],
@@ -140,18 +120,18 @@ class CompanyController extends Controller
                 'website' => $validatedData['website'],
                 'description' => $validatedData['description'],
                 'contact_person' => $validatedData['contact_person'],
-                'logo_path' => 'companies/logos/' . $logoName,
-                'banner_path' => 'companies/banners/' . $bannerName,
+                'logo_path' => $this->storeImageAndGetPath($logoName, $request->logo_file, 'company_uploads/logos'),
+                'banner_path' => $this->storeImageAndGetPath($bannerName, $request->banner_file, 'company_uploads/banners'),
                 'social_networks' => $validatedData['social_networks'],
                 'status' => $validatedData['status'],
             ]);
 
-            // Almacenamiento de archivos de la compañía en el directorio correspondiente
-            $this->storeFile($logoName, $request->logo_file, 'company_uploads/logos');
-            $this->storeFile($bannerName, $request->banner_file, 'company_uploads/banners');
-
-
-            return $this->jsonResponse(new CompanyResource($company), 'Company created successfully!', 201);
+            // Respuesta exitosa con la ruta de las imágenes
+            return $this->jsonResponse([
+                'company' => new CompanyResource($company),
+                'logo_url' => $company->logo_path,
+                'banner_url' => $company->banner_path,
+            ], 'Company created successfully!', 201);
         } catch (UnauthorizedException $e) {
             return $this->jsonErrorResponse('User does not have the company role: ' . $e->getMessage(), 403);
         } catch (ValidationException $e) {
@@ -163,29 +143,72 @@ class CompanyController extends Controller
         }
     }
 
+    /**
+     * Update the user's location information.
+     *
+     * @param Request $request The request containing location data.
+     * @param User $user The user instance to be updated.
+     * @return void
+     */
+    private function updateUserLocation(Request $request, User $user): void
+    {
+        $updateData = [];
+
+        // Obtener los datos de ubicación del usuario desde la solicitud
+        $countryId = $request->input('country_id');
+        $stateId = $request->input('state_id');
+        $cityId = $request->input('city_id');
+        $zipCodeId = $request->input('zip_code_id');
+
+        // Actualizar los datos de ubicación si se proporcionaron en la solicitud
+        if ($countryId) {
+            $updateData['country_id'] = $countryId;
+        }
+
+        if ($stateId) {
+            $updateData['state_id'] = $stateId;
+        }
+
+        if ($cityId) {
+            $updateData['city_id'] = $cityId;
+        }
+
+        if ($zipCodeId) {
+            $updateData['zip_code_id'] = $zipCodeId;
+        }
+
+        // Actualizar la ubicación del usuario en la base de datos
+        $user->update($updateData);
+    }
 
     /**
-     * Genera un nombre de archivo único.
+     * Generate a unique file name for the uploaded image.
      *
-     * @param \Illuminate\Http\UploadedFile|null $file
+     * @param \Illuminate\Http\UploadedFile|null $file The uploaded file.
      * @return string|null
      */
-    private function generateFileName($file): ?string
+    private function generateUniqueFileName($file): ?string
     {
         return $file ? Str::random(10) . "." . $file->getClientOriginalExtension() : null;
     }
 
     /**
-     * Almacena un archivo en el disco.
+     * Store the uploaded image and return its path.
      *
-     * @param string $fileName
-     * @param \Illuminate\Http\UploadedFile $file
-     * @return void
+     * @param string $fileName The name of the file.
+     * @param UploadedFile $file The uploaded file.
+     * @param string $directory The directory to store the file.
+     * @return string
      */
-    private function storeFile($fileName, $file, $directory): void
+    private function storeImageAndGetPath(string $fileName, UploadedFile $file, string $directory): string
     {
-        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file));
+        // Almacenar el archivo en el directorio especificado
+        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file->getPathname()));
+
+        // Devolver la ruta completa del archivo almacenado
+        return Storage::disk('public')->url("$directory/$fileName");
     }
+
 
     /**
      * Display the specified resource.

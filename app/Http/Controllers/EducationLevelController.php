@@ -6,7 +6,6 @@ use App\Http\Requests\StoreEducationLevelRequest;
 use App\Http\Requests\UpdateEducationLevelRequest;
 use App\Models\EducationLevel;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class EducationLevelController extends Controller
 {
@@ -17,11 +16,19 @@ class EducationLevelController extends Controller
      */
     public function index(): JsonResponse
     {
-        $educationLevels = EducationLevel::all();
-        return response()->json([
-            'message' => 'Education levels successfully retrieved',
-            'data' => $educationLevels],
-            200);
+        try {
+            $educationLevels = EducationLevel::paginate(10);
+
+            return response()->json([
+                'message' => 'Education levels successfully retrieved',
+                'data' => $educationLevels
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving education levels',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -32,10 +39,17 @@ class EducationLevelController extends Controller
      */
     public function show(EducationLevel $educationLevel): JsonResponse
     {
-        return response()->json([
-            'message' => 'Education level detail successfully retrieved',
-            'data' => $educationLevels],
-            200);
+        try {
+            return response()->json([
+                'message' => 'Education level detail successfully retrieved',
+                'data' => $educationLevel
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error retrieving education level detail',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -46,11 +60,20 @@ class EducationLevelController extends Controller
      */
     public function store(StoreEducationLevelRequest $request): JsonResponse
     {
-        $validatedData = $request->validated();
-        $educationLevel = EducationLevel::create($validatedData);
-        return response()->json([
-            'message' => 'Education level successfully created',
-            'data' => $educationLevel], 201);
+        try {
+            $validatedData = $request->validated();
+            $educationLevel = EducationLevel::create($validatedData);
+
+            return response()->json([
+                'message' => 'Education level successfully created',
+                'data' => $educationLevel
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error creating education level',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -62,11 +85,20 @@ class EducationLevelController extends Controller
      */
     public function update(UpdateEducationLevelRequest $request, EducationLevel $educationLevel): JsonResponse
     {
-        $validatedData = $request->validated();
-        $educationLevel->update($validatedData);
-        return response()->json([
-            'message' => 'Education level successfully updated',
-            'data' => $educationLevel], 200);
+        try {
+            $validatedData = $request->validated();
+            $educationLevel->update($validatedData);
+
+            return response()->json([
+                'message' => 'Education level successfully updated',
+                'data' => $educationLevel
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error updating education level',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -77,9 +109,18 @@ class EducationLevelController extends Controller
      */
     public function destroy(EducationLevel $educationLevel): JsonResponse
     {
-        $educationLevel->delete();
-        return response()->json([
-            'message' => 'Education level deleted',
-            'data' => null], 200);
+        try {
+            $educationLevel->delete();
+
+            return response()->json([
+                'message' => 'Education level deleted',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error deleting education level',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
