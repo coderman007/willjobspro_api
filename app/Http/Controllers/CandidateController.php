@@ -6,6 +6,7 @@ use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
+use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -122,13 +123,27 @@ class CandidateController extends Controller
      * @param Candidate $candidate
      * @return JsonResponse
      */
-    public function show(Candidate $candidate): JsonResponse
+    public function show($userId): JsonResponse
     {
         try {
+            // Obtener el usuario autenticado
+            $authUser = Auth::user();
+
+            // Verificar si el usuario está autenticado y si el ID coincide
+            if (!$authUser || $authUser->id != $userId) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Obtener el candidato asociado al ID de usuario
+            $candidate = $authUser->candidate;
+
+            // Verificar si el candidato existe
+            if (!$candidate) {
+                return response()->json(['error' => 'Candidate profile not found'], 404);
+            }
 
             // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
-            $user = Auth::user();
-            if (!($user->hasRole('candidate') && $user->id === $candidate->user_id) && !$user->hasRole('admin')) {
+            if (!$authUser->hasRole('candidate') && !$authUser->hasRole('admin')) {
                 return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
             }
 
@@ -145,12 +160,6 @@ class CandidateController extends Controller
                     'info' => $candidateResource,
                 ],
             ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Manejar el caso en el que no se encuentra al candidato
-            return response()->json([
-                'error' => 'Candidate not found.',
-                'details' => $e->getMessage(),
-            ], 404);
         } catch (\Exception $e) {
             // Manejar cualquier otra excepción y devolver una respuesta de error
             return response()->json([
@@ -159,6 +168,7 @@ class CandidateController extends Controller
             ], 500);
         }
     }
+
 
     public function store(StoreCandidateRequest $request): JsonResponse
     {
@@ -264,80 +274,109 @@ class CandidateController extends Controller
         }
     }
 
-    /**
-     * Update the specified candidate in storage.
-     *
-     * @param UpdateCandidateRequest $request
-     * @param Candidate $candidate
-     * @return JsonResponse
-     */
-    public function update(UpdateCandidateRequest $request, Candidate $candidate): JsonResponse
+
+    public function update(UpdateCandidateRequest $request, int $userId): JsonResponse
     {
         try {
-            // Verificar si el usuario autenticado tiene permiso para actualizar el perfil del candidato
-            if (!$candidate->user->is(Auth::user())) {
-                return response()->json(['error' => 'Unauthorized to update this candidate profile'], 403);
+            // Iniciar una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Obtener el usuario autenticado
+            $authUser = Auth::user();
+
+            // Verificar si el usuario está autenticado
+            if (!$authUser) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            // Iniciamos una transacción de base de datos para garantizar la consistencia
-            DB::beginTransaction();
+            // Verificar si el ID de usuario pasado como parámetro coincide con el ID del usuario autenticado
+            if ($authUser->id != $userId) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Verificar si el usuario autenticado tiene el rol de candidato
+            if (!$authUser->hasRole('candidate')) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Obtener el candidato asociado al ID de usuario
+            $candidate = $authUser->candidate;
+
+            // Verificar si el candidato existe
+            if (!$candidate) {
+                return response()->json(['error' => 'Candidate profile not found'], 404);
+            }
+
+            // Actualizar la ubicación del usuario en la tabla 'users'
+            $authUser->update([
+                'country_id' => $request->input('country_id'),
+                'state_id' => $request->input('state_id'),
+                'city_id' => $request->input('city_id'),
+                'zip_code_id' => $request->input('zip_code_id'),
+            ]);
 
             // Actualizar los datos del candidato
             $candidate->update($request->validated());
 
-            // Actualizar el CV si se proporciona un nuevo archivo
+            // Sincronizar habilidades
+            $skills = $request->input('skills') ? explode(',', $request->input('skills')) : [];
+            $candidate->skills()->sync($skills);
+
+            // Sincronizar niveles de estudio
+            $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
+            $candidate->educationLevels()->sync($educationLevels);
+
+            // Sincronizar idiomas
+            $languages = $request->input('languages') ? explode(',', $request->input('languages')) : [];
+            $candidate->languages()->sync($languages);
+
+            // Actualizar el currículum vitae si se proporciona
             if ($request->hasFile('cv_path')) {
+                // Eliminar el archivo anterior, si existe
+                Storage::disk('public')->delete($candidate->cv_path);
+
+                // Almacenar el nuevo archivo
                 $cvFile = $request->file('cv_path');
                 $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
                 $cvPath = 'candidate_uploads/cvs/' . $cvName;
-
-                // Eliminar el CV anterior si existe
-                if ($candidate->cv_path) {
-                    Storage::disk('public')->delete($candidate->cv_path);
-                }
-
                 Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
+
+                // Actualizar la ruta del currículum vitae en la base de datos
                 $candidate->cv_path = $cvPath;
+                $candidate->save();
             }
 
-            // Actualizar la foto de perfil si se proporciona un nuevo archivo
+            // Actualizar la foto de perfil si se proporciona
             if ($request->hasFile('photo_path')) {
+                // Eliminar la foto de perfil anterior, si existe
+                Storage::disk('public')->delete($candidate->photo_path);
+
+                // Almacenar la nueva foto de perfil
                 $photoFile = $request->file('photo_path');
                 $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
                 $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
-
-                // Eliminar la foto anterior si existe
-                if ($candidate->photo_path) {
-                    Storage::disk('public')->delete($candidate->photo_path);
-                }
-
                 Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
+
+                // Actualizar la ruta de la foto de perfil en la base de datos
                 $candidate->photo_path = $photoPath;
+                $candidate->save();
             }
 
-            // Actualizar el banner si se proporciona un nuevo archivo
+            // Actualizar el banner si se proporciona
             if ($request->hasFile('banner_path')) {
+                // Eliminar el banner anterior, si existe
+                Storage::disk('public')->delete($candidate->banner_path);
+
+                // Almacenar el nuevo banner
                 $bannerFile = $request->file('banner_path');
                 $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
                 $bannerPath = 'candidate_uploads/banners/' . $bannerName;
-
-                // Eliminar el banner anterior si existe
-                if ($candidate->banner_path) {
-                    Storage::disk('public')->delete($candidate->banner_path);
-                }
-
                 Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
+
+                // Actualizar la ruta del banner en la base de datos
                 $candidate->banner_path = $bannerPath;
+                $candidate->save();
             }
-
-            // Sincronizar las habilidades del candidato
-            $candidate->skills()->syncWithoutDetaching($request->input('skills'));
-
-            // Sincronizar los niveles de educación del candidato
-            $candidate->educationLevels()->syncWithoutDetaching($request->input('education_levels'));
-
-            // Sincronizar los idiomas del candidato
-            $candidate->languages()->syncWithoutDetaching($request->input('languages'));
 
             // Commit de la transacción
             DB::commit();
@@ -350,13 +389,6 @@ class CandidateController extends Controller
             ], 200);
 
         } catch (QueryException $e) {
-            // Rollback de la transacción en caso de error en la base de datos
-            DB::rollBack();
-            return response()->json([
-                'error' => 'An error occurred while updating the candidate profile!',
-                'details' => $e->getMessage(),
-            ], 500);
-        } catch (\Exception $e) {
             // Rollback de la transacción en caso de error inesperado
             DB::rollBack();
             return response()->json([
@@ -366,42 +398,69 @@ class CandidateController extends Controller
         }
     }
 
-
     /**
      * Remove the specified resource from storage.
      *
-     * @param Candidate $candidate
+     * @param int $userId
      * @return JsonResponse
      */
-    public function destroy(Candidate $candidate): JsonResponse
+    public function destroy(int $userId): JsonResponse
     {
         try {
-            // Validar que el usuario autenticado tenga permisos para eliminar este candidato
-            /** @var \App\Models\User */
-            $user = Auth::user();
-            if (!$user->hasRole('admin') && $user->id !== $candidate->user_id) {
-                return response()->json(['error' => 'Unauthorized to delete this candidate'], 403);
+
+            // Obtener el usuario autenticado
+            $authUser = Auth::user();
+
+            // Verificar si el usuario está autenticado
+            if (!$authUser) {
+                return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            // Iniciar una transacción de base de datos
-            DB::beginTransaction();
+            // Verificar si el ID de usuario pasado como parámetro coincide con el ID del usuario autenticado
+            if ($authUser->id != $userId) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
 
-            // Eliminar al candidato y al usuario asociado
+            // Verificar si el usuario autenticado tiene el rol de candidato
+            if (!$authUser->hasRole('candidate')) {
+                return response()->json(['error' => 'Unauthorized'], 403);
+            }
+
+            // Obtener el candidato asociado al ID de usuario
+            $candidate = $authUser->candidate;
+
+            // Verificar si el candidato existe
+            if (!$candidate) {
+                return response()->json(['error' => 'Candidate profile not found'], 404);
+            }
+
+            // Eliminar la foto de perfil si existe
+            if ($candidate->photo_path) {
+                Storage::disk('public')->delete($candidate->photo_path);
+            }
+
+            // Eliminar el banner si existe
+            if ($candidate->banner_path) {
+                Storage::disk('public')->delete($candidate->banner_path);
+            }
+
+            // Eliminar el currículum vitae si existe
+            if ($candidate->cv_path) {
+                Storage::disk('public')->delete($candidate->cv_path);
+            }
+
+            // Eliminar el candidato de la base de datos
             $candidate->delete();
-            $candidate->user()->delete();
 
-            // Commit de la transacción
-            DB::commit();
+            // Eliminar el usuario asociado si no tiene otros roles
+            if ($authUser->roles()->count() === 1) {
+                $authUser->delete();
+            }
 
-            return response()->json(['message' => 'Candidate deleted!'], 200);
-        } catch (\Exception $e) {
-            // Rollback de la transacción en caso de error
-            DB::rollBack();
-
-            return response()->json([
-                'error' => 'An error occurred while deleting the candidate and associated user!',
-                'details' => $e->getMessage(),
-            ], 500);
+            return response()->json(['message' => 'Candidate profile deleted successfully'], 200);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'An unexpected error occurred while deleting the candidate profile', 'details' => $e->getMessage()], 500);
         }
     }
+
 }

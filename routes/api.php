@@ -43,7 +43,6 @@ Route::group([
     // Rutas para gestionar candidatos
     Route::get('candidates', [CandidateController::class, 'index']);
     Route::post('candidates', [CandidateController::class, 'store']);
-    Route::get('candidate/photo/{filename}', [CandidateController::class, 'getPhoto']);
 
     Route::put('candidates/{candidate}', [CandidateController::class, 'update']);
     Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);

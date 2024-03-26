@@ -15,8 +15,8 @@ class CandidateResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
             'user_id' => $this->user_id,
+            'candidate_id' => $this->id,
             'full_name' => $this->full_name,
             'email' => $this->user->email,
             'gender' => $this->gender,
@@ -32,8 +32,8 @@ class CandidateResource extends JsonResource
             'social_networks' => $this->social_networks,
             'status' => $this->status,
             'skills' => $this->skills,
-            'languages' => $this->languages,
             'education_levels' => $this->educationLevels,
+            'languages' => $this->languages,
             'country' => $this->user->country,
             'state' => $this->user->state,
             'city' => $this->user->city,
