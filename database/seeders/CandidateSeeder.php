@@ -2,23 +2,19 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Candidate;
+use App\Models\EducationLevel;
+use App\Models\Language;
 use App\Models\Skill;
+use Illuminate\Database\Seeder;
 
 class CandidateSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
+    public function run(): void
     {
         $users = \App\Models\User::role('candidate')->get();
 
         foreach ($users as $user) {
-            // Verificar si ya existe un candidato para este usuario
             $existingCandidate = Candidate::where('user_id', $user->id)->first();
 
             if (!$existingCandidate) {
@@ -26,7 +22,12 @@ class CandidateSeeder extends Seeder
                     'user_id' => $user->id,
                 ]);
 
-                $skills = Skill::inRandomOrder()->limit(3)->get(); // Asociar 3 habilidades al azar
+                $educationLevels = EducationLevel::inRandomOrder()->limit(rand(1, 5))->get();
+                $languages = Language::inRandomOrder()->limit(rand(1, 3))->get();
+                $skills = Skill::inRandomOrder()->limit(3)->get();
+
+                $candidate->educationLevels()->attach($educationLevels->pluck('id'));
+                $candidate->languages()->attach($languages->pluck('id'));
                 $candidate->skills()->attach($skills->pluck('id'));
             }
         }

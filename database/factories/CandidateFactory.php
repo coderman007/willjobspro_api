@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Candidate;
-use App\Models\User;
 use App\Models\EducationLevel;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CandidateFactory extends Factory
@@ -26,14 +26,12 @@ class CandidateFactory extends Factory
 
         return [
             'user_id' => $user->id,
-            'education_level_id' => $this->faker->randomElement($educationLevels->pluck('id')),
             'full_name' => $this->faker->name,
             'gender' => $this->faker->randomElement(['male', 'female']),
             'date_of_birth' => $this->faker->date(),
             'phone_number' => $this->faker->phoneNumber,
             'work_experience' => $this->faker->text,
             'certifications' => $this->faker->text,
-            'languages' => $this->faker->text,
             'references' => $this->faker->text,
             'expected_salary' => $this->faker->randomFloat(2, 1000, 10000),
             'cv_path' => 'candidate_uploads/cvs/' . $this->faker->file('public/storage/candidate_uploads/cvs', storage_path('app/public/candidate_uploads/cvs'), false),

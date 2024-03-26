@@ -6,7 +6,6 @@ use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
-use App\Models\Skill;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -117,22 +116,17 @@ class CandidateController extends Controller
     }
 
 
-
-
     /**
-     * Display the specified candidate profile.
+     * Display the specified resource.
      *
-     * @param int $userId
+     * @param Candidate $candidate
      * @return JsonResponse
      */
-    public function show($id): JsonResponse
+    public function show(Candidate $candidate): JsonResponse
     {
         try {
-            // Obtener el candidato por user_id con la relación de usuario cargada de forma ansiosa
-            $candidate = Candidate::with(['user.country', 'user.state', 'user.city', 'user.zipCode'])->where('user_id', $id)->first();
 
             // Verificar si el usuario autenticado tiene el rol 'candidate' o 'admin'
-            /** @var \App\Models\User */
             $user = Auth::user();
             if (!($user->hasRole('candidate') && $user->id === $candidate->user_id) && !$user->hasRole('admin')) {
                 return response()->json(['error' => 'Unauthorized access to candidate profile'], 403);
@@ -144,19 +138,11 @@ class CandidateController extends Controller
             // Transformar el candidato a un recurso CandidateResource
             $candidateResource = new CandidateResource($candidate);
 
-            // Obtener las URLs completas de las imágenes
-            $cvUrl = $candidate->cv_path ? url('storage/' . $candidate->cv_path) : null;
-            $photoUrl = $candidate->photo_path ? url('storage/' . $candidate->photo_path) : null;
-            $bannerUrl = $candidate->banner_path ? url('storage/' . $candidate->banner_path) : null;
-
             // Devolver la respuesta incluyendo las URLs de las imágenes
             return response()->json([
                 'message' => 'Candidate Profile Successfully Obtained!',
                 'data' => [
                     'info' => $candidateResource,
-                    'cv_url' => $cvUrl,
-                    'photo_url' => $photoUrl,
-                    'banner_url' => $bannerUrl,
                 ],
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -174,23 +160,23 @@ class CandidateController extends Controller
         }
     }
 
-    /**
-     * Store a newly created candidate instance in storage.
-     *
-     * @param StoreCandidateRequest $request
-     * @return JsonResponse
-     */
     public function store(StoreCandidateRequest $request): JsonResponse
     {
-        $validatedData = $request->validated();
-        /** @var \App\Models\User */
-        $user = Auth::user();
-
-        if (!$user->hasRole('candidate')) {
-            return response()->json(['error' => 'User does not have the candidate role'], 403);
-        }
-
         try {
+            // Iniciamos una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Verificar si el usuario está autenticado
+            if (!Auth::check()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            $user = Auth::user();
+            // Verificar si el usuario tiene el rol 'candidate'
+            if (!$user->hasRole('candidate')) {
+                return response()->json(['error' => 'You do not have permission to create a candidate'], 403);
+            }
+
             $request->input('country_id') ? $countryId = $request->input('country_id') : $countryId = null;
             $request->input('state_id') ? $stateId = $request->input('state_id') : $stateId = null;
             $request->input('city_id') ? $cityId = $request->input('city_id') : $cityId = null;
@@ -204,174 +190,82 @@ class CandidateController extends Controller
                 'zip_code_id' => $zipCodeId,
             ]);
 
-            // Lógica para la generación de nombres de archivos del candidato
-            $cvName = 'cv_file_' . $user->id . $this->generateFileName($request->cv_file);
-            $photoName = 'photo_file_' . $user->id . $this->generateFileName($request->photo_file);
-            $bannerName = 'banner_file_' . $user->id . $this->generateFileName($request->banner_file);
+            // Crear un nuevo candidato asociado al usuario autenticado
+            $candidate = new Candidate;
+            $candidate->user_id = $user->id;
+            $candidate->fill($request->validated()); // Fill fillable attributes
 
-            // Crear instancia en la tabla 'candidates'
-            $candidate = Candidate::create([
-                'user_id' => $user->id,
-                'education_level_id' => $validatedData['education_level_id'],
-                'full_name' => $validatedData['full_name'],
-                'gender' => $validatedData['gender'],
-                'date_of_birth' => $validatedData['date_of_birth'],
-                'phone_number' => $validatedData['phone_number'],
-                'work_experience' => $validatedData['work_experience'],
-                'certifications' => $validatedData['certifications'],
-                'languages' => $validatedData['languages'],
-                'references' => $validatedData['references'],
-                'expected_salary' => $validatedData['expected_salary'],
-                'cv_path' => 'candidates/cvs/' . $cvName,
-                'photo_path' => 'candidates/profile_photos/' . $photoName,
-                'banner_path' => 'candidates/banners/' . $bannerName,
-                'social_networks' => $validatedData['social_networks'],
-                'status' => $validatedData['status'],
-            ]);
-
-            // Almacenamiento de archivos del candidato en el directorio correspondiente
-            $this->storeFile($cvName, $request->cv_file, 'candidate_uploads/cvs');
-            $this->storeFile($photoName, $request->photo_file, 'candidate_uploads/profile_photos');
-            $this->storeFile($bannerName, $request->banner_file, 'candidate_uploads/banners');
-
-            // Validar y asociar habilidades al candidato
-            $this->attachSkills($request, $candidate);
-
-            return response()->json(['data' => $candidate, 'message' => 'Candidate Created Successfully!'], 201);
-        } catch (QueryException $e) {
-            return $this->handleDatabaseError($e);
-        } catch (\Exception $e) {
-            return $this->handleGenericError($e);
-        }
-    }
-
-    private function attachSkills(Request $request, Candidate $candidate): void
-    {
-        if ($request->filled('skills')) {
-            $skills = explode(',', $request->input('skills'));
-
-            foreach ($skills as $skillName) {
-                $this->validateAndAttachSkill($candidate, $skillName);
-            }
-        }
-    }
-
-    private function validateAndAttachSkill(Candidate $candidate, $skillName)
-    {
-        $skillName = trim($skillName);
-        $skill = Skill::where('name', $skillName)->first();
-
-        if ($skill) {
-            $candidate->addSkill($skill->id);
-        } else {
-            throw new \Exception("Skill '$skillName' not found in the database.");
-        }
-    }
-
-    private function handleDatabaseError(QueryException $e): JsonResponse
-    {
-        return response()->json([
-            'error' => 'An error occurred in the database while creating the candidate!',
-            'details' => $e->getMessage(),
-        ], 500);
-    }
-
-    private function handleGenericError(\Exception $e): JsonResponse
-    {
-        return response()->json([
-            'error' => 'An error occurred while creating the candidate!',
-            'details' => $e->getMessage(),
-        ], 500);
-    }
-
-    /**
-     * Genera un nombre de archivo único.
-     *
-     * @param \Illuminate\Http\UploadedFile|null $file
-     * @return string|null
-     */
-    private function generateFileName($file): ?string
-    {
-        return $file ? Str::random(10) . "." . $file->getClientOriginalExtension() : null;
-    }
-
-    /**
-     * Almacena un archivo en el disco.
-     *
-     * @param string $fileName
-     * @param \Illuminate\Http\UploadedFile $file
-     * @return void
-     */
-    private function storeFile($fileName, $file, $directory): void
-    {
-        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file));
-    }
-
-    /**
-     * Add skills to the candidate.
-     *
-     * @param Request $request
-     * @param Candidate $candidate
-     * @param Skill $skill
-     * @return JsonResponse
-     */
-    public function addSkill(Request $request, Candidate $candidate)
-    {
-        try {
-            $skillsNotFound = [];
-            $skills = $request->input('skills');
-
-            foreach ($skills as $skillName) {
-                $skillName = trim($skillName);
-
-                // Validar que la habilidad exista en la base de datos
-                $skill = Skill::where('name', $skillName)->first();
-
-                if ($skill) {
-                    $candidate->addSkill($skill->id);
-                } else {
-                    $skillsNotFound[] = $skillName;
-                }
+            // Almacenamiento del CV
+            if ($request->hasFile('cv_path')) {
+                $cvFile = $request->file('cv_path');
+                $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
+                $cvPath = 'candidate_uploads/cvs/' . $cvName;
+                Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
+                $candidate->cv_path = $cvPath;
             }
 
-            if (!empty($skillsNotFound)) {
-                return response()->json(['error' => 'Skills not found in the database.', 'skills_not_found' => $skillsNotFound], 422);
+            // Almacenamiento de la foto de perfil
+            if ($request->hasFile('photo_path')) {
+                $photoFile = $request->file('photo_path');
+                $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
+                $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
+                Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
+                $candidate->photo_path = $photoPath;
             }
 
-            return response()->json(['message' => 'Skills added to candidate successfully!'], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'An error occurred while adding skills to candidate.', 'details' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Remove skills from the candidate.
-     *
-     * @param Request $request
-     * @param Candidate $candidate
-     * @param Skill $skill
-     * @return JsonResponse
-     */
-    public function removeSkill(Request $request, Candidate $candidate, Skill $skill)
-    {
-        try {
-            // Validar la existencia de la habilidad
-            if ($candidate->skills->contains($skill->id)) {
-                $candidate->removeSkill($skill->id);
-                return response()->json(['message' => 'Skill removed from candidate successfully!'], 200);
-            } else {
-                return response()->json(['error' => 'Skill not found in candidate\'s profile!'], 404);
+            // Almacenamiento del banner
+            if ($request->hasFile('banner_path')) {
+                $bannerFile = $request->file('banner_path');
+                $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
+                $bannerPath = 'candidate_uploads/banners/' . $bannerName;
+                Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
+                $candidate->banner_path = $bannerPath;
             }
-        } catch (\Exception $e) {
+
+            // Guardar el candidato en la base de datos
+            $candidate->save();
+
+            // Habilidades
+            $skills = $request->input('skills') ? explode(',', $request->input('skills')) : [];
+
+            // Niveles de estudio
+            $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
+
+            // Idiomas
+            $languages = $request->input('languages') ? explode(',', $request->input('languages')) : [];
+
+
+            // Sincronizar las habilidades del candidato
+            $candidate->skills()->syncWithoutDetaching($skills);
+
+            // Sincronizar los niveles de educación del candidato
+            $candidate->educationLevels()->syncWithoutDetaching($educationLevels);
+
+            // Sincronizar los idiomas del candidato
+            $candidate->languages()->syncWithoutDetaching($languages);
+
+            // Commit de la transacción
+            DB::commit();
+
+            // Devolver la respuesta con el recurso del candidato creado
+            $candidateResource = new CandidateResource($candidate);
             return response()->json([
-                'error' => 'An error occurred while removing skill from candidate!',
+                'message' => 'Candidate profile created successfully!',
+                'data' => $candidateResource,
+            ], 201);
+
+        } catch (QueryException $e) {
+            // Rollback de la transacción en caso de error inesperado
+            DB::rollBack();
+            return response()->json([
+                'error' => 'An unexpected error occurred while creating the candidate profile!',
                 'details' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified candidate in storage.
      *
      * @param UpdateCandidateRequest $request
      * @param Candidate $candidate
@@ -380,62 +274,80 @@ class CandidateController extends Controller
     public function update(UpdateCandidateRequest $request, Candidate $candidate): JsonResponse
     {
         try {
-            $validatedData = $request->validated();
-
-            // Validar que el usuario autenticado tenga permisos para actualizar este candidato
-            /** @var \App\Models\User */
-            $user = Auth::user();
-            if (!$user->hasRole('candidate') || $user->id !== $candidate->user_id) {
-                return response()->json(['error' => 'Unauthorized to update this candidate'], 403);
+            // Verificar si el usuario autenticado tiene permiso para actualizar el perfil del candidato
+            if (!$candidate->user->is(Auth::user())) {
+                return response()->json(['error' => 'Unauthorized to update this candidate profile'], 403);
             }
 
-            // Actualizar la ubicación del usuario en la tabla 'users'
-            $user->update([
-                'country_id' => $request->input('country_id'),
-                'state_id' => $request->input('state_id'),
-                'city_id' => $request->input('city_id'),
-                'zip_code_id' => $request->input('zip_code_id'),
-            ]);
+            // Iniciamos una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
 
-            // Realizar la actualización de campos básicos
-            $candidate->update($validatedData);
+            // Actualizar los datos del candidato
+            $candidate->update($request->validated());
 
-            // Actualizar habilidades si se proporcionan
-            $this->updateSkills($request, $candidate);
+            // Actualizar el CV si se proporciona un nuevo archivo
+            if ($request->hasFile('cv_path')) {
+                $cvFile = $request->file('cv_path');
+                $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
+                $cvPath = 'candidate_uploads/cvs/' . $cvName;
+                Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
+                $candidate->cv_path = $cvPath;
+            }
 
-            // Obtener la instancia actualizada del candidato
-            $updatedCandidate = $candidate->fresh();
+            // Actualizar la foto de perfil si se proporciona un nuevo archivo
+            if ($request->hasFile('photo_path')) {
+                $photoFile = $request->file('photo_path');
+                $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
+                $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
+                Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
+                $candidate->photo_path = $photoPath;
+            }
 
-            // Registrar actividad o log si es necesario
+            // Actualizar el banner si se proporciona un nuevo archivo
+            if ($request->hasFile('banner_path')) {
+                $bannerFile = $request->file('banner_path');
+                $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
+                $bannerPath = 'candidate_uploads/banners/' . $bannerName;
+                Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
+                $candidate->banner_path = $bannerPath;
+            }
 
-            return response()->json(['data' => $updatedCandidate, 'message' => 'Candidate updated successfully!'], 200);
-        } catch (QueryException $e) {
-            // Manejar errores de base de datos
+            // Guardar los cambios en el candidato
+            $candidate->save();
+
+            // Sincronizar las habilidades del candidato
+            $candidate->skills()->sync($request->input('skills', []));
+
+            // Sincronizar los niveles de educación del candidato
+            $candidate->educationLevels()->sync($request->input('education_levels', []));
+
+            // Sincronizar los idiomas del candidato
+            $candidate->languages()->sync($request->input('languages', []));
+
+            // Commit de la transacción
+            DB::commit();
+
+            // Devolver la respuesta con el recurso del candidato actualizado
+            $candidateResource = new CandidateResource($candidate);
             return response()->json([
-                'error' => 'An error occurred in the database while updating the candidate!',
+                'message' => 'Candidate profile updated successfully!',
+                'data' => $candidateResource,
+            ], 200);
+
+        } catch (QueryException $e) {
+            // Rollback de la transacción en caso de error en la base de datos
+            DB::rollBack();
+            return response()->json([
+                'error' => 'An error occurred while updating the candidate profile!',
                 'details' => $e->getMessage(),
             ], 500);
         } catch (\Exception $e) {
-            // Manejar otros errores
+            // Rollback de la transacción en caso de error inesperado
+            DB::rollBack();
             return response()->json([
-                'error' => 'An error occurred while updating the candidate!',
+                'error' => 'An unexpected error occurred while updating the candidate profile!',
                 'details' => $e->getMessage(),
             ], 500);
-        }
-    }
-
-    private function updateSkills(Request $request, Candidate $candidate): void
-    {
-        if ($request->filled('skills')) {
-            $skills = explode(',', $request->input('skills'));
-
-            // Desasociar habilidades existentes
-            $candidate->skills()->detach();
-
-            // Asociar nuevas habilidades
-            foreach ($skills as $skillName) {
-                $this->validateAndAttachSkill($candidate, $skillName);
-            }
         }
     }
 

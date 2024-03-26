@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Skill extends Model
 {
@@ -19,12 +21,12 @@ class Skill extends Model
         'updated_at',
     ];
 
-    public function skillCategory()
+    public function skillCategory(): BelongsTo
     {
         return $this->belongsTo(SkillCategory::class);
     }
 
-    public function candidates()
+    public function candidates(): BelongsToMany
     {
         return $this->belongsToMany(Candidate::class);
     }

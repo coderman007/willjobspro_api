@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -26,6 +24,7 @@ class DatabaseSeeder extends Seeder
             JobCategorySeeder::class,
             JobTypeSeeder::class,
             EducationLevelSeeder::class,
+            LanguageSeeder::class,
             SkillCategorySeeder::class,
             SkillSeeder::class,
             CandidateSeeder::class,

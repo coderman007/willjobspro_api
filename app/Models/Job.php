@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Job extends Model
 {
@@ -26,31 +29,32 @@ class Job extends Model
         'status',
     ];
 
-    public function applications()
+    public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
     }
-    public function company()
+
+    public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
-    public function jobCategory()
+    public function jobCategory(): BelongsTo
     {
         return $this->belongsTo(JobCategory::class);
     }
 
-    public function educationLevel()
+    public function educationLevels(): BelongsToMany
     {
-        return $this->belongsTo(EducationLevel::class);
+        return $this->belongsToMany(EducationLevel::class)->withTimestamps();
     }
 
-    public function jobTypes()
+    public function jobTypes(): BelongsToMany
     {
-        return $this->belongsToMany(JobType::class);
+        return $this->belongsToMany(JobType::class)->withTimestamps();
     }
 
-    public function subscriptionPlan()
+    public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);
     }
