@@ -43,8 +43,8 @@ Route::group([
     // Rutas para gestionar candidatos
     Route::get('candidates', [CandidateController::class, 'index']);
     Route::post('candidates', [CandidateController::class, 'store']);
-    Route::post('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'addSkills']);
-    Route::delete('candidates/{candidate}/skills/{skill}', [CandidateController::class, 'removeSkills']);
+    Route::get('candidate/photo/{filename}', [CandidateController::class, 'getPhoto']);
+
     Route::put('candidates/{candidate}', [CandidateController::class, 'update']);
     Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);
     Route::get('candidates/applications', [CandidateController::class, 'getAllApplications']);

@@ -290,6 +290,12 @@ class CandidateController extends Controller
                 $cvFile = $request->file('cv_path');
                 $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
                 $cvPath = 'candidate_uploads/cvs/' . $cvName;
+
+                // Eliminar el CV anterior si existe
+                if ($candidate->cv_path) {
+                    Storage::disk('public')->delete($candidate->cv_path);
+                }
+
                 Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
                 $candidate->cv_path = $cvPath;
             }
@@ -299,6 +305,12 @@ class CandidateController extends Controller
                 $photoFile = $request->file('photo_path');
                 $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
                 $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
+
+                // Eliminar la foto anterior si existe
+                if ($candidate->photo_path) {
+                    Storage::disk('public')->delete($candidate->photo_path);
+                }
+
                 Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
                 $candidate->photo_path = $photoPath;
             }
@@ -308,21 +320,24 @@ class CandidateController extends Controller
                 $bannerFile = $request->file('banner_path');
                 $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
                 $bannerPath = 'candidate_uploads/banners/' . $bannerName;
+
+                // Eliminar el banner anterior si existe
+                if ($candidate->banner_path) {
+                    Storage::disk('public')->delete($candidate->banner_path);
+                }
+
                 Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
                 $candidate->banner_path = $bannerPath;
             }
 
-            // Guardar los cambios en el candidato
-            $candidate->save();
-
             // Sincronizar las habilidades del candidato
-            $candidate->skills()->sync($request->input('skills', []));
+            $candidate->skills()->syncWithoutDetaching($request->input('skills'));
 
             // Sincronizar los niveles de educación del candidato
-            $candidate->educationLevels()->sync($request->input('education_levels', []));
+            $candidate->educationLevels()->syncWithoutDetaching($request->input('education_levels'));
 
             // Sincronizar los idiomas del candidato
-            $candidate->languages()->sync($request->input('languages', []));
+            $candidate->languages()->syncWithoutDetaching($request->input('languages'));
 
             // Commit de la transacción
             DB::commit();
@@ -350,6 +365,7 @@ class CandidateController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
