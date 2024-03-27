@@ -37,15 +37,13 @@ class CandidateController extends Controller
             if ($request->filled('search')) {
                 $searchTerm = $request->query('search');
                 $query->where(function ($subquery) use ($searchTerm) {
-                    $subquery->where('full_name', 'like', '%' . $searchTerm . '%')
-                        ->orWhere('skills', 'like', '%' . $searchTerm . '%')
+                    $subquery->where('skills', 'like', '%' . $searchTerm . '%')
                         ->orWhere('certifications', 'like', '%' . $searchTerm . '%');
                 });
             }
 
             // Filtros
             $filters = [
-                'full_name',
                 'gender',
                 'status',
                 'date_of_birth',

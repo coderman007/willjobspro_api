@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreJobRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,6 +21,10 @@ class JobController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
+            $idUser = $request->query('user_id', null);
+
+            dd($perPage);
+
 
             // Construir la consulta para las ofertas de trabajo
             $jobsQuery = $this->buildJobQuery($request);
@@ -68,7 +73,14 @@ class JobController extends Controller
             return $query->where('title', 'like', '%' . $searchTerm . '%');
         });
 
-        // Otros filtros pueden ser aplicados aquí según la lógica de tu aplicación
+        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
+            $sortBy = $request->query('sort_by');
+            $sortOrder = $request->query('sort_order');
+            return $query->orderBy($sortBy, $sortOrder);
+        }, function ($query) {
+            // Default order if not specified
+            return $query->orderBy('created_at', 'desc');
+        });
 
         return $query;
     }
@@ -80,30 +92,44 @@ class JobController extends Controller
      * @param StoreJobRequest $request
      * @return JsonResponse
      */
-
     public function store(StoreJobRequest $request): JsonResponse
     {
         try {
+            // Validar los datos de la solicitud
             $validatedData = $request->validated();
-            $user = auth()->user();
 
+            // Obtener el usuario autenticado y asegurarse de que sea una empresa
+            $user = auth()->user();
             if (!$user || !$user->hasRole('company')) {
                 return $this->jsonErrorResponse('Only users with role Company can create job offers.', 403);
             }
 
+            // Obtener el ID de la empresa del usuario autenticado
             $companyId = $user->company->id;
+
+            // Asignar el ID de la empresa a los datos validados
             $validatedData['company_id'] = $companyId;
 
+            // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
-            $jobTypeIds = $request->input('job_type_ids', []);
+
+            // Obtener las cadenas de texto de habilidades, niveles de estudio e idiomas del formulario y convertirlas en arrays
+            $jobTypeIds = $request->input('job_type_ids') ? explode(',', $request->input('job_type_ids')) : [];
+            $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
+            $languages = $request->input('languages') ? explode(',', $request->input('languages')) : [];
+
+            // Asociar los tipos de trabajo, niveles de estudio e idiomas a la oferta de trabajo recién creada
             $job->jobTypes()->attach($jobTypeIds);
+            $job->educationLevels()->attach($educationLevels);
+            $job->languages()->attach($languages);
 
-            $job->load('jobTypes');
+            // Cargar las relaciones asociadas a la oferta de trabajo
+            $job->load('jobTypes', 'educationLevels', 'languages');
 
+            // Devolver una respuesta exitosa con la oferta de trabajo creada
             return $this->jsonResponse($job, 'Job offer created successfully', 201);
-        } catch (QueryException $e) {
-            return $this->jsonErrorResponse('An error occurred in the database while creating the job offer.', 500);
         } catch (\Exception $e) {
+            // Manejar cualquier error y devolver una respuesta de error
             return $this->jsonErrorResponse('An error occurred while creating the job offer.', 500);
         }
     }

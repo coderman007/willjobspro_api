@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CandidateController;
+use App\Http\Controllers\CommandController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\JobCategoryController;
@@ -21,10 +22,10 @@ Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{company}', [CompanyController::class, 'show']);
 Route::get('job-categories', [JobCategoryController::class, 'index']);
 Route::get('job-types', [JobTypeController::class, 'index']);
-Route::get('jobs{user?}', [JobController::class, 'index']);
 Route::get('jobs/{job}', [JobController::class, 'show']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
+Route::get('link-storage', [CommandController::class, 'linkStorage']);
 
 // Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
 Route::group([
@@ -74,6 +75,8 @@ Route::group([
     Route::apiResource('users', UserController::class);
 
     // Rutas para crear, actualizar y eliminar ofertas de trabajo
+
+    Route::get('jobs/{user?}', [JobController::class, 'index']);
     Route::post('jobs', [JobController::class, 'store']);
     Route::put('jobs/{job}', [JobController::class, 'update']);
     Route::delete('jobs/{job}', [JobController::class, 'destroy']);

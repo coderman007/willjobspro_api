@@ -16,7 +16,6 @@ class UpdateJobRequest extends FormRequest
         return [
             'job_category_id' => 'exists:job_categories,id',
             'job_type_ids' => 'array|exists:job_types,id',
-            'education_level_id' => 'exists:education_levels,id',
             'subscription_plan_id' => 'exists:subscription_plans,id',
             'title' => 'string|max:255',
             'description' => 'string',
