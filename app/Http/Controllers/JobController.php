@@ -16,13 +16,39 @@ class JobController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        // Cargar las ofertas de trabajo con las relaciones de muchos a muchos
-        $jobs = Job::with(['languages', 'educationLevels', 'jobTypes'])->get();
+        try {
+            $perPage = $request->query('per_page', 10);
 
-        // Retornar los resultados
-        return response()->json($jobs);
+            // Construir la consulta para las ofertas de trabajo
+            $jobsQuery = $this->buildJobQuery($request);
+
+            // Paginar las ofertas de trabajo
+            $jobs = $jobsQuery->paginate($perPage);
+
+            // Iterar sobre las ofertas de trabajo para añadir datos adicionales
+            foreach ($jobs as $job) {
+                // Calcular si el usuario ha aplicado a esta oferta de trabajo
+                $job->setAttribute('applied', $job->applications->count() > 0);
+
+                // Obtener los nombres de los tipos de trabajo relacionados
+                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+
+                // Obtener los nombres de los idiomas relacionados
+                $job->setAttribute('languages', $job->languages->pluck('name')->implode(', '));
+
+                // Obtener los nombres de los niveles de educación relacionados
+                $job->setAttribute('education_levels', $job->educationLevels->pluck('name')->implode(', '));
+            }
+
+            // Retornar las ofertas de trabajo paginadas junto con datos adicionales
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
+                ->header('X-Total-Count', $jobs->total());
+        } catch (\Exception $e) {
+            // Manejar cualquier error y retornar una respuesta de error
+            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
+        }
     }
 
     /**
@@ -33,34 +59,20 @@ class JobController extends Controller
      */
     private function buildJobQuery(Request $request): Builder
     {
-        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'languages', 'subscriptionPlan', 'educationLevels']);
+        // Inicializar la consulta con las relaciones necesarias
+        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages', 'educationLevels']);
 
+        // Aplicar filtros basados en los parámetros de la solicitud
         $query->when($request->filled('search'), function ($query) use ($request) {
             $searchTerm = $request->query('search');
             return $query->where('title', 'like', '%' . $searchTerm . '%');
         });
 
-        $filters = [
-            'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
-        ];
-
-        foreach ($filters as $filter) {
-            $query->when($request->filled($filter), function ($query) use ($request, $filter) {
-                return $query->where($filter, $request->query($filter));
-            });
-        }
-
-        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
-            $sortBy = $request->query('sort_by');
-            $sortOrder = $request->query('sort_order');
-            return $query->orderBy($sortBy, $sortOrder);
-        }, function ($query) {
-            // Default order if not specified
-            return $query->orderBy('created_at', 'desc');
-        });
+        // Otros filtros pueden ser aplicados aquí según la lógica de tu aplicación
 
         return $query;
     }
+
 
     /**
      * Store a newly created resource in storage.

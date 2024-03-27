@@ -30,10 +30,10 @@ class JobResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'company_name' => $this->whenLoaded('company', $this->company->name),
+            'company_name' => $this->whenLoaded('company', $this->company->user->name),
             'category_name' => $this->whenLoaded('jobCategory', $this->jobCategory->name),
             'education_level_names' => $this->whenLoaded('educationLevels', $this->educationLevels->pluck('name')->implode(', ')),
-            'language_names' => $this->whenLoaded('languages', $this->languages->pluck('name')->implode(', ')),
+
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
         ];
     }
