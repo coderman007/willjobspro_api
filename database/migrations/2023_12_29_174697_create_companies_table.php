@@ -14,16 +14,15 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('user_id')->unique();
 
-            $table->string('name');
-            $table->string('industry')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->string('website')->nullable();
-            $table->text('description')->nullable();
             $table->string('contact_person');
-            $table->string('logo_path')->nullable()->default('N/A');
-            $table->string('banner_path')->nullable()->default('N/A');
+            $table->string('phone_number')->nullable();
+            $table->string('industry')->nullable();
+            $table->text('description')->nullable();
+            $table->string('website')->nullable();
             $table->json('social_networks')->nullable();
-            $table->enum('status', ['Active', 'Blocked']);
+            $table->enum('status', ['Active', 'Blocked'])->nullable()->default('Active');
+            $table->string('logo_path')->nullable();
+            $table->string('banner_path')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

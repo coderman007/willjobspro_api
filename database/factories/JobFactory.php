@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Company;
-use App\Models\EducationLevel;
 use App\Models\Job;
 use App\Models\JobCategory;
 use App\Models\SubscriptionPlan;
@@ -22,7 +21,6 @@ class JobFactory extends Factory
             'company_id' => Company::pluck('id')->random(),
             'job_category_id' => JobCategory::pluck('id')->random(),
             'subscription_plan_id' => SubscriptionPlan::pluck('id')->random(),
-            'education_level_id' => EducationLevel::pluck('id')->random(),
 
             'title' => $this->faker->jobTitle,
             'description' => $this->faker->paragraph,

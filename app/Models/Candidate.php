@@ -15,7 +15,6 @@ class Candidate extends Model
 
     protected $fillable = [
         'user_id',
-        'full_name',
         'gender',
         'date_of_birth',
         'phone_number',
@@ -23,11 +22,11 @@ class Candidate extends Model
         'certifications',
         'references',
         'expected_salary',
+        'social_networks',
+        'status',
         'cv_path',
         'photo_path',
         'banner_path',
-        'social_networks',
-        'status',
     ];
 
     protected $casts = [
@@ -66,39 +65,4 @@ class Candidate extends Model
         return $this->hasMany(Application::class);
     }
 
-    // Agregar habilidad al candidato
-    public function addSkill($skillId): void
-    {
-        $this->skills()->attach($skillId);
-    }
-
-    // Quitar habilidad al candidato
-    public function removeSkill($skillId): void
-    {
-        $this->skills()->detach($skillId);
-    }
-
-    // Agregar nivel académico al candidato
-    public function addEducationLevel($educationLevelId): void
-    {
-        $this->educationLevels()->attach($educationLevelId);
-    }
-
-    // Quitar nivel académico al candidato
-    public function removeEducationLevel($educationLevelId): void
-    {
-        $this->educationLevels()->detach($educationLevelId);
-    }
-
-    // Agregar idioma al candidato
-    public function addLanguage($languageId): void
-    {
-        $this->languages()->attach($languageId);
-    }
-
-    // Quitar idioma al candidato
-    public function removeLanguage($languageId): void
-    {
-        $this->languages()->detach($languageId);
-    }
 }

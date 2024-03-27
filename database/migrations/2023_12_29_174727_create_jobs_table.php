@@ -15,7 +15,6 @@ return new class extends Migration {
             $table->unsignedBigInteger('company_id');
             $table->unsignedBigInteger('job_category_id');
             $table->unsignedBigInteger('subscription_plan_id')->nullable();
-            $table->unsignedBigInteger('education_level_id');
             $table->string('title');
             $table->text('description');
             $table->dateTime('posted_date');
@@ -31,7 +30,6 @@ return new class extends Migration {
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
-            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
 
         });
     }

@@ -11,32 +11,25 @@ class UpdateCompanyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return auth()->check() && auth()->user()->hasRole('company');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'user_id' => 'exists:users,id',
+            'contact_person' => 'string|max:255',
+            'phone_number' => 'string|max:20',
+            'industry' => 'string|max:255',
+            'description' => 'nullable|string',
+            'website' => 'nullable|string|max:255',
+            'logo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
+            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
+            'social_networks' => 'nullable|json',
+            'status' => 'in:Active,Blocked',
             'country_id' => 'exists:countries,id',
             'state_id' => 'exists:states,id',
             'city_id' => 'exists:cities,id',
             'zip_code_id' => 'exists:zip_codes,id',
-            'name' => 'string|max:255',
-            'industry' => 'string|max:255',
-            'phone_number' => 'string|max:20',
-            'website' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'contact_person' => 'string|max:255',
-            'logo_file' => 'nullable|string|max:255',
-            'banner_file' => 'nullable|string|max:255',
-            'social_networks' => 'nullable|json',
-            'status' => 'in:Active,Blocked',
         ];
     }
 }

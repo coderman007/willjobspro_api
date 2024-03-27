@@ -7,6 +7,8 @@ use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
 use Exception;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +25,7 @@ class CandidateController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+
 
     public function index(Request $request): JsonResponse
     {
@@ -44,7 +47,6 @@ class CandidateController extends Controller
             $filters = [
                 'full_name',
                 'gender',
-                'education_level_id',
                 'status',
                 'date_of_birth',
             ];
@@ -67,18 +69,15 @@ class CandidateController extends Controller
 
             $candidates = $query->paginate($perPage);
 
-            $paginationData = [
-                'total' => $candidates->total(),
-            ];
+            // Transformar la colección de candidatos utilizando CandidateResource
+            $candidatesResource = CandidateResource::collection($candidates);
 
-            return response()->json(['data' => $candidates, 'pagination' => $paginationData], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while getting the candidate list!',
-                'details' => $e->getMessage(),
-            ], 500);
+            return response()->json(['data' => $candidatesResource], 200);
+        } catch (Exception $e) {
+            return $this->handleException($e);
         }
     }
+
 
     public function getAllApplications(Request $request): JsonResponse
     {
@@ -111,8 +110,8 @@ class CandidateController extends Controller
 
             // Devolver la información de las aplicaciones
             return response()->json(['data' => $applicationsData], 200);
-        } catch (\Exception $e) {
-            return $this->handleGenericError($e);
+        } catch (Exception $e) {
+            return $this->handleException($e);
         }
     }
 
@@ -120,10 +119,10 @@ class CandidateController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Candidate $candidate
+     * @param int $userId
      * @return JsonResponse
      */
-    public function show($userId): JsonResponse
+    public function show(int $userId): JsonResponse
     {
         try {
             // Obtener el usuario autenticado
@@ -160,12 +159,8 @@ class CandidateController extends Controller
                     'info' => $candidateResource,
                 ],
             ], 200);
-        } catch (\Exception $e) {
-            // Manejar cualquier otra excepción y devolver una respuesta de error
-            return response()->json([
-                'error' => 'An error occurred while getting the candidate profile.',
-                'details' => $e->getMessage(),
-            ], 500);
+        } catch (Exception $e) {
+            return $this->handleException($e);
         }
     }
 
@@ -267,10 +262,9 @@ class CandidateController extends Controller
         } catch (QueryException $e) {
             // Rollback de la transacción en caso de error inesperado
             DB::rollBack();
-            return response()->json([
-                'error' => 'An unexpected error occurred while creating the candidate profile!',
-                'details' => $e->getMessage(),
-            ], 500);
+
+            // Llama al método handleException para manejar la excepción
+            return $this->handleException($e);
         }
     }
 
@@ -459,7 +453,42 @@ class CandidateController extends Controller
 
             return response()->json(['message' => 'Candidate profile deleted successfully'], 200);
         } catch (Exception $e) {
-            return response()->json(['error' => 'An unexpected error occurred while deleting the candidate profile', 'details' => $e->getMessage()], 500);
+            return $this->handleException($e);
+        }
+    }
+
+    /**
+     * Handle exceptions.
+     *
+     * @param Exception $e
+     * @return JsonResponse
+     */
+    private function handleException(Exception $e): JsonResponse
+    {
+        if ($e instanceof QueryException) {
+            // Error de consulta de base de datos
+            return response()->json([
+                'error' => 'Database query error occurred.',
+                'details' => $e->getMessage(),
+            ], 500);
+        } elseif ($e instanceof ModelNotFoundException) {
+            // Recurso no encontrado
+            return response()->json([
+                'error' => 'Resource not found.',
+                'details' => $e->getMessage(),
+            ], 404);
+        } elseif ($e instanceof AuthenticationException) {
+            // Error de autenticación
+            return response()->json([
+                'error' => 'Unauthenticated.',
+                'details' => $e->getMessage(),
+            ], 401);
+        } else {
+            // Otro tipo de excepción
+            return response()->json([
+                'error' => 'An unexpected error occurred.',
+                'details' => $e->getMessage(),
+            ], 500);
         }
     }
 

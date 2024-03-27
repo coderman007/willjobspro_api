@@ -8,7 +8,7 @@ return new class extends Migration {
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('education_level_job', function (Blueprint $table) {
             $table->id();
@@ -16,8 +16,11 @@ return new class extends Migration {
             $table->unsignedBigInteger('job_id');
             $table->timestamps();
 
-            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
             $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
+            $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
+
+            // Asegurarse de que cada par de job_id y education_level_id sea único
+            $table->unique(['education_level_id', 'job_id']);
         });
     }
 

@@ -16,7 +16,6 @@ class Job extends Model
         'company_id',
         'job_category_id',
         'subscription_plan_id',
-        'education_level_id',
         'title',
         'description',
         'posted_date',
@@ -47,6 +46,11 @@ class Job extends Model
     public function educationLevels(): BelongsToMany
     {
         return $this->belongsToMany(EducationLevel::class)->withTimestamps();
+    }
+
+    public function languages(): BelongsToMany
+    {
+        return $this->belongsToMany(Language::class)->withTimestamps();
     }
 
     public function jobTypes(): BelongsToMany

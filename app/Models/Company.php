@@ -12,17 +12,15 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'name',
-        'industry',
-        'phone_number',
-        'website',
-        'description',
         'contact_person',
-        'logo_path',
-        'banner_path',
+        'phone_number',
+        'industry',
+        'description',
+        'website',
         'social_networks',
         'status',
+        'logo_path',
+        'banner_path',
     ];
 
     protected $hidden = [

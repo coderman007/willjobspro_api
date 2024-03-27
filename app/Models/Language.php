@@ -18,4 +18,9 @@ class Language extends Model
     {
         return $this->belongsToMany(Candidate::class, 'candidate_language')->withTimestamps();
     }
+    
+    public function jobs(): BelongsToMany
+    {
+        return $this->belongsToMany(Job::class, 'job_language')->withTimestamps();
+    }
 }

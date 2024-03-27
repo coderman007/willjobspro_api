@@ -22,6 +22,6 @@ class EducationLevel extends Model
 
     public function candidates(): BelongsToMany
     {
-        return $this->belongsToMany(Candidate::class, 'candidate_education_level')->withTimestamps();
+        return $this->belongsToMany(Candidate::class)->withTimestamps();
     }
 }

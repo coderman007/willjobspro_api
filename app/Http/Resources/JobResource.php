@@ -18,7 +18,6 @@ class JobResource extends JsonResource
             'id' => $this->id,
             'company_id' => $this->company_id,
             'job_category_id' => $this->job_category_id,
-            'education_level_id' => $this->education_level_id,
             'title' => $this->title,
             'description' => $this->description,
             'posted_date' => $this->posted_date,
@@ -31,9 +30,10 @@ class JobResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'company_name' =>  $this->company->name,
-            'category_name' => $this->jobCategory->name,
-            'education_level_name' => $this->educationLevel->name,
+            'company_name' => $this->whenLoaded('company', $this->company->name),
+            'category_name' => $this->whenLoaded('jobCategory', $this->jobCategory->name),
+            'education_level_names' => $this->whenLoaded('educationLevels', $this->educationLevels->pluck('name')->implode(', ')),
+            'language_names' => $this->whenLoaded('languages', $this->languages->pluck('name')->implode(', ')),
             'job_type_names' => $this->jobTypes->pluck('name')->implode(', '),
         ];
     }

@@ -2,16 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreJobRequest;
-use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class JobController extends Controller
 {
@@ -21,24 +16,13 @@ class JobController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index()
     {
-        try {
-            $perPage = $request->query('per_page', 10);
-            $userId = Auth::id();
+        // Cargar las ofertas de trabajo con las relaciones de muchos a muchos
+        $jobs = Job::with(['languages', 'educationLevels', 'jobTypes'])->get();
 
-            $jobs = $this->buildJobQuery($request)->paginate($perPage);
-
-            foreach ($jobs as $job) {
-                $job->setAttribute('applied', $job->applications->count() > 0);
-                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
-            }
-
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
-                ->header('X-Total-Count', $jobs->total());
-        } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
-        }
+        // Retornar los resultados
+        return response()->json($jobs);
     }
 
     /**
@@ -49,7 +33,7 @@ class JobController extends Controller
      */
     private function buildJobQuery(Request $request): Builder
     {
-        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'educationLevel', 'subscriptionPlan']);
+        $query = Job::with(['company', 'jobCategory', 'jobTypes', 'languages', 'subscriptionPlan', 'educationLevels']);
 
         $query->when($request->filled('search'), function ($query) use ($request) {
             $searchTerm = $request->query('search');
@@ -57,7 +41,7 @@ class JobController extends Controller
         });
 
         $filters = [
-            'company_id', 'job_category_id', 'job_type_id', 'education_level_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
+            'company_id', 'job_category_id', 'job_type_id', 'subscription_plan_id', 'title', 'description', 'status', 'location',
         ];
 
         foreach ($filters as $filter) {

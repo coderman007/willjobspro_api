@@ -14,7 +14,6 @@ class UpdateCandidateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'full_name' => 'nullable|string|max:255',
             'gender' => 'nullable|string|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
             'phone_number' => 'nullable|string|max:20',
@@ -22,9 +21,9 @@ class UpdateCandidateRequest extends FormRequest
             'certifications' => 'nullable|string',
             'references' => 'nullable|string',
             'expected_salary' => 'nullable|numeric',
-            'cv_path' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Ejemplo: PDF, DOC, DOCX con un tamaño máximo de 2 MB
-            'photo_path' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
-            'banner_path' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Ejemplo: PDF, DOC, DOCX con un tamaño máximo de 2 MB
+            'photo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
+            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
             'social_networks' => 'nullable|json',
             'status' => 'nullable|in:Active,Blocked',
             'country_id' => 'nullable|exists:countries,id',
@@ -40,7 +39,6 @@ class UpdateCandidateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'full_name.string' => 'The full name must be a string.',
             'gender.string' => 'The gender must be a string.',
             'gender.in' => 'The gender must be one of: Male, Female, Other.',
             'date_of_birth.date' => 'The date of birth must be a valid date.',

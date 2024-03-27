@@ -3,13 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Company>
  */
-
 class CompanyFactory extends Factory
 {
     public function definition(): array
@@ -28,16 +26,15 @@ class CompanyFactory extends Factory
 
         return [
             'user_id' => $user->id,
-            'name' => $this->faker->company,
-            'industry' => $this->faker->word,
-            'phone_number' => $this->faker->phoneNumber,
-            'website' => $this->faker->url,
-            'description' => $this->faker->paragraph,
             'contact_person' => $this->faker->name,
-            'logo_path' => $logoPath,
-            'banner_path' => $bannerPath,
+            'phone_number' => $this->faker->phoneNumber,
+            'industry' => $this->faker->word,
+            'description' => $this->faker->paragraph,
+            'website' => $this->faker->url,
             'social_networks' => json_encode(['twitter' => $this->faker->userName, 'linkedin' => $this->faker->userName]),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
+            'logo_path' => $logoPath,
+            'banner_path' => $bannerPath,
         ];
     }
 }
