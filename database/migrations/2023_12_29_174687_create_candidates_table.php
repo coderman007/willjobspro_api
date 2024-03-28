@@ -16,11 +16,7 @@ return new class extends Migration {
             $table->string('gender')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('phone_number')->nullable();
-            $table->text('work_experience')->nullable();
-            $table->text('certifications')->nullable();
-            $table->text('references')->nullable();
             $table->decimal('expected_salary', 10, 2)->nullable();
-            $table->json('social_networks')->nullable();
             $table->enum('status', ['Active', 'Blocked'])->nullable()->default('Active');
             $table->string('cv_path')->nullable();
             $table->string('photo_path')->nullable();

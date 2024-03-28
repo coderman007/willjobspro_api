@@ -8,40 +8,41 @@ class UpdateJobRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return true; // Lógica de autorización
     }
 
     public function rules(): array
     {
         return [
-            'job_category_id' => 'exists:job_categories,id',
-            'job_type_ids' => 'array|exists:job_types,id',
-            'subscription_plan_id' => 'exists:subscription_plans,id',
-            'title' => 'string|max:255',
-            'description' => 'string',
-            'posted_date' => 'date',
-            'deadline' => 'date|after:posted_date',
-            'location' => 'string|max:255',
-            'salary' => 'numeric',
-            'contact_email' => 'email',
-            'contact_phone' => 'string|max:20',
-            'experience_required' => 'nullable|integer',
-            'status' => 'in:Open,Closed,Under Review',
+            'title' => 'sometimes|string',
+            'description' => 'sometimes|string',
+            'posted_date' => 'sometimes|date',
+            'deadline' => 'sometimes|date',
+            'location' => 'sometimes|string',
+            'salary' => 'sometimes|numeric|min:0',
+            'contact_email' => 'sometimes|email',
+            'contact_phone' => 'sometimes|string',
+            'experience_required' => 'nullable|string',
+            'status' => 'sometimes|string|in:Open,Closed,Under Review',
+            'education_levels' => 'nullable|string',
+            'languages' => 'nullable|string',
+            'job_types' => 'nullable|string',
+            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
         ];
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
-    public function validationData(): array
+    public function attributes(): array
     {
-        $data = parent::validationData();
-
-        // Agregar el ID del trabajo a los datos de validación
-        $data['job_id'] = $this->route('job')->id;
-
-        return $data;
+        return [
+            'posted_date' => 'posted date',
+            'deadline' => 'deadline',
+            'contact_email' => 'contact email',
+            'contact_phone' => 'contact phone',
+            'experience_required' => 'experience required',
+            'subscription_plan_id' => 'subscription plan',
+            'education_levels' => 'education levels (comma-separated)',
+            'languages' => 'languages (ID:level, separated by commas)',
+            'job_types' => 'job types (comma-separated)',
+        ];
     }
 }

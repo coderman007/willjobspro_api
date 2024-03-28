@@ -14,29 +14,31 @@ class Candidate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'gender',
         'date_of_birth',
         'phone_number',
-        'work_experience',
-        'certifications',
-        'references',
         'expected_salary',
-        'social_networks',
         'status',
         'cv_path',
         'photo_path',
         'banner_path',
     ];
 
-    protected $casts = [
-        'social_networks' => 'json',
-    ];
 
     // Relación con el usuario
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function workExperiences(): HasMany
+    {
+        return $this->HasMany(WorkExperience::class);
+    }
+
+    public function socialNetworks(): BelongsToMany
+    {
+        return $this->belongsToMany(SocialNetwork::class)->withTimestamps();
     }
 
     public function educationLevels(): BelongsToMany
@@ -51,7 +53,7 @@ class Candidate extends Model
 
     public function languages(): BelongsToMany
     {
-        return $this->belongsToMany(Language::class)->withTimestamps();
+        return $this->belongsToMany(Language::class)->withPivot('level')->withTimestamps(); // Incluye el campo 'level'
     }
 
     public function subscription(): HasOne
@@ -63,6 +65,11 @@ class Candidate extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
+    }
+
+    public function educationHistories(): HasMany
+    {
+        return $this->hasMany(EducationHistory::class);
     }
 
 }

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreJobRequest;
+use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,30 +23,13 @@ class JobController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $idUser = $request->query('user_id', null);
 
-            dd($perPage);
-
-
-            // Construir la consulta para las ofertas de trabajo
-            $jobsQuery = $this->buildJobQuery($request);
-
-            // Paginar las ofertas de trabajo
-            $jobs = $jobsQuery->paginate($perPage);
+            // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
+            $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
             // Iterar sobre las ofertas de trabajo para añadir datos adicionales
             foreach ($jobs as $job) {
-                // Calcular si el usuario ha aplicado a esta oferta de trabajo
-                $job->setAttribute('applied', $job->applications->count() > 0);
-
-                // Obtener los nombres de los tipos de trabajo relacionados
-                $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
-
-                // Obtener los nombres de los idiomas relacionados
-                $job->setAttribute('languages', $job->languages->pluck('name')->implode(', '));
-
-                // Obtener los nombres de los niveles de educación relacionados
-                $job->setAttribute('education_levels', $job->educationLevels->pluck('name')->implode(', '));
+                $this->loadAdditionalData($job);
             }
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
@@ -54,35 +39,6 @@ class JobController extends Controller
             // Manejar cualquier error y retornar una respuesta de error
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
         }
-    }
-
-    /**
-     * Build the job query based on the request filters.
-     *
-     * @param Request $request
-     * @return Builder
-     */
-    private function buildJobQuery(Request $request): Builder
-    {
-        // Inicializar la consulta con las relaciones necesarias
-        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages', 'educationLevels']);
-
-        // Aplicar filtros basados en los parámetros de la solicitud
-        $query->when($request->filled('search'), function ($query) use ($request) {
-            $searchTerm = $request->query('search');
-            return $query->where('title', 'like', '%' . $searchTerm . '%');
-        });
-
-        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
-            $sortBy = $request->query('sort_by');
-            $sortOrder = $request->query('sort_order');
-            return $query->orderBy($sortBy, $sortOrder);
-        }, function ($query) {
-            // Default order if not specified
-            return $query->orderBy('created_at', 'desc');
-        });
-
-        return $query;
     }
 
 
@@ -97,6 +53,11 @@ class JobController extends Controller
         try {
             // Validar los datos de la solicitud
             $validatedData = $request->validated();
+
+            // Convertir cadenas de idiomas, niveles de educación y tipos de trabajo a arrays
+            $validatedData['education_levels'] = explode(',', $validatedData['education_levels']);
+            $validatedData['languages'] = $this->parseLanguages($validatedData['languages']);
+            $validatedData['job_types'] = explode(',', $validatedData['job_types']);
 
             // Obtener el usuario autenticado y asegurarse de que sea una empresa
             $user = auth()->user();
@@ -113,15 +74,24 @@ class JobController extends Controller
             // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
 
-            // Obtener las cadenas de texto de habilidades, niveles de estudio e idiomas del formulario y convertirlas en arrays
-            $jobTypeIds = $request->input('job_type_ids') ? explode(',', $request->input('job_type_ids')) : [];
-            $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
-            $languages = $request->input('languages') ? explode(',', $request->input('languages')) : [];
+            // Asociar niveles de educación con la oferta de trabajo
+            if (!empty($validatedData['education_levels'])) {
+                $job->educationLevels()->sync($validatedData['education_levels']);
+            }
 
-            // Asociar los tipos de trabajo, niveles de estudio e idiomas a la oferta de trabajo recién creada
-            $job->jobTypes()->attach($jobTypeIds);
-            $job->educationLevels()->attach($educationLevels);
-            $job->languages()->attach($languages);
+            // Asociar idiomas con la oferta de trabajo junto con el nivel de conocimiento
+            if (!empty($validatedData['languages'])) {
+                foreach ($validatedData['languages'] as $language) {
+                    $languageId = $language['id'];
+                    $level = $language['level'];
+                    $job->languages()->attach($languageId, ['level' => $level]);
+                }
+            }
+
+            // Asociar tipos de trabajo con la oferta de trabajo
+            if (!empty($validatedData['job_types'])) {
+                $job->jobTypes()->sync($validatedData['job_types']);
+            }
 
             // Cargar las relaciones asociadas a la oferta de trabajo
             $job->load('jobTypes', 'educationLevels', 'languages');
@@ -130,10 +100,26 @@ class JobController extends Controller
             return $this->jsonResponse($job, 'Job offer created successfully', 201);
         } catch (\Exception $e) {
             // Manejar cualquier error y devolver una respuesta de error
-            return $this->jsonErrorResponse('An error occurred while creating the job offer.', 500);
+            return $this->jsonErrorResponse($e->getMessage(), 500);
         }
     }
 
+    /**
+     * Parse the languages string into an array of language IDs and levels.
+     *
+     * @param string $languages
+     * @return array
+     */
+    private function parseLanguages(string $languages): array
+    {
+        $parsedLanguages = [];
+        $languageStrings = explode(',', $languages);
+        foreach ($languageStrings as $languageString) {
+            list($id, $level) = explode(':', $languageString);
+            $parsedLanguages[] = ['id' => $id, 'level' => $level];
+        }
+        return $parsedLanguages;
+    }
 
     /**
      * Display the specified resource.
@@ -144,14 +130,14 @@ class JobController extends Controller
     public function show(Job $job): JsonResponse
     {
         try {
-            $job->load(['applications', 'jobCategory', 'jobTypes']); // Cargar relaciones
-            $numApplications = $job->applications->count();
-            $transformedJob = [
-                'job' => new JobResource($job),
-                'num_applications' => $numApplications,
-            ];
+            // Cargar la oferta de trabajo con sus relaciones
+            $job->load(['company.user', 'jobCategory', 'jobTypes', 'languages', 'educationLevels']);
 
-            return $this->jsonResponse($transformedJob, 'Job offer detail obtained successfully', 200);
+            // Cargar datos adicionales
+            $this->loadAdditionalData($job);
+
+            // Devolver la oferta de trabajo como un recurso API
+            return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully', 200);
         } catch (ModelNotFoundException $e) {
             return $this->jsonErrorResponse('Job not found.', 404);
         } catch (\Exception $e) {
@@ -170,20 +156,51 @@ class JobController extends Controller
     public function update(UpdateJobRequest $request, Job $job): JsonResponse
     {
         try {
+            // Validar los datos de la solicitud
             $validatedData = $request->validated();
-            $companyId = $request->user()->company->id;
 
-            if ($job->company_id !== $companyId) {
-                return $this->jsonErrorResponse('You do not have permissions to perform this action on this resource.', 403);
+            // Convertir cadenas de idiomas, niveles de educación y tipos de trabajo a arrays
+            $validatedData['education_levels'] = explode(',', $validatedData['education_levels']);
+            $validatedData['languages'] = $this->parseLanguages($validatedData['languages']);
+            $validatedData['job_types'] = explode(',', $validatedData['job_types']);
+
+            // Verificar si el usuario tiene permiso para actualizar esta oferta de trabajo
+            $user = auth()->user();
+            if (!$user || !$user->hasRole('company') || $job->company_id !== $user->company->id) {
+                return $this->jsonErrorResponse('You do not have permission to perform this action.', 403);
             }
 
+            // Actualizar los datos de la oferta de trabajo
             $job->update($validatedData);
 
-            $job->jobTypes()->sync($request->input('job_type_ids', []));
+            // Asociar niveles de educación con la oferta de trabajo
+            if (!empty($validatedData['education_levels'])) {
+                $job->educationLevels()->sync($validatedData['education_levels']);
+            }
 
-            return $this->jsonResponse($job->fresh()->load('jobTypes'), 'Job offer updated successfully!', 200);
+            // Asociar idiomas con la oferta de trabajo junto con el nivel de conocimiento
+            if (!empty($validatedData['languages'])) {
+                $job->languages()->detach(); // Desvincular idiomas existentes
+                foreach ($validatedData['languages'] as $language) {
+                    $languageId = $language['id'];
+                    $level = $language['level'];
+                    $job->languages()->attach($languageId, ['level' => $level]);
+                }
+            }
+
+            // Asociar tipos de trabajo con la oferta de trabajo
+            if (!empty($validatedData['job_types'])) {
+                $job->jobTypes()->sync($validatedData['job_types']);
+            }
+
+            // Cargar datos adicionales
+            $this->loadAdditionalData($job);
+
+            // Devolver una respuesta exitosa con la oferta de trabajo actualizada
+            return $this->jsonResponse(new JobResource($job), 'Job offer updated successfully', 200);
         } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error updating the job offer: ' . $e->getMessage(), 500);
+            // Manejar cualquier error y devolver una respuesta de error
+            return $this->jsonErrorResponse($e->getMessage(), 500);
         }
     }
 
@@ -211,6 +228,90 @@ class JobController extends Controller
         }
     }
 
+    /**
+     * Build the job query based on the request filters.
+     *
+     * @param Request $request
+     * @return Builder
+     */
+    private function buildJobQuery(Request $request): Builder
+    {
+        // Inicializar la consulta con las relaciones necesarias
+        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages', 'educationLevels']);
+
+        // Aplicar filtros basados en los parámetros de la solicitud
+        $query->when($request->filled('search'), function ($query) use ($request) {
+            $searchTerm = $request->query('search');
+            return $query->where('title', 'like', '%' . $searchTerm . '%')
+                ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                ->orWhere('location', 'like', '%' . $searchTerm . '%');
+        });
+
+        // Filtrar por categoría
+        $query->when($request->filled('category_id'), function ($query) use ($request) {
+            $categoryId = $request->query('category_id');
+            return $query->whereHas('jobCategory', function ($q) use ($categoryId) {
+                $q->where('id', $categoryId);
+            });
+        });
+
+        // Filtrar por niveles de estudio
+        $query->when($request->filled('education_level_id'), function ($query) use ($request) {
+            $educationLevelId = $request->query('education_level_id');
+            return $query->whereHas('educationLevels', function ($q) use ($educationLevelId) {
+                $q->where('education_levels.id', $educationLevelId);
+            });
+        });
+
+        // Filtrar por idiomas
+        $query->when($request->filled('language_id'), function ($query) use ($request) {
+            $languageId = $request->query('language_id');
+            return $query->whereHas('languages', function ($q) use ($languageId) {
+                $q->where('languages.id', $languageId); // Calificar la columna id con el nombre de la tabla
+            });
+        });
+
+
+        // Filtrar por tipos de trabajo
+        $query->when($request->filled('job_type_id'), function ($query) use ($request) {
+            $jobTypeId = $request->query('job_type_id');
+            return $query->whereHas('jobTypes', function ($q) use ($jobTypeId) {
+                $q->where('job_types.id', $jobTypeId);
+            });
+        });
+
+        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
+            $sortBy = $request->query('sort_by');
+            $sortOrder = $request->query('sort_order');
+            return $query->orderBy($sortBy, $sortOrder);
+        }, function ($query) {
+            // Default order if not specified
+            return $query->orderBy('created_at', 'desc');
+        });
+
+        return $query;
+    }
+
+    /**
+     * Load additional data for a job.
+     *
+     * @param Job $job
+     * @return void
+     */
+    private function loadAdditionalData(Job $job): void
+    {
+        // Calcular si el usuario ha aplicado a esta oferta de trabajo
+        $job->setAttribute('applied', $job->applications->count() > 0);
+        
+        // Obtener los nombres de los tipos de trabajo relacionados
+        $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
+
+        // Obtener los nombres de los idiomas relacionados
+        $job->setAttribute('languages', $job->languages->pluck('name')->implode(', '));
+
+        // Obtener los nombres de los niveles de educación relacionados
+        $job->setAttribute('education_levels', $job->educationLevels->pluck('name')->implode(', '));
+    }
 
     /**
      * Function to generate a consistent JSON response.

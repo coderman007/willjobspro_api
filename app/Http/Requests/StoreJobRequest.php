@@ -14,19 +14,22 @@ class StoreJobRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'company_id' => 'required|exists:companies,id',
             'job_category_id' => 'required|exists:job_categories,id',
-            'job_type_ids' => 'required|array|exists:job_types,id',
-            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
-            'title' => 'required|string|max:255',
+            'title' => 'required|string',
             'description' => 'required|string',
             'posted_date' => 'required|date',
-            'deadline' => 'required|date|after:posted_date',
-            'location' => 'required|string|max:255',
-            'salary' => 'required|numeric',
+            'deadline' => 'required|date',
+            'location' => 'required|string',
+            'salary' => 'required|numeric|min:0',
             'contact_email' => 'required|email',
-            'contact_phone' => 'required|string|max:20',
-            'experience_required' => 'nullable|integer',
-            'status' => 'required|in:Open,Closed,Under Review',
+            'contact_phone' => 'required|string',
+            'experience_required' => 'nullable|string',
+            'status' => 'string|in:Open,Closed,Under Review',
+            'education_levels' => 'nullable|string',
+            'languages' => 'nullable|string',
+            'job_types' => 'nullable|string',
+            'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
         ];
     }
 
@@ -38,15 +41,17 @@ class StoreJobRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'company_id' => 'company',
             'job_category_id' => 'job category',
-            'job_type_ids' => 'job types',
-            'education_level_id' => 'education level',
-            'subscription_plan_id' => 'subscription plan',
             'posted_date' => 'posted date',
             'deadline' => 'deadline',
             'contact_email' => 'contact email',
             'contact_phone' => 'contact phone',
             'experience_required' => 'experience required',
+            'subscription_plan_id' => 'subscription plan',
+            'education_levels' => 'education levels (comma-separated)',
+            'languages' => 'languages (ID:level, separated by commas)',
+            'job_types' => 'job types (comma-separated)',
         ];
     }
 }

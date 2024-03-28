@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('job_id');
             $table->unsignedBigInteger('language_id');
+            $table->enum('level', ['basic', 'intermediate', 'advanced', 'native']);
             $table->timestamps();
 
             $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');

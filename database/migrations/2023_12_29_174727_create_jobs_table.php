@@ -24,7 +24,7 @@ return new class extends Migration {
             $table->string('contact_email');
             $table->string('contact_phone');
             $table->string('experience_required')->nullable();
-            $table->enum('status', ['Open', 'Closed', 'Under Review']);
+            $table->enum('status', ['Open', 'Closed', 'Under Review'])->default('Open');;
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');

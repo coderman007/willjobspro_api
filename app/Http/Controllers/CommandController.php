@@ -19,4 +19,14 @@ class CommandController extends Controller
         }
     }
 
+    public function clearCache(Request $request)
+    {
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+
+        return response()->json(['success' => true, 'message' => 'Toda la caché ha sido borrada.']);
+    }
+
 }

@@ -16,11 +16,11 @@ class Language extends Model
 
     public function candidates(): BelongsToMany
     {
-        return $this->belongsToMany(Candidate::class, 'candidate_language')->withTimestamps();
+        return $this->belongsToMany(Candidate::class)->withTimestamps();
     }
-    
+
     public function jobs(): BelongsToMany
     {
-        return $this->belongsToMany(Job::class, 'job_language')->withTimestamps();
+        return $this->belongsToMany(Job::class)->withTimestamps();
     }
 }

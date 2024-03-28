@@ -50,7 +50,7 @@ class Job extends Model
 
     public function languages(): BelongsToMany
     {
-        return $this->belongsToMany(Language::class)->withTimestamps();
+        return $this->belongsToMany(Language::class)->withPivot('level')->withTimestamps(); // Incluye el campo 'level'
     }
 
     public function jobTypes(): BelongsToMany

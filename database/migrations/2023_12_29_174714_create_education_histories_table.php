@@ -10,15 +10,16 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('candidate_language', function (Blueprint $table) {
+        Schema::create('education_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('candidate_id');
-            $table->unsignedBigInteger('language_id');
-            $table->enum('level', ['basic', 'intermediate', 'advanced', 'native']);
-            $table->timestamps();
-
             $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
-            $table->foreign('language_id')->references('id')->on('languages')->onDelete('cascade');
+            $table->string('institution');
+            $table->string('degree_title');
+            $table->string('field_of_study')->nullable();
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -27,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('candidate_language');
+        Schema::dropIfExists('education_histories');
     }
 };

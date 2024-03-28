@@ -9,6 +9,7 @@ use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTypeController;
+use App\Http\Controllers\SkillCategoryController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
@@ -23,6 +24,7 @@ Route::get('companies/{company}', [CompanyController::class, 'show']);
 Route::get('job-categories', [JobCategoryController::class, 'index']);
 Route::get('job-types', [JobTypeController::class, 'index']);
 Route::get('jobs/{job}', [JobController::class, 'show']);
+Route::get('jobs/{user?}', [JobController::class, 'index']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
 Route::get('link-storage', [CommandController::class, 'linkStorage']);
@@ -38,8 +40,20 @@ Route::group([
 
     Route::get('subscriptions', [SubscriptionController::class, 'getSubscriptions']);
     Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'getSubscription']);
+
+    // Rutas para gestionar categorías de habilidades
+    Route::get('skill-categories', [SkillCategoryController::class, 'index']);
+    Route::get('skill-categories/{skill_category}', [SkillCategoryController::class, 'show']);
+    Route::post('skill-categories', [SkillCategoryController::class, 'store']);
+    Route::put('skill-categories/{skill_category}', [SkillCategoryController::class, 'update']);
+    Route::delete('skill-categories/{skill_category}', [SkillCategoryController::class, 'destroy']);
+
+    // Rutas para gestionar habilidades
     Route::get('skills', [SkillController::class, 'index']);
     Route::get('skills/{skill}', [SkillController::class, 'show']);
+    Route::post('skills', [SkillController::class, 'store']);
+    Route::put('skills/{skill}', [SkillController::class, 'update']);
+    Route::delete('skills/{skill}', [SkillController::class, 'destroy']);
 
     // Rutas para gestionar candidatos
     Route::get('candidates', [CandidateController::class, 'index']);
@@ -76,7 +90,7 @@ Route::group([
 
     // Rutas para crear, actualizar y eliminar ofertas de trabajo
 
-    Route::get('jobs/{user?}', [JobController::class, 'index']);
+    /*Route::get('jobs/{user?}', [JobController::class, 'index']);*/
     Route::post('jobs', [JobController::class, 'store']);
     Route::put('jobs/{job}', [JobController::class, 'update']);
     Route::delete('jobs/{job}', [JobController::class, 'destroy']);
