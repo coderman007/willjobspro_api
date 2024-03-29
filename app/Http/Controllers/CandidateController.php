@@ -7,8 +7,6 @@ use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
 use Exception;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -77,11 +75,21 @@ class CandidateController extends Controller
     }
 
 
+    /**
+     * Get all applications associated with the authenticated candidate user.
+     *
+     * This method retrieves all job applications made by the authenticated candidate user.
+     * It checks if the user has the 'candidate' role and returns an error if not authorized.
+     * Then it fetches the applications for the current candidate user along with related job information.
+     * Finally, it transforms the application data into a response format and returns it as JSON.
+     *
+     * @param Request $request The HTTP request object.
+     * @return JsonResponse The JSON response containing the application data.
+     */
     public function getAllApplications(Request $request): JsonResponse
     {
         try {
             // Verificar si el usuario autenticado tiene el rol 'candidate'
-            /** @var \App\Models\User */
             $user = Auth::user();
             if (!$user->hasRole('candidate')) {
                 return response()->json(['error' => 'Unauthorized access to applications'], 403);
@@ -459,38 +467,46 @@ class CandidateController extends Controller
     }
 
     /**
-     * Handle exceptions.
+     * Handle exceptions and generate appropriate JSON response.
      *
-     * @param Exception $e
+     * @param Exception $exception The exception to handle.
      * @return JsonResponse
      */
-    private function handleException(Exception $e): JsonResponse
+    private function handleException(Exception $exception): JsonResponse
     {
-        if ($e instanceof QueryException) {
-            // Error de consulta de base de datos
-            return response()->json([
-                'error' => 'Database query error occurred.',
-                'details' => $e->getMessage(),
-            ], 500);
-        } elseif ($e instanceof ModelNotFoundException) {
-            // Recurso no encontrado
-            return response()->json([
-                'error' => 'Resource not found.',
-                'details' => $e->getMessage(),
-            ], 404);
-        } elseif ($e instanceof AuthenticationException) {
-            // Error de autenticación
-            return response()->json([
-                'error' => 'Unauthenticated.',
-                'details' => $e->getMessage(),
-            ], 401);
-        } else {
-            // Otro tipo de excepción
-            return response()->json([
-                'error' => 'An unexpected error occurred.',
-                'details' => $e->getMessage(),
-            ], 500);
+        try {
+            throw $exception;
+        } catch (Exception $e) {
+            // Definir mensajes de error en inglés para diferentes códigos de estado.
+            $errorMessages = [
+                400 => 'Bad Request: The request could not be processed due to a malformed client.',
+                401 => 'Unauthorized: Access unauthorized.',
+                403 => 'Forbidden: You do not have sufficient permissions to access this resource.',
+                404 => 'Not Found: The requested resource could not be found.',
+                500 => 'Internal Server Error: An unexpected server error occurred.',
+                503 => 'Service Unavailable: The server is currently unable to handle the request due to maintenance or temporary overloading.',
+            ];
+
+            // Obtener el código de estado de la excepción (si está disponible) o usar 500 como predeterminado.
+            $status = $exception->getCode() ?: 500;
+
+            // Obtener el mensaje de error asociado con el código de estado proporcionado.
+            $errorMessage = $errorMessages[$status] ?? 'Unknown Error: An unexpected error occurred.';
+
+            // Combinar el mensaje de la excepción con el mensaje detallado del código de estado.
+            $detailedMessage = $exception->getMessage() . ' ' . $errorMessage;
+
+            // Registrar el error en el sistema de registro de Laravel.
+            if ($status >= 500) {
+                \Log::error('HTTP ' . $status . ': ' . $detailedMessage);
+            } else {
+                \Log::warning('HTTP ' . $status . ': ' . $detailedMessage);
+            }
+
+            // Devolver una respuesta JSON con el mensaje de error y el código de estado.
+            return response()->json(['error' => $detailedMessage], $status);
         }
     }
+
 
 }

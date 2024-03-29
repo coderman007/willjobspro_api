@@ -23,7 +23,6 @@ class StoreApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'candidate_id' => 'required|exists:candidates,id',
             'job_id' => 'required|exists:jobs,id',
             'cover_letter' => 'nullable|string|max:500',
             'status' => 'required|in:Pending,Reviewed,Accepted,Rejected',
@@ -31,6 +30,7 @@ class StoreApplicationRequest extends FormRequest
             'rejection_date' => 'nullable|date|after_or_equal:application_date',
         ];
     }
+
     /**
      * Get the error messages for the defined validation rules.
      *
@@ -40,8 +40,6 @@ class StoreApplicationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'candidate_id.required' => 'The candidate is required.',
-            'candidate_id.exists' => 'The candidate does not exist.',
             'job_id.required' => 'The job is required.',
             'job_id.exists' => 'The job does not exist.',
             'cover_letter.required' => 'The cover letter is required.',
@@ -51,8 +49,7 @@ class StoreApplicationRequest extends FormRequest
             'status.in' => 'The status is invalid.',
             'application_date.date' => 'The application date is invalid.',
             'rejection_date.date' => 'The rejection date is invalid.',
-            'rejection_date.after_or_equal' => 'The rejection date must
-            be after the application date.',
+            'rejection_date.after_or_equal' => 'The rejection date must be after the application date.',
         ];
     }
 }

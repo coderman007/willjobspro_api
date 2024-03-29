@@ -61,14 +61,14 @@ class JobController extends Controller
 
             // Obtener el usuario autenticado y asegurarse de que sea una empresa
             $user = auth()->user();
-            if (!$user || !$user->hasRole('company')) {
+            if (!$user->hasRole('company')) {
                 return $this->jsonErrorResponse('Only users with role Company can create job offers.', 403);
             }
 
-            // Obtener el ID de la empresa del usuario autenticado
+            // Obtener el ID de la compañía del usuario autenticado
             $companyId = $user->company->id;
 
-            // Asignar el ID de la empresa a los datos validados
+            // Asignar el ID de la compañía a los datos validados
             $validatedData['company_id'] = $companyId;
 
             // Crear la oferta de trabajo con los datos validados
@@ -103,6 +103,7 @@ class JobController extends Controller
             return $this->jsonErrorResponse($e->getMessage(), 500);
         }
     }
+
 
     /**
      * Parse the languages string into an array of language IDs and levels.

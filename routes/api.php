@@ -30,7 +30,7 @@ Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
 Route::get('link-storage', [CommandController::class, 'linkStorage']);
 
-// Rutas comunes a todos los usuarios, protegidas sólo con autenticación.
+// Rutas comunes a todos los usuarios, protegidas solo con autenticación.
 Route::group([
     'prefix' => 'v1',
     'middleware' => ['auth:sanctum'],
@@ -97,7 +97,7 @@ Route::group([
     Route::delete('jobs/{job}', [JobController::class, 'destroy']);
 
     // Obtener los candidatos que han aplicado a una oferta laboral publicada por la compañía.
-    Route::get('/companies/{company}/applicants', [CompanyController::class, 'getCompanyApplicants']);
+    Route::get('/companies/applicants', [CompanyController::class, 'getCompanyJobApplications']);
 
     // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
     Route::get('applications', [ApplicationController::class, 'index']);

@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Application;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationRequest;
+use App\Models\Application;
 use App\Models\Job;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+
 
 class ApplicationController extends Controller
 {
@@ -26,18 +28,33 @@ class ApplicationController extends Controller
             // Definir el número de elementos por página
             $perPage = $request->query('per_page', 10);
 
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
             // Inicializar la consulta de Eloquent
             $query = Application::with(['candidate', 'job']);
 
-            // Aplicar búsqueda por el título del trabajo
-            if ($request->filled('search')) {
-                $searchTerm = $request->query('search');
-                $query->whereHas('job', function ($jobQuery) use ($searchTerm) {
-                    $jobQuery->where('title', 'like', '%' . $searchTerm . '%');
-                });
+            // Filtrar las aplicaciones según el tipo de usuario
+            switch ($user->getUserType()) {
+                case 'admin':
+                    // Los administradores tienen acceso total, no se aplican filtros adicionales
+                    break;
+                case 'company':
+                    // Filtrar las aplicaciones de trabajo por las ofertas publicadas por la compañía
+                    $query->whereHas('job', function ($jobQuery) use ($user) {
+                        $jobQuery->where('company_id', $user->company->id);
+                    });
+                    break;
+                case 'candidate':
+                    // Filtrar las aplicaciones de trabajo por el candidato autenticado
+                    $query->where('candidate_id', $user->candidate->id);
+                    break;
+                default:
+                    // Manejar otros roles según sea necesario
+                    break;
             }
 
-            // Aplicar filtros dinámicos
+            // Aplicar otros filtros dinámicos si es necesario
             foreach ($this->getFilters() as $filter) {
                 if ($request->filled($filter) && Schema::hasColumn('applications', $filter)) {
                     $query->where($filter, $request->query($filter));
@@ -47,18 +64,15 @@ class ApplicationController extends Controller
             // Ordenar por fecha de aplicación de forma predeterminada
             $query->orderBy('application_date', 'desc');
 
-            // Paginar los resultados
-            $applications = $query->paginate($perPage);
+            // Obtener y paginar los resultados
+            $applications = $query->get();
 
-            // Construir datos de paginación
-            $paginationData = $applications->toArray();
-            unset($paginationData['data']); // Eliminar los datos para evitar redundancia
-
-            return response()->json(['applications' => $applications, 'pagination' => $paginationData], 200);
+            return response()->json(['applications' => $applications], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
     }
+
 
     // Función auxiliar para obtener los filtros dinámicos
     private function getFilters(): array
@@ -75,41 +89,45 @@ class ApplicationController extends Controller
     public function store(StoreApplicationRequest $request): JsonResponse
     {
         try {
-            $validatedData = $request->validated();
+            // Obtener el usuario autenticado
+            $user = Auth::user();
 
-            // Verificar si el 'candidate_id' en la solicitud coincide con el del usuario autenticado
-            $candidateId = $request->input('candidate_id');
-
-            // Asociar la aplicación al 'candidate_id' actual
-            if (!$this->userOwnsCandidate($candidateId)) {
-                return response()->json(['error' => 'You do not have permissions to perform this action on this resource.'], 403);
+            // Verificar si el usuario autenticado tiene el rol de candidato
+            if (!$user->hasRole('candidate')) {
+                return response()->json(['error' => 'Only candidates can create applications.'], 403);
             }
 
-            // Verificar si el 'job_id' proporcionado existe
-            $jobId = $validatedData['job_id'];
+            // Obtener el ID del candidato asociado al usuario autenticado
+            $candidateId = $user->candidate->id;
+
+            // Obtener el ID del trabajo desde la solicitud
+            $jobId = $request->input('job_id');
+
+            // Verificar si el trabajo proporcionado existe
             $job = Job::find($jobId);
             if (!$job) {
                 return response()->json(['error' => 'Job not found.'], 404);
             }
 
-            // Verificar si ya existe una aplicación con los mismos candidate_id y job_id
-            $existingApplication = Application::where('candidate_id', $validatedData['candidate_id'])
-                ->where('job_id', $validatedData['job_id'])
-                ->first();
+            // Verificar si ya existe una aplicación para este usuario y trabajo
+            $existingApplication = Application::where('candidate_id', $candidateId)
+                ->where('job_id', $jobId)
+                ->exists();
 
             if ($existingApplication) {
-                return response()->json(['error' => 'An application with the same candidate and job already exists.'], 422);
+                return response()->json(['error' => 'An application for this job already exists.'], 422);
             }
 
-            // Crear la aplicación
+            // Crear la aplicación asociada al candidato y al trabajo
+            $validatedData = $request->validated();
+            $validatedData['candidate_id'] = $candidateId;
             $application = Application::create($validatedData);
 
             return response()->json(['data' => $application, 'message' => 'Application created successfully!'], 201);
         } catch (QueryException $e) {
-
             // Manejo de errores de base de datos
             return response()->json([
-                'error' => 'An error ocurred in database while creating the application.',
+                'error' => 'An error occurred in the database while creating the application.',
                 'details' => $e->getMessage()
             ], 500);
         } catch (\Exception $e) {

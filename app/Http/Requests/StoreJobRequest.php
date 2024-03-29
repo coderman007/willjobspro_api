@@ -14,7 +14,6 @@ class StoreJobRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => 'required|exists:companies,id',
             'job_category_id' => 'required|exists:job_categories,id',
             'title' => 'required|string',
             'description' => 'required|string',
