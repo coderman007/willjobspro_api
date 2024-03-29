@@ -19,9 +19,9 @@ class Candidate extends Model
         'phone_number',
         'expected_salary',
         'status',
-        'cv_path',
-        'photo_path',
-        'banner_path',
+        'cv_file',
+        'photo_file',
+        'banner_file',
     ];
 
 

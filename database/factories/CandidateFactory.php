@@ -31,9 +31,9 @@ class CandidateFactory extends Factory
             'phone_number' => $this->faker->phoneNumber,
             'expected_salary' => $this->faker->randomFloat(2, 1000, 10000),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
-            'cv_path' => 'candidate_uploads/cvs/' . $this->faker->file('public/storage/candidate_uploads/cvs', storage_path('app/public/candidate_uploads/cvs'), false),
-            'photo_path' => 'candidate_uploads/profile_photos/' . $this->faker->image('public/storage/candidate_uploads/profile_photos', 100, 100, null, false),
-            'banner_path' => 'candidate_uploads/banners/' . $this->faker->image('public/storage/candidate_uploads/banners', 800, 400, null, false),
+            'cv_file' => 'candidate_uploads/cvs/' . $this->faker->file('public/storage/candidate_uploads/cvs', storage_path('app/public/candidate_uploads/cvs'), false),
+            'photo_file' => 'candidate_uploads/profile_photos/' . $this->faker->image('public/storage/candidate_uploads/profile_photos', 100, 100, null, false),
+            'banner_file' => 'candidate_uploads/banners/' . $this->faker->image('public/storage/candidate_uploads/banners', 800, 400, null, false),
 
         ];
     }

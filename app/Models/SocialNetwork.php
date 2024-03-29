@@ -19,4 +19,12 @@ class SocialNetwork extends Model
     {
         return $this->belongsToMany(Candidate::class)->withTimestamps();
     }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class)->withTimestamps();
+    }
 }

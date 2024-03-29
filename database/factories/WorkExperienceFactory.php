@@ -21,3 +21,4 @@ class WorkExperienceFactory extends Factory
         ];
     }
 }
+

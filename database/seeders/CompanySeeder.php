@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\SocialNetwork;
+use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 
 class CompanySeeder extends Seeder
@@ -13,6 +14,8 @@ class CompanySeeder extends Seeder
      */
     public function run()
     {
+        $faker = FakerFactory::create(); // Importación y creación de una instancia de Faker
+
         $users = \App\Models\User::role('company')->get();
 
         foreach ($users as $user) {
@@ -20,9 +23,14 @@ class CompanySeeder extends Seeder
             $existingCompany = Company::where('user_id', $user->id)->first();
 
             if (!$existingCompany) {
-                Company::factory()->create([
+                $company = Company::factory()->create([
                     'user_id' => $user->id,
                 ]);
+
+                $socialNetworks = SocialNetwork::inRandomOrder()->limit(rand(1, 3))->get();
+
+                $company->socialNetworks()->attach($socialNetworks->pluck('id'));
+
             }
         }
     }

@@ -17,14 +17,7 @@ class UpdateCandidateRequest extends FormRequest
             'gender' => 'nullable|string|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
             'phone_number' => 'nullable|string|max:20',
-            'work_experience' => 'nullable|string',
-            'certifications' => 'nullable|string',
-            'references' => 'nullable|string',
             'expected_salary' => 'nullable|numeric',
-            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Ejemplo: PDF, DOC, DOCX con un tamaño máximo de 2 MB
-            'photo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
-            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
-            'social_networks' => 'nullable|json',
             'status' => 'nullable|in:Active,Blocked',
             'country_id' => 'nullable|exists:countries,id',
             'state_id' => 'nullable|exists:states,id',
@@ -33,6 +26,10 @@ class UpdateCandidateRequest extends FormRequest
             'skills' => 'nullable|string',
             'languages' => 'nullable|string',
             'education_levels' => 'nullable|string',
+            'social_networks' => 'nullable|string',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Ejemplo: PDF, DOC, DOCX con un tamaño máximo de 2 MB
+            'photo_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
+            'banner_file' => 'nullable|file|mimes:jpeg,png,jpg|max:2048', // Ejemplo: JPEG, PNG con un tamaño máximo de 2 MB
         ];
     }
 

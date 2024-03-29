@@ -5,143 +5,161 @@ namespace App\Http\Controllers;
 use App\Models\WorkExperience;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 
 class WorkExperienceController extends Controller
 {
     /**
-     * Display a listing of the work experiences.
+     * Display a listing of the resource.
      *
      * @return JsonResponse
      */
     public function index(): JsonResponse
     {
-        // Verificar que el usuario autenticado tiene el rol de candidato
-        if (!Auth::user()->hasRole('candidate')) {
-            return response()->json(['message' => 'No tienes permisos para ver esta información.'], 403);
+        // Verificar si el usuario está autenticado
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Obtener todas las experiencias laborales del candidato autenticado
-        $workExperiences = Auth::user()->candidate->workExperiences;
+        // Obtener el candidato asociado al usuario autenticado
+        $candidate = auth()->user()->candidate;
 
-        // Retornar una respuesta JSON con las experiencias laborales
-        return response()->json($workExperiences);
+        // Verificar si el usuario tiene un candidato asociado
+        if (!$candidate) {
+            return response()->json(['error' => 'User is not associated with a candidate'], 400);
+        }
+
+        // Obtener todas las experiencias laborales asociadas al candidato
+        $workExperiences = $candidate->workExperiences;
+
+        return response()->json(['data' => $workExperiences]);
     }
 
+
     /**
-     * Store a newly created work experience in storage.
+     * Store a newly created resource in storage.
      *
      * @param Request $request
      * @return JsonResponse
      */
     public function store(Request $request): JsonResponse
     {
-        // Verificar que el usuario autenticado tiene el rol de candidato
-        if (!Auth::user()->hasRole('candidate')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        // Verificar si el usuario está autenticado
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Validar que el usuario autenticado tenga un candidato asociado
-        if (!Auth::user()->candidate) {
-            return response()->json(['message' => 'No tienes un perfil de candidato asociado.'], 403);
+        // Obtener el candidato asociado al usuario autenticado
+        $candidate = auth()->user()->candidate;
+
+        // Verificar si el usuario tiene un candidato asociado
+        if (!$candidate) {
+            return response()->json(['error' => 'User is not associated with a candidate'], 400);
         }
 
-        // Validar los datos del formulario
+        // Validar los datos de entrada
         $request->validate([
             'company' => 'required|string',
             'position' => 'required|string',
-            'description' => 'nullable|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date',
+            'description' => 'nullable|string',
         ]);
 
-        // Crear una nueva experiencia laboral asociada al candidato autenticado
-        $workExperience = new WorkExperience($request->all());
-        $workExperience->candidate()->associate(Auth::user()->candidate);
-        $workExperience->save();
+        // Crear la nueva experiencia laboral asociada al candidato
+        $workExperience = $candidate->workExperiences()->create($request->all());
 
-        // Retornar una respuesta de éxito
-        return response()->json(['message' => 'Work experience created successfully', 'data' => $workExperience], 201);
+        return response()->json(['message' => 'Work experience created successfully.', 'data' => $workExperience], 201);
     }
 
+
     /**
-     * Display the specified work experience.
+     * Display the specified resource.
      *
      * @param WorkExperience $workExperience
      * @return JsonResponse
      */
     public function show(WorkExperience $workExperience): JsonResponse
     {
-        // Verificar que el usuario autenticado tiene el rol de candidato
-        if (!Auth::user()->hasRole('candidate')) {
-            return response()->json(['message' => 'No tienes permisos para ver esta información.'], 403);
+        // Verificar si el usuario está autenticado
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Verificar que el candidato autenticado sea dueño de la experiencia laboral
-        if ($workExperience->candidate_id !== Auth::user()->candidate->id) {
-            return response()->json(['message' => 'No tienes permisos para ver esta experiencia laboral.'], 403);
+        // Verificar si el usuario tiene un candidato asociado
+        $candidate = $user->candidate;
+        if (!$candidate) {
+            return response()->json(['error' => 'User is not associated with a candidate'], 400);
         }
 
-        // Retornar la experiencia laboral específica
-        return response()->json($workExperience);
+        // Verificar si la experiencia laboral pertenece al candidato asociado al usuario autenticado
+        if ($candidate->id !== $workExperience->candidate_id) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        return response()->json(['data' => $workExperience]);
     }
 
+
     /**
-     * Update the specified work experience in storage.
+     * Update the specified resource in storage.
      *
      * @param Request $request
      * @param WorkExperience $workExperience
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function update(Request $request, WorkExperience $workExperience): JsonResponse
     {
-        // Verificar que el usuario autenticado tiene el rol de candidato
-        if (!Auth::user()->hasRole('candidate')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        // Verificar si la experiencia laboral pertenece al usuario autenticado
+        if (auth()->user()->candidate->id !== $workExperience->candidate_id) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Verificar que el candidato autenticado sea dueño de la experiencia laboral
-        if ($workExperience->candidate_id !== Auth::user()->candidate->id) {
-            return response()->json(['message' => 'No tienes permisos para actualizar esta experiencia laboral.'], 403);
-        }
-
-        // Validar los datos del formulario
-        $request->validate([
+        // Validar los datos de entrada
+        $validatedData = $request->validate([
             'company' => 'required|string',
             'position' => 'required|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'nullable|date',
+            'description' => 'nullable|string',
         ]);
 
-        // Actualizar la experiencia laboral
-        $workExperience->update($request->all());
+        try {
+            // Actualizar la experiencia laboral
+            $workExperience->update($validatedData);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json(['error' => 'Failed to update work experience due to database error'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update work experience'], 500);
+        }
 
-        // Retornar una respuesta de éxito
-        return response()->json(['message' => 'Work experience updated successfully', 'data' => $workExperience]);
+        return response()->json(['message' => 'Work experience updated successfully.', 'data' => $workExperience]);
     }
 
+
     /**
-     * Remove the specified work experience from storage.
+     * Remove the specified resource from storage.
      *
      * @param WorkExperience $workExperience
      * @return JsonResponse
      */
+
     public function destroy(WorkExperience $workExperience): JsonResponse
     {
-        // Verificar que el usuario autenticado tiene el rol de candidato
-        if (!Auth::user()->hasRole('candidate')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        // Verificar si la experiencia laboral pertenece al usuario autenticado
+        if (!auth()->user()->candidate->workExperiences->contains($workExperience)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        // Verificar que el candidato autenticado sea dueño de la experiencia laboral
-        if ($workExperience->candidate_id !== Auth::user()->candidate->id) {
-            return response()->json(['message' => 'No tienes permisos para eliminar esta experiencia laboral.'], 403);
+        try {
+            $workExperience->delete();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete work experience'], 500);
         }
 
-        // Eliminar la experiencia laboral
-        $workExperience->delete();
-
-        // Retornar una respuesta de éxito
-        return response()->json(['message' => 'Work experience deleted successfully']);
+        return response()->json(['message' => 'Work experience deleted successfully.']);
     }
+
+
 }

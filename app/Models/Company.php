@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Company extends Model
@@ -17,10 +18,9 @@ class Company extends Model
         'industry',
         'description',
         'website',
-        'social_networks',
         'status',
-        'logo_path',
-        'banner_path',
+        'logo_file',
+        'banner_file',
     ];
 
     protected $hidden = [
@@ -28,9 +28,6 @@ class Company extends Model
         'updated_at',
     ];
 
-    protected $casts = [
-        'social_networks' => 'json',
-    ];
 
     // Relación con el usuario
     public function user(): BelongsTo
@@ -42,5 +39,10 @@ class Company extends Model
     public function jobs(): HasMany
     {
         return $this->hasMany(Job::class);
+    }
+
+    public function socialNetworks(): BelongsToMany
+    {
+        return $this->belongsToMany(SocialNetwork::class)->withTimestamps();
     }
 }

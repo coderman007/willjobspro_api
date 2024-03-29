@@ -302,7 +302,7 @@ class JobController extends Controller
     {
         // Calcular si el usuario ha aplicado a esta oferta de trabajo
         $job->setAttribute('applied', $job->applications->count() > 0);
-        
+
         // Obtener los nombres de los tipos de trabajo relacionados
         $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
 
@@ -350,3 +350,4 @@ class JobController extends Controller
     }
 
 }
+

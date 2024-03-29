@@ -31,10 +31,9 @@ class CompanyFactory extends Factory
             'industry' => $this->faker->word,
             'description' => $this->faker->paragraph,
             'website' => $this->faker->url,
-            'social_networks' => json_encode(['twitter' => $this->faker->userName, 'linkedin' => $this->faker->userName]),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
-            'logo_path' => $logoPath,
-            'banner_path' => $bannerPath,
+            'logo_file' => $logoPath,
+            'banner_file' => $bannerPath,
         ];
     }
 }

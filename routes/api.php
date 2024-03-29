@@ -14,6 +14,7 @@ use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkExperienceController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas abiertas
@@ -114,5 +115,12 @@ Route::group([
     Route::post('education-levels', [EducationLevelController::class, 'store']);
     Route::put('education-levels/{education_level}', [EducationLevelController::class, 'update']);
     Route::delete('education-levels/{education_level}', [EducationLevelController::class, 'destroy']);
+
+    // Rutas para gestionar experiencias laborales
+    Route::get('work-experiences', [WorkExperienceController::class, 'index']);
+    Route::post('work-experiences', [WorkExperienceController::class, 'store']);
+    Route::get('work-experiences/{work_experience}', [WorkExperienceController::class, 'show']);
+    Route::put('work-experiences/{work_experience}', [WorkExperienceController::class, 'update']);
+    Route::delete('work-experiences/{work_experience}', [WorkExperienceController::class, 'destroy']);
 }
 );

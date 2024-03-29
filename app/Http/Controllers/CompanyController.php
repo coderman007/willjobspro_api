@@ -3,21 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
-use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\UnauthorizedException;
-use Illuminate\Validation\ValidationException;
 
 class CompanyController extends Controller
 {
@@ -53,14 +48,13 @@ class CompanyController extends Controller
         if ($request->filled('search')) {
             $searchTerm = $request->query('search');
             $query->where(function ($subquery) use ($searchTerm) {
-                $subquery->where('name', 'like', "%$searchTerm%")
-                    ->orWhere('industry', 'like', "%$searchTerm%")
+                $subquery->where('industry', 'like', "%$searchTerm%")
                     ->orWhere('contact_person', 'like', "%$searchTerm%");
             });
         }
 
         // Filtrado por campos específicos
-        $filters = ['name', 'industry', 'status', 'contact_person'];
+        $filters = ['industry', 'status', 'contact_person'];
 
         foreach ($filters as $filter) {
             if ($request->filled($filter)) {
@@ -84,133 +78,6 @@ class CompanyController extends Controller
     }
 
     /**
-     * Store a newly created company instance in storage.
-     *
-     * @param StoreCompanyRequest $request The request containing company data.
-     * @return JsonResponse
-     */
-    public function store(StoreCompanyRequest $request): JsonResponse
-    {
-        try {
-            // Validar y obtener los datos enviados en la solicitud
-            $validatedData = $request->validated();
-
-            // Obtener el usuario autenticado
-            /* @var App\Models\User */
-            $user = Auth::user();
-
-            // Verificar si el usuario tiene el rol 'company'
-            if (!$user->hasRole('company')) {
-                return response()->json(['error' => 'User does not have the company role'], 403);
-            }
-
-            // Actualizar la ubicación del usuario (si se proporcionaron datos)
-            $this->updateUserLocation($request, $user);
-
-            // Generar nombres únicos para los archivos de imagen
-            $logoName = $this->generateUniqueFileName($request->logo_file);
-            $bannerName = $this->generateUniqueFileName($request->banner_file);
-
-            // Crear la instancia de compañía en la base de datos
-            $company = Company::create([
-                'user_id' => $user->id,
-                'name' => $validatedData['name'],
-                'industry' => $validatedData['industry'],
-                'phone_number' => $validatedData['phone_number'],
-                'website' => $validatedData['website'],
-                'description' => $validatedData['description'],
-                'contact_person' => $validatedData['contact_person'],
-                'logo_path' => $this->storeImageAndGetPath($logoName, $request->logo_file, 'company_uploads/logos'),
-                'banner_path' => $this->storeImageAndGetPath($bannerName, $request->banner_file, 'company_uploads/banners'),
-                'social_networks' => $validatedData['social_networks'],
-                'status' => $validatedData['status'],
-            ]);
-
-            // Respuesta exitosa con la ruta de las imágenes
-            return $this->jsonResponse([
-                'company' => new CompanyResource($company),
-                'logo_url' => $company->logo_path,
-                'banner_url' => $company->banner_path,
-            ], 'Company created successfully!', 201);
-        } catch (UnauthorizedException $e) {
-            return $this->jsonErrorResponse('User does not have the company role: ' . $e->getMessage(), 403);
-        } catch (ValidationException $e) {
-            return $this->jsonErrorResponse('Validation error: ' . $e->getMessage(), 422);
-        } catch (QueryException $e) {
-            return $this->jsonErrorResponse('Database error: ' . $e->getMessage(), 500);
-        } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error creating company: ' . $e->getMessage(), 500);
-        }
-    }
-
-    /**
-     * Update the user's location information.
-     *
-     * @param Request $request The request containing location data.
-     * @param User $user The user instance to be updated.
-     * @return void
-     */
-    private function updateUserLocation(Request $request, User $user): void
-    {
-        $updateData = [];
-
-        // Obtener los datos de ubicación del usuario desde la solicitud
-        $countryId = $request->input('country_id');
-        $stateId = $request->input('state_id');
-        $cityId = $request->input('city_id');
-        $zipCodeId = $request->input('zip_code_id');
-
-        // Actualizar los datos de ubicación si se proporcionaron en la solicitud
-        if ($countryId) {
-            $updateData['country_id'] = $countryId;
-        }
-
-        if ($stateId) {
-            $updateData['state_id'] = $stateId;
-        }
-
-        if ($cityId) {
-            $updateData['city_id'] = $cityId;
-        }
-
-        if ($zipCodeId) {
-            $updateData['zip_code_id'] = $zipCodeId;
-        }
-
-        // Actualizar la ubicación del usuario en la base de datos
-        $user->update($updateData);
-    }
-
-    /**
-     * Generate a unique file name for the uploaded image.
-     *
-     * @param \Illuminate\Http\UploadedFile|null $file The uploaded file.
-     * @return string|null
-     */
-    private function generateUniqueFileName($file): ?string
-    {
-        return $file ? Str::random(10) . "." . $file->getClientOriginalExtension() : null;
-    }
-
-    /**
-     * Store the uploaded image and return its path.
-     *
-     * @param string $fileName The name of the file.
-     * @param UploadedFile $file The uploaded file.
-     * @param string $directory The directory to store the file.
-     * @return string
-     */
-    private function storeImageAndGetPath(string $fileName, UploadedFile $file, string $directory): string
-    {
-        // Almacenar el archivo en el directorio especificado
-        Storage::disk('public')->put("$directory/$fileName", file_get_contents($file->getPathname()));
-
-        // Devolver la ruta completa del archivo almacenado
-        return Storage::disk('public')->url("$directory/$fileName");
-    }
-
-
-    /**
      * Display the specified resource.
      *
      * @param Company $company The company instance to be displayed.
@@ -231,51 +98,6 @@ class CompanyController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param UpdateCompanyRequest $request The update company request.
-     * @param Company $company The company instance to be updated.
-     * @return JsonResponse
-     * @throws \Exception
-     */
-    public function update(UpdateCompanyRequest $request, $userId): JsonResponse
-    {
-        try {
-            $validatedData = $request->validated();
-
-            // Validar que el usuario autenticado tenga permisos para actualizar este compañía
-            // /** @var \App\Models\User */
-            // $user = Auth::user();
-
-
-            $user = User::findOrFail($userId);
-
-            if (!$user->hasRole('company') || $user->id !== $user->company->user_id) {
-                return response()->json(['error' => 'Unauthorized to update this company'], 403);
-            }
-            // if (!$user->hasRole('company') || $user->id !== $userId) {
-            //     return response()->json(['error' => 'Unauthorized to update this company'], 403);
-            // }
-
-            // Actualizar la ubicación del usuario en la tabla 'users'
-            $user->update([
-                'country_id' => $request->input('country_id'),
-                'state_id' => $request->input('state_id'),
-                'city_id' => $request->input('city_id'),
-                'zip_code_id' => $request->input('zip_code_id'),
-            ]);
-
-            // Actualizar los campos de la compañía
-            $user->company->update($validatedData);
-
-            return $this->jsonResponse(new CompanyResource($user->company), 'Company updated successfully!', 200);
-        } catch (UnauthorizedException $e) {
-            return $this->jsonErrorResponse('Unauthorized action: ' . $e->getMessage(), 403);
-        } catch (\Exception $e) {
-            return $this->jsonErrorResponse('Error updating company: ' . $e->getMessage(), 500);
-        }
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -287,7 +109,6 @@ class CompanyController extends Controller
     {
         try {
             // Validar propiedad de la compañía
-            /** @var \App\Models\User */
             $user = Auth::user();
             if (!$user->hasRole('company') || $user->id !== $company->user_id) {
                 return response()->json(['error' => 'Unauthorized to delete this company'], 403);
@@ -331,36 +152,180 @@ class CompanyController extends Controller
     }
 
     /**
-     * Function to generate a consistent JSON response
+     * Helper method to create a JSON response.
      *
-     * @param mixed $data The data to include in the response
-     * @param string $message The response message
-     * @param int $status The HTTP status code
+     * @param mixed $data The data to be included in the response.
+     * @param string|null $message The message to be included in the response.
+     * @param int $status The HTTP status code of the response.
      * @return JsonResponse
      */
-    protected function jsonResponse($data, $message = null, $status = 200): JsonResponse
+    private function jsonResponse($data, ?string $message = null, int $status = 200): JsonResponse
     {
-        $response = [
-            'data' => $data,
-            'message' => $message,
-        ];
-
-        return response()->json($response, $status);
+        return response()->json(['message' => $message, 'data' => $data], $status);
     }
 
     /**
-     * Function to generate a consistent JSON error response
+     * Helper method to create a JSON error response.
      *
-     * @param string $message The error message
-     * @param int $status The HTTP status code
+     * @param string $message The error message.
+     * @param int $status The HTTP status code of the response.
      * @return JsonResponse
      */
-    protected function jsonErrorResponse($message = null, $status = 500): JsonResponse
+    private function jsonErrorResponse(string $message, int $status): JsonResponse
     {
-        $response = [
-            'error' => $message,
+        // Definir mensajes de error en inglés para diferentes códigos de estado.
+        $errorMessages = [
+            400 => 'Bad Request: The request could not be processed due to a malformed client.',
+            401 => 'Unauthorized: Access unauthorized.',
+            403 => 'Forbidden: You do not have sufficient permissions to access this resource.',
+            404 => 'Not Found: The requested resource could not be found.',
+            500 => 'Internal Server Error: An unexpected server error occurred.',
+            503 => 'Service Unavailable: The server is currently unable to handle the request due to maintenance or temporary overloading.',
         ];
 
-        return response()->json($response, $status);
+        // Verificar si el código de estado proporcionado tiene un mensaje de error asociado.
+        $errorMessage = $errorMessages[$status] ?? 'Unknown Error: An unexpected error occurred.';
+
+        // Combinar el mensaje proporcionado con el mensaje detallado del código de estado.
+        $detailedMessage = $message . ' ' . $errorMessage;
+
+        // Registrar el error en el sistema de registro de Laravel.
+        if ($status >= 500) {
+            // Podrías querer registrar errores del servidor para una mejor depuración.
+            \Log::error('HTTP ' . $status . ': ' . $detailedMessage);
+        } else {
+            // Podrías querer registrar otros tipos de errores para seguimiento.
+            \Log::warning('HTTP ' . $status . ': ' . $detailedMessage);
+        }
+
+        // Devolver una respuesta JSON con el mensaje de error y el código de estado.
+        return response()->json(['error' => $detailedMessage], $status);
     }
+
+
+    public function store(StoreCompanyRequest $request): JsonResponse
+    {
+        try {
+            // Iniciar una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Verificar si el usuario está autenticado y tiene el rol de compañía
+            if (!Auth::check() || !Auth::user()->hasRole('company')) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
+            $user->update($request->only(['country_id', 'state_id', 'city_id', 'zip_code_id']));
+
+            // Crear una nueva instancia de Compañía
+            $company = new Company;
+
+            // Rellenar el modelo de compañía con los datos validados del formulario
+            $company->fill($request->validated());
+
+            // Asociar la compañía con el usuario autenticado
+            $user->company()->save($company);
+
+            $this->syncRelations($company, $request);
+
+            // Almacenar los archivos (logo y banner) de la compañía
+            $this->storeFiles($company, $request);
+
+            // Confirmar la transacción
+            DB::commit();
+
+            // Devolver una respuesta JSON con el mensaje de éxito
+            return response()->json([
+                'message' => 'Company profile created successfully!',
+                'data' => new CompanyResource($company),
+            ], 201);
+
+        } catch (\Exception $e) {
+            // En caso de error, revertir la transacción
+            DB::rollBack();
+
+            // Manejar la excepción y devolver una respuesta JSON
+            return $this->jsonErrorResponse('Error creating company profile: ' . $e->getMessage(), 500);
+        }
+    }
+
+    private function syncRelations(Company $company, Request $request): void
+    {
+        // Sincronizar Redes sociales
+        $socialNetworks = $request->input('social_networks') ? explode(',', $request->input('social_networks')) : [];
+        $company->socialNetworks()->syncWithoutDetaching($socialNetworks);
+    }
+
+    private function storeFiles(Company $company, Request $request): void
+    {
+        if ($request->hasFile('logo_file')) {
+            // Almacenamiento del logo
+            $logoFile = $request->file('logo_file');
+            $logoName = Str::random(40) . '.' . $logoFile->getClientOriginalExtension();
+            $logoPath = 'company_uploads/logos/' . $logoName;
+            Storage::disk('public')->put($logoPath, file_get_contents($logoFile));
+            $company->logo_file = $logoPath;
+        }
+
+        if ($request->hasFile('banner_file')) {
+            // Almacenamiento del banner
+            $bannerFile = $request->file('banner_file');
+            $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
+            $bannerPath = 'company_uploads/banners/' . $bannerName;
+            Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
+            $company->banner_file = $bannerPath;
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param \App\Models\Company $company
+     * @return JsonResponse
+     */
+    public function update(Request $request, Company $company): JsonResponse
+    {
+        try {
+            // Iniciar una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Verificar si el usuario está autenticado y tiene el rol de compañía
+            if (!Auth::check() || !Auth::user()->hasRole('company') || Auth::user()->id !== $company->user_id) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Obtener los datos de la solicitud
+            $requestData = $request->all();
+
+            // Actualizar los datos de la compañía con los datos de la solicitud
+            $company->update($requestData);
+
+            // Sincronizar las relaciones (por ejemplo, redes sociales)
+            $this->syncRelations($company, $request);
+
+            // Almacenar los archivos (logo y banner) de la compañía, si se han proporcionado
+            $this->storeFiles($company, $request);
+
+            // Confirmar la transacción
+            DB::commit();
+
+            // Devolver una respuesta JSON con el mensaje de éxito
+            return response()->json([
+                'message' => 'Company profile updated successfully!',
+                'data' => new CompanyResource($company),
+            ], 200);
+
+        } catch (\Exception $e) {
+            // En caso de error, revertir la transacción
+            DB::rollBack();
+
+            // Manejar la excepción y devolver una respuesta JSON
+            return $this->jsonErrorResponse('Error updating company profile: ' . $e->getMessage(), 500);
+        }
+    }
+
+
 }

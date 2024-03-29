@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -15,7 +14,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('country_id');
 
-            $table->string('name')->nullable();;
+            $table->string('name')->nullable();
             $table->timestamps();
 
             $table->foreign('country_id')->references('id')->on('countries');

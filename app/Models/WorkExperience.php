@@ -11,6 +11,7 @@ class WorkExperience extends Model
     use HasFactory;
 
     protected $fillable = [
+        'candidate_id',
         'company',
         'position',
         'description',
@@ -18,6 +19,7 @@ class WorkExperience extends Model
         'end_date',
     ];
 
+    // Definir la relación con el candidato
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);

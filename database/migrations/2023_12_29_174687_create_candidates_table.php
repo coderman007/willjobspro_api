@@ -18,9 +18,9 @@ return new class extends Migration {
             $table->string('phone_number')->nullable();
             $table->decimal('expected_salary', 10, 2)->nullable();
             $table->enum('status', ['Active', 'Blocked'])->nullable()->default('Active');
-            $table->string('cv_path')->nullable();
-            $table->string('photo_path')->nullable();
-            $table->string('banner_path')->nullable();
+            $table->string('cv_file')->nullable();
+            $table->string('photo_file')->nullable();
+            $table->string('banner_file')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
