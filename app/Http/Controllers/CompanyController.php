@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class CompanyController extends Controller
 {
@@ -31,7 +30,10 @@ class CompanyController extends Controller
 
             $companies = $query->paginate($perPage);
 
-            return $this->jsonResponse(CompanyResource::collection($companies), 'Companies retrieved successfully!', 200)
+            // Transformar la colección de compañías a recursos de compañía
+            $companyResources = CompanyResource::collection($companies);
+
+            return $this->jsonResponse($companyResources, 'Companies retrieved successfully!', 200)
                 ->header('X-Total-Count', $companies->total())
                 ->header('X-Per-Page', $companies->perPage())
                 ->header('X-Current-Page', $companies->currentPage())
@@ -78,6 +80,78 @@ class CompanyController extends Controller
         return $query;
     }
 
+    public function store(StoreCompanyRequest $request): JsonResponse
+    {
+        try {
+            // Iniciar una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Verificar si el usuario está autenticado y tiene el rol de compañía
+            if (!Auth::check() || !Auth::user()->hasRole('company')) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
+            $user->update($request->only(['country_id', 'state_id', 'city_id', 'zip_code_id']));
+
+            // Crear una nueva instancia de Compañía
+            $company = new Company;
+
+            // Rellenar el modelo de compañía con los datos validados del formulario
+            $company->fill($request->validated());
+
+            // Asociar la compañía con el usuario autenticado
+            $user->company()->save($company);
+
+            // Almacenar los archivos (logo y banner) de la compañía
+            $this->storeCompanyFiles($company, $request);
+
+            // Sincronizar relaciones (por ejemplo, redes sociales)
+            $this->syncRelations($company, $request);
+
+            // Confirmar la transacción
+            DB::commit();
+
+            // Devolver una respuesta JSON con la información de la compañía recién creada
+            return response()->json([
+                'message' => 'Company profile created successfully!',
+                'data' => $company->refresh(), // Actualizar la instancia de compañía para obtener los datos actualizados de la base de datos
+            ], 201);
+
+        } catch (\Exception $e) {
+            // En caso de error, revertir la transacción
+            DB::rollBack();
+
+            // Manejar la excepción y devolver una respuesta JSON
+            return $this->jsonErrorResponse('Error creating company profile: ' . $e->getMessage(), 500);
+        }
+    }
+
+    private function storeCompanyFiles(Company $company, Request $request): void
+    {
+        // Verificar si se proporcionó el archivo de logo de la compañía
+        if ($request->hasFile('logo')) {
+            $logo = $request->file('logo');
+            $logoFileName = 'logo_' . now()->format('Ymd_His') . '.' . $logo->getClientOriginalExtension();
+            $logoPath = $logo->storeAs('company_uploads/logos', $logoFileName, 'public');
+            $company->logo_file = Storage::url($logoPath); // Almacenar la ruta pública del logo
+        }
+
+        // Verificar si se proporcionó el archivo de banner de la compañía
+        if ($request->hasFile('banner')) {
+            $banner = $request->file('banner');
+            $bannerFileName = 'banner_' . now()->format('Ymd_His') . '.' . $banner->getClientOriginalExtension();
+            $bannerPath = $banner->storeAs('company_uploads/banners', $bannerFileName, 'public');
+            $company->banner_file = Storage::url($bannerPath); // Almacenar la ruta pública del banner
+        }
+
+        // Guardar los cambios en el modelo de compañía
+        $company->save();
+    }
+
+
     /**
      * Display the specified resource.
      *
@@ -88,10 +162,10 @@ class CompanyController extends Controller
     public function show(Company $company): JsonResponse
     {
         try {
-            // Get company details
-            $companyDetail = new CompanyResource($company);
+            // Transformar el objeto de compañía a un recurso de compañía
+            $companyResource = new CompanyResource($company);
 
-            return $this->jsonResponse($companyDetail, 'Company details retrieved successfully!', 200);
+            return $this->jsonResponse($companyResource, 'Company details retrieved successfully!', 200);
         } catch (ModelNotFoundException $e) {
             return $this->jsonErrorResponse('Company not found.' . $e->getMessage(), 404);
         } catch (\Exception $e) {
@@ -99,6 +173,54 @@ class CompanyController extends Controller
         }
     }
 
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param \App\Models\Company $company
+     * @return JsonResponse
+     */
+    public function update(Request $request, Company $company): JsonResponse
+    {
+        try {
+            // Iniciar una transacción de base de datos para garantizar la consistencia
+            DB::beginTransaction();
+
+            // Verificar si el usuario está autenticado y tiene el rol de compañía
+            if (!Auth::check() || !Auth::user()->hasRole('company') || Auth::user()->id !== $company->user_id) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+
+            // Obtener los datos de la solicitud
+            $requestData = $request->all();
+
+            // Actualizar los datos de la compañía con los datos de la solicitud
+            $company->update($requestData);
+
+            // Sincronizar las relaciones (por ejemplo, redes sociales)
+            $this->syncRelations($company, $request);
+
+            // Almacenar los archivos (logo y banner) de la compañía, si se han proporcionado
+            $this->storeFiles($company, $request);
+
+            // Confirmar la transacción
+            DB::commit();
+
+            // Devolver una respuesta JSON con el mensaje de éxito
+            return response()->json([
+                'message' => 'Company profile updated successfully!',
+                'data' => new CompanyResource($company),
+            ], 200);
+
+        } catch (\Exception $e) {
+            // En caso de error, revertir la transacción
+            DB::rollBack();
+
+            // Manejar la excepción y devolver una respuesta JSON
+            return $this->jsonErrorResponse('Error updating company profile: ' . $e->getMessage(), 500);
+        }
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -247,128 +369,11 @@ class CompanyController extends Controller
     }
 
 
-    public function store(StoreCompanyRequest $request): JsonResponse
-    {
-        try {
-            // Iniciar una transacción de base de datos para garantizar la consistencia
-            DB::beginTransaction();
-
-            // Verificar si el usuario está autenticado y tiene el rol de compañía
-            if (!Auth::check() || !Auth::user()->hasRole('company')) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-
-            // Obtener el usuario autenticado
-            $user = Auth::user();
-
-            $user->update($request->only(['country_id', 'state_id', 'city_id', 'zip_code_id']));
-
-            // Crear una nueva instancia de Compañía
-            $company = new Company;
-
-            // Rellenar el modelo de compañía con los datos validados del formulario
-            $company->fill($request->validated());
-
-            // Asociar la compañía con el usuario autenticado
-            $user->company()->save($company);
-
-            $this->syncRelations($company, $request);
-
-            // Almacenar los archivos (logo y banner) de la compañía
-            $this->storeFiles($company, $request);
-
-            // Confirmar la transacción
-            DB::commit();
-
-            // Devolver una respuesta JSON con el mensaje de éxito
-            return response()->json([
-                'message' => 'Company profile created successfully!',
-                'data' => new CompanyResource($company),
-            ], 201);
-
-        } catch (\Exception $e) {
-            // En caso de error, revertir la transacción
-            DB::rollBack();
-
-            // Manejar la excepción y devolver una respuesta JSON
-            return $this->jsonErrorResponse('Error creating company profile: ' . $e->getMessage(), 500);
-        }
-    }
-
     private function syncRelations(Company $company, Request $request): void
     {
         // Sincronizar Redes sociales
         $socialNetworks = $request->input('social_networks') ? explode(',', $request->input('social_networks')) : [];
         $company->socialNetworks()->syncWithoutDetaching($socialNetworks);
-    }
-
-    private function storeFiles(Company $company, Request $request): void
-    {
-        if ($request->hasFile('logo_file')) {
-            // Almacenamiento del logo
-            $logoFile = $request->file('logo_file');
-            $logoName = Str::random(40) . '.' . $logoFile->getClientOriginalExtension();
-            $logoPath = 'company_uploads/logos/' . $logoName;
-            Storage::disk('public')->put($logoPath, file_get_contents($logoFile));
-            $company->logo_file = $logoPath;
-        }
-
-        if ($request->hasFile('banner_file')) {
-            // Almacenamiento del banner
-            $bannerFile = $request->file('banner_file');
-            $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
-            $bannerPath = 'company_uploads/banners/' . $bannerName;
-            Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
-            $company->banner_file = $bannerPath;
-        }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param Request $request
-     * @param \App\Models\Company $company
-     * @return JsonResponse
-     */
-    public function update(Request $request, Company $company): JsonResponse
-    {
-        try {
-            // Iniciar una transacción de base de datos para garantizar la consistencia
-            DB::beginTransaction();
-
-            // Verificar si el usuario está autenticado y tiene el rol de compañía
-            if (!Auth::check() || !Auth::user()->hasRole('company') || Auth::user()->id !== $company->user_id) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-
-            // Obtener los datos de la solicitud
-            $requestData = $request->all();
-
-            // Actualizar los datos de la compañía con los datos de la solicitud
-            $company->update($requestData);
-
-            // Sincronizar las relaciones (por ejemplo, redes sociales)
-            $this->syncRelations($company, $request);
-
-            // Almacenar los archivos (logo y banner) de la compañía, si se han proporcionado
-            $this->storeFiles($company, $request);
-
-            // Confirmar la transacción
-            DB::commit();
-
-            // Devolver una respuesta JSON con el mensaje de éxito
-            return response()->json([
-                'message' => 'Company profile updated successfully!',
-                'data' => new CompanyResource($company),
-            ], 200);
-
-        } catch (\Exception $e) {
-            // En caso de error, revertir la transacción
-            DB::rollBack();
-
-            // Manejar la excepción y devolver una respuesta JSON
-            return $this->jsonErrorResponse('Error updating company profile: ' . $e->getMessage(), 500);
-        }
     }
 
 
