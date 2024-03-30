@@ -9,6 +9,10 @@ use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTypeController;
+use App\Http\Controllers\CountryController;
+use App\Http\Controllers\StateController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\ZipCodeController;
 use App\Http\Controllers\SkillCategoryController;
 use App\Http\Controllers\SkillController;
 use App\Http\Controllers\SubscriptionController;
@@ -16,6 +20,7 @@ use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkExperienceController;
 use Illuminate\Support\Facades\Route;
+
 
 // Rutas abiertas
 Route::post("register", [AuthController::class, 'register']);
@@ -122,5 +127,33 @@ Route::group([
     Route::get('work-experiences/{work_experience}', [WorkExperienceController::class, 'show']);
     Route::put('work-experiences/{work_experience}', [WorkExperienceController::class, 'update']);
     Route::delete('work-experiences/{work_experience}', [WorkExperienceController::class, 'destroy']);
+
+    // Rutas para países
+    Route::get('countries', [CountryController::class, 'index']);
+    Route::post('countries', [CountryController::class, 'store']);
+    Route::get('countries/{country}', [CountryController::class, 'show']);
+    Route::put('countries/{country}', [CountryController::class, 'update']);
+    Route::delete('countries/{country}', [CountryController::class, 'destroy']);
+
+    // Rutas para estados
+    Route::get('states', [StateController::class, 'index']);
+    Route::post('states', [StateController::class, 'store']);
+    Route::get('states/{state}', [StateController::class, 'show']);
+    Route::put('states/{state}', [StateController::class, 'update']);
+    Route::delete('states/{state}', [StateController::class, 'destroy']);
+
+    // Rutas para ciudades
+    Route::get('cities', [CityController::class, 'index']);
+    Route::post('cities', [CityController::class, 'store']);
+    Route::get('cities/{city}', [CityController::class, 'show']);
+    Route::put('cities/{city}', [CityController::class, 'update']);
+    Route::delete('cities/{city}', [CityController::class, 'destroy']);
+
+    // Rutas para códigos postales
+    Route::get('zip-codes', [ZipCodeController::class, 'index']);
+    Route::post('zip-codes', [ZipCodeController::class, 'store']);
+    Route::get('zip-codes/{zip_code}', [ZipCodeController::class, 'show']);
+    Route::put('zip-codes/{zip_code}', [ZipCodeController::class, 'update']);
+    Route::delete('zip-codes/{zip_code}', [ZipCodeController::class, 'destroy']);
 }
 );

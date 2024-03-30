@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\City;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
 
 class CityController extends Controller
 {
@@ -12,15 +14,8 @@ class CityController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $cities = City::all();
+        return response()->json(['data' => $cities], 200);
     }
 
     /**
@@ -28,7 +23,18 @@ class CityController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'state_id' => 'required|exists:states,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $city = City::create($request->only('state_id', 'name'));
+
+        return response()->json(['data' => $city], 201);
     }
 
     /**
@@ -36,15 +42,7 @@ class CityController extends Controller
      */
     public function show(City $city)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(City $city)
-    {
-        //
+        return response()->json(['data' => $city], 200);
     }
 
     /**
@@ -52,7 +50,18 @@ class CityController extends Controller
      */
     public function update(Request $request, City $city)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'state_id' => 'required|exists:states,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $city->update($request->only('state_id', 'name'));
+
+        return response()->json(['data' => $city], 200);
     }
 
     /**
@@ -60,6 +69,7 @@ class CityController extends Controller
      */
     public function destroy(City $city)
     {
-        //
+        $city->delete();
+        return response()->json(['message' => 'City deleted successfully'], 200);
     }
 }

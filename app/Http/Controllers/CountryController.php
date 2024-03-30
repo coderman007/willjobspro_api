@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Country;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
 
 class CountryController extends Controller
 {
@@ -12,15 +14,8 @@ class CountryController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $countries = Country::all();
+        return response()->json(['data' => $countries], 200);
     }
 
     /**
@@ -28,7 +23,18 @@ class CountryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'iso_alpha_2' => 'required|string|max:2',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $country = Country::create($request->only('name', 'iso_alpha_2'));
+
+        return response()->json(['data' => $country], 201);
     }
 
     /**
@@ -36,15 +42,7 @@ class CountryController extends Controller
      */
     public function show(Country $country)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Country $country)
-    {
-        //
+        return response()->json(['data' => $country], 200);
     }
 
     /**
@@ -52,7 +50,18 @@ class CountryController extends Controller
      */
     public function update(Request $request, Country $country)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'iso_alpha_2' => 'required|string|max:2',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $country->update($request->only('name', 'iso_alpha_2'));
+
+        return response()->json(['data' => $country], 200);
     }
 
     /**
@@ -60,6 +69,7 @@ class CountryController extends Controller
      */
     public function destroy(Country $country)
     {
-        //
+        $country->delete();
+        return response()->json(['message' => 'Country deleted successfully'], 200);
     }
 }

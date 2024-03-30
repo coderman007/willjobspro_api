@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\State;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
 
 class StateController extends Controller
 {
@@ -12,15 +14,8 @@ class StateController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $states = State::all();
+        return response()->json(['data' => $states], 200);
     }
 
     /**
@@ -28,7 +23,18 @@ class StateController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'country_id' => 'required|exists:countries,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $state = State::create($request->only('country_id', 'name'));
+
+        return response()->json(['data' => $state], 201);
     }
 
     /**
@@ -36,15 +42,7 @@ class StateController extends Controller
      */
     public function show(State $state)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(State $state)
-    {
-        //
+        return response()->json(['data' => $state], 200);
     }
 
     /**
@@ -52,7 +50,18 @@ class StateController extends Controller
      */
     public function update(Request $request, State $state)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'country_id' => 'required|exists:countries,id',
+            'name' => 'required|string|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $state->update($request->only('country_id', 'name'));
+
+        return response()->json(['data' => $state], 200);
     }
 
     /**
@@ -60,6 +69,7 @@ class StateController extends Controller
      */
     public function destroy(State $state)
     {
-        //
+        $state->delete();
+        return response()->json(['message' => 'State deleted successfully'], 200);
     }
 }
