@@ -7,14 +7,18 @@ use App\Models\Country;
 use App\Models\State;
 use App\Models\City;
 use App\Models\ZipCode;
+use App\Models\SocialNetwork;
+use Faker\Factory;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * @return void
      */
-    public function run(): void
+    public function run()
     {
         // Crear un usuario administrador
         $adminUser = User::factory()->create([
@@ -72,4 +76,5 @@ class UserSeeder extends Seeder
             }
         }
     }
+
 }

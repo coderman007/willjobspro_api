@@ -2,32 +2,39 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use App\Models\SocialNetwork;
+use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 
 class SocialNetworkSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     *
+     * @return void
      */
-    public function run(): void
+    public function run()
     {
-        $socialNetworks = [
-            ['name' => 'Facebook', 'url' => 'https://www.facebook.com'],
-            ['name' => 'Twitter', 'url' => 'https://twitter.com'],
-            ['name' => 'LinkedIn', 'url' => 'https://www.linkedin.com'],
-            ['name' => 'Instagram', 'url' => 'https://www.instagram.com'],
-            ['name' => 'YouTube', 'url' => 'https://www.youtube.com'],
-            ['name' => 'Pinterest', 'url' => 'https://www.pinterest.com'],
-            ['name' => 'Tumblr', 'url' => 'https://www.tumblr.com'],
-            ['name' => 'Reddit', 'url' => 'https://www.reddit.com'],
-            ['name' => 'Snapchat', 'url' => 'https://www.snapchat.com'],
-            ['name' => 'WhatsApp', 'url' => 'https://www.whatsapp.com'],
-            // Agrega más redes sociales si es necesario
-        ];
+        $faker = Faker::create();
 
-        foreach ($socialNetworks as $network) {
-            SocialNetwork::create($network);
+        // Obtener todos los usuarios
+        $users = User::all();
+
+        // Iterar sobre cada usuario y asociarle una o varias redes sociales
+        foreach ($users as $user) {
+            // Determinar cuántas redes sociales se asociarán a este usuario (entre 1 y 3)
+            $numSocialNetworks = rand(1, 3);
+
+            // Crear y asociar las redes sociales
+            for ($i = 0; $i < $numSocialNetworks; $i++) {
+                $socialNetwork = new SocialNetwork([
+                    'url' => $faker->url, // Generar una URL aleatoria con Faker
+                ]);
+
+                // Guardar la relación
+                $user->socialNetworks()->save($socialNetwork);
+            }
         }
     }
 }

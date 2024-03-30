@@ -12,13 +12,12 @@ return new class extends Migration {
     {
         Schema::create('work_experiences', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('candidate_id');
-            $table->foreign('candidate_id')->references('id')->on('candidates');
+            $table->foreignId('candidate_id')->constrained()->onDelete('cascade');
             $table->string('company');
             $table->string('position');
-            $table->text('description')->nullable();
-            $table->date('start_date')->nullable(false); // Not null
-            $table->date('end_date')->nullable(); // Nullable
+            $table->text('responsibility')->nullable();
+            $table->date('start_date');
+            $table->date('end_date')->nullable();
             $table->timestamps();
         });
     }

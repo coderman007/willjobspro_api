@@ -27,10 +27,6 @@ class CompanySeeder extends Seeder
                     'user_id' => $user->id,
                 ]);
 
-                $socialNetworks = SocialNetwork::inRandomOrder()->limit(rand(1, 3))->get();
-
-                $company->socialNetworks()->attach($socialNetworks->pluck('id'));
-
             }
         }
     }

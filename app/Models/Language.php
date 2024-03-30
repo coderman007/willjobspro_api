@@ -16,7 +16,7 @@ class Language extends Model
 
     public function candidates(): BelongsToMany
     {
-        return $this->belongsToMany(Candidate::class)->withTimestamps();
+        return $this->belongsToMany(Candidate::class)->withPivot('level')->withTimestamps();
     }
 
     public function jobs(): BelongsToMany

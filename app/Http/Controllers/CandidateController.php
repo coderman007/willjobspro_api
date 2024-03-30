@@ -6,6 +6,10 @@ use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
+use App\Models\EducationHistory;
+use App\Models\Language;
+use App\Models\SocialNetwork;
+use App\Models\WorkExperience;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -17,18 +21,10 @@ use Illuminate\Support\Str;
 
 class CandidateController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-
-
     public function index(Request $request): JsonResponse
     {
         try {
-            $perPage = $request->query('per_page', 10);
+            $perPage = $request->query('per_page', 20);
             $query = Candidate::query();
 
             // Búsqueda
@@ -74,18 +70,6 @@ class CandidateController extends Controller
         }
     }
 
-
-    /**
-     * Get all applications associated with the authenticated candidate user.
-     *
-     * This method retrieves all job applications made by the authenticated candidate user.
-     * It checks if the user has the 'candidate' role and returns an error if not authorized.
-     * Then it fetches the applications for the current candidate user along with related job information.
-     * Finally, it transforms the application data into a response format and returns it as JSON.
-     *
-     * @param Request $request The HTTP request object.
-     * @return JsonResponse The JSON response containing the application data.
-     */
     public function getAllApplications(Request $request): JsonResponse
     {
         try {
@@ -121,13 +105,6 @@ class CandidateController extends Controller
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     *
-     * @param int $userId
-     * @return JsonResponse
-     */
     public function show(int $userId): JsonResponse
     {
         try {
@@ -170,7 +147,6 @@ class CandidateController extends Controller
         }
     }
 
-
     public function store(StoreCandidateRequest $request): JsonResponse
     {
         try {
@@ -197,7 +173,53 @@ class CandidateController extends Controller
 
             $candidate->save();
 
-            $this->syncRelations($candidate, $request);
+            // Crear las habilidades asociadas al candidato (opcional)
+            if ($request->filled('skills')) {
+                $skills = $request->input('skills');
+                $candidate->skills()->syncWithoutDetaching($skills);
+            }
+
+            // Crear la experiencia laboral asociada al candidato (opcional)
+            if ($request->filled('work_experiences')) {
+                foreach ($request->work_experiences as $workData) {
+                    $workExperience = new WorkExperience();
+                    $workExperience->candidate_id = $candidate->id;
+                    $workExperience->fill($workData);
+                    $workExperience->save();
+                }
+            }
+
+            // Crear el historial académico asociado al candidato (opcional)
+            if ($request->has('education_history')) {
+                foreach ($request->education_history as $educationData) {
+                    $education = new EducationHistory();
+                    $education->candidate_id = $candidate->id;
+                    $education->fill($educationData);
+                    $education->save();
+                }
+            }
+
+            // Sincronizar Idiomas
+            if ($request->has('languages')) {
+                $languages = $request->input('languages');
+                foreach ($languages as $language) {
+                    $candidate->languages()->attach($language['id'], ['level' => $language['level']]);
+                }
+            }
+
+            // Obtener las URL de las redes sociales proporcionadas en la solicitud
+            if ($request->has('social_networks')) {
+                $socialNetworkUrls = $request->input('social_networks');
+
+                // Iterar sobre las URL proporcionadas
+                foreach ($socialNetworkUrls as $url) {
+                    // Verificar si la URL ya existe en la tabla social_networks
+                    $socialNetwork = SocialNetwork::firstOrCreate(['url' => $url]);
+
+                    // Asociar la URL de la red social con el candidato en la tabla de relación
+                    $candidate->socialNetworks()->attach($socialNetwork->id);
+                }
+            }
 
             DB::commit();
 
@@ -207,73 +229,10 @@ class CandidateController extends Controller
                 'data' => $candidateResource,
             ], 201);
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             return $this->handleException($e);
         }
-    }
-
-    private function storeBase64Files(Candidate $candidate, Request $request): void
-    {
-        if ($request->has('cv_file_base64')) {
-            $cvBase64 = $request->input('cv_file_base64');
-            $cvName = Str::random(40) . '.pdf'; // Nombre de archivo predeterminado o según el tipo de archivo
-            $cvPath = 'candidate_uploads/cvs/' . $cvName;
-            Storage::disk('public')->put($cvPath, base64_decode($cvBase64));
-            $candidate->cv_file = $cvPath;
-        }
-
-        if ($request->has('photo_file_base64')) {
-            $photoBase64 = $request->input('photo_file_base64');
-            $photoName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
-            $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
-            Storage::disk('public')->put($photoPath, base64_decode($photoBase64));
-            $candidate->photo_file = $photoPath;
-        }
-
-        if ($request->has('banner_file_base64')) {
-            $bannerBase64 = $request->input('banner_file_base64');
-            $bannerName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
-            $bannerPath = 'candidate_uploads/banners/' . $bannerName;
-            Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
-            $candidate->banner_file = $bannerPath;
-        }
-    }
-
-
-    private function syncRelations(Candidate $candidate, Request $request): void
-    {
-        // Habilidades
-        $skills = $request->input('skills') ? explode(',', $request->input('skills')) : [];
-        $candidate->skills()->syncWithoutDetaching($skills);
-
-        // Sincronizar niveles de estudio
-        $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
-        $candidate->educationLevels()->syncWithoutDetaching($educationLevels);
-
-        // Sincronizar Redes sociales
-        $socialNetworks = $request->input('social_networks') ? explode(',', $request->input('social_networks')) : [];
-        $candidate->socialNetworks()->syncWithoutDetaching($socialNetworks);
-
-
-        // Sincronizar Idiomas
-        if ($request->has('languages')) {
-            $languages = $this->parseLanguages($request->input('languages'));
-            foreach ($languages as $language) {
-                $candidate->languages()->attach($language['id'], ['level' => $language['level']]);
-            }
-        }
-    }
-
-    private function parseLanguages(string $languages): array
-    {
-        $parsedLanguages = [];
-        $languageStrings = explode(',', $languages);
-        foreach ($languageStrings as $languageString) {
-            list($id, $level) = explode(':', $languageString);
-            $parsedLanguages[] = ['id' => $id, 'level' => $level];
-        }
-        return $parsedLanguages;
     }
 
     public function update(UpdateCandidateRequest $request, int $userId): JsonResponse
@@ -333,82 +292,35 @@ class CandidateController extends Controller
 
             // Actualizar el currículum vitae si se proporciona
             if ($request->hasFile('cv_file')) {
-                // Eliminar el archivo anterior, si existe
-                Storage::disk('public')->delete($candidate->cv_file);
-
-                // Almacenar el nuevo archivo
-                $cvFile = $request->file('cv_file');
-                $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
-                $cvPath = 'candidate_uploads/cvs/' . $cvName;
-                Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
-
-                // Actualizar la ruta del currículum vitae en la base de datos
+                // Eliminar el archivo CV anterior si existe
+                if ($candidate->cv_file) {
+                    Storage::delete($candidate->cv_file);
+                }
+                // Almacenar el nuevo archivo CV
+                $cvPath = $request->file('cv_file')->store('cv_files');
                 $candidate->cv_file = $cvPath;
                 $candidate->save();
             }
 
-            // Actualizar la foto de perfil si se proporciona
-            if ($request->hasFile('photo_file')) {
-                // Eliminar la foto de perfil anterior, si existe
-                Storage::disk('public')->delete($candidate->photo_file);
-
-                // Almacenar la nueva foto de perfil
-                $photoFile = $request->file('photo_file');
-                $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
-                $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
-                Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
-
-                // Actualizar la ruta de la foto de perfil en la base de datos
-                $candidate->photo_file = $photoPath;
-                $candidate->save();
-            }
-
-            // Actualizar el banner si se proporciona
-            if ($request->hasFile('banner_file')) {
-                // Eliminar el banner anterior, si existe
-                Storage::disk('public')->delete($candidate->banner_file);
-
-                // Almacenar el nuevo banner
-                $bannerFile = $request->file('banner_file');
-                $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
-                $bannerPath = 'candidate_uploads/banners/' . $bannerName;
-                Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
-
-                // Actualizar la ruta del banner en la base de datos
-                $candidate->banner_file = $bannerPath;
-                $candidate->save();
-            }
-
-            // Commit de la transacción
+            // Commit the transaction
             DB::commit();
 
-            // Devolver la respuesta con el recurso del candidato actualizado
-            $candidateResource = new CandidateResource($candidate);
+            // Return success response
             return response()->json([
                 'message' => 'Candidate profile updated successfully!',
-                'data' => $candidateResource,
+                'data' => new CandidateResource($candidate),
             ], 200);
 
-        } catch (QueryException $e) {
-            // Rollback de la transacción en caso de error inesperado
+        } catch (Exception $e) {
+            // Rollback the transaction in case of any error
             DB::rollBack();
-            return response()->json([
-                'error' => 'An unexpected error occurred while updating the candidate profile!',
-                'details' => $e->getMessage(),
-            ], 500);
+            return $this->handleException($e);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $userId
-     * @return JsonResponse
-     */
     public function destroy(int $userId): JsonResponse
     {
         try {
-
             // Obtener el usuario autenticado
             $authUser = Auth::user();
 
@@ -435,76 +347,40 @@ class CandidateController extends Controller
                 return response()->json(['error' => 'Candidate profile not found'], 404);
             }
 
-            // Eliminar la foto de perfil si existe
-            if ($candidate->photo_file) {
-                Storage::disk('public')->delete($candidate->photo_file);
-            }
-
-            // Eliminar el banner si existe
-            if ($candidate->banner_file) {
-                Storage::disk('public')->delete($candidate->banner_file);
-            }
-
-            // Eliminar el currículum vitae si existe
-            if ($candidate->cv_file) {
-                Storage::disk('public')->delete($candidate->cv_file);
-            }
-
-            // Eliminar el candidato de la base de datos
+            // Eliminar el candidato y su perfil asociado
             $candidate->delete();
 
-            // Eliminar el usuario asociado si no tiene otros roles
-            if ($authUser->roles()->count() === 1) {
-                $authUser->delete();
-            }
+            // Return success response
+            return response()->json(['message' => 'Candidate profile deleted successfully!'], 200);
 
-            return response()->json(['message' => 'Candidate profile deleted!'], 200);
         } catch (Exception $e) {
             return $this->handleException($e);
         }
     }
 
-    /**
-     * Handle exceptions and generate appropriate JSON response.
-     *
-     * @param Exception $exception The exception to handle.
-     * @return JsonResponse
-     */
     private function handleException(Exception $exception): JsonResponse
     {
-        try {
-            throw $exception;
-        } catch (Exception $e) {
-            // Definir mensajes de error en inglés para diferentes códigos de estado.
-            $errorMessages = [
-                400 => 'Bad Request: The request could not be processed due to a malformed client.',
-                401 => 'Unauthorized: Access unauthorized.',
-                403 => 'Forbidden: You do not have sufficient permissions to access this resource.',
-                404 => 'Not Found: The requested resource could not be found.',
-                500 => 'Internal Server Error: An unexpected server error occurred.',
-                503 => 'Service Unavailable: The server is currently unable to handle the request due to maintenance or temporary overloading.',
-            ];
+        $statusCode = $exception->getCode() ?: 500;
+        $message = $exception->getMessage() ?: 'Internal Server Error';
 
-            // Obtener el código de estado de la excepción (si está disponible) o usar 500 como predeterminado.
-            $status = $exception->getCode() ?: 500;
-
-            // Obtener el mensaje de error asociado con el código de estado proporcionado.
-            $errorMessage = $errorMessages[$status] ?? 'Unknown Error: An unexpected error occurred.';
-
-            // Combinar el mensaje de la excepción con el mensaje detallado del código de estado.
-            $detailedMessage = $exception->getMessage() . ' ' . $errorMessage;
-
-            // Registrar el error en el sistema de registro de Laravel.
-            if ($status >= 500) {
-                \Log::error('HTTP ' . $status . ': ' . $detailedMessage);
-            } else {
-                \Log::warning('HTTP ' . $status . ': ' . $detailedMessage);
-            }
-
-            // Devolver una respuesta JSON con el mensaje de error y el código de estado.
-            return response()->json(['error' => $detailedMessage], $status);
-        }
+        return response()->json(['error' => $message], $statusCode);
     }
 
+    private function storeBase64Files(Candidate $candidate, Request $request): void
+    {
+        if ($request->filled('avatar')) {
+            $avatarData = $request->input('avatar');
+            $avatar = Str::random(10) . '.png'; // Generar un nombre aleatorio para el archivo
+            Storage::put('avatars/' . $avatar, base64_decode($avatarData)); // Almacenar el archivo decodificado
+            $candidate->avatar = 'avatars/' . $avatar; // Asignar la ruta del archivo al candidato
+        }
 
+        if ($request->filled('cv_file_base64')) {
+            $cvData = $request->input('cv_file_base64');
+            $cv = Str::random(10) . '.pdf'; // Generar un nombre aleatorio para el archivo
+            Storage::put('cv_files/' . $cv, base64_decode($cvData)); // Almacenar el archivo decodificado
+            $candidate->cv_file = 'cv_files/' . $cv; // Asignar la ruta del archivo al candidato
+        }
+    }
 }
+

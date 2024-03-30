@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\Candidate;
-use App\Models\EducationLevel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -22,8 +21,6 @@ class CandidateFactory extends Factory
             $user->assignRole('candidate');
         }
 
-        $educationLevels = EducationLevel::all();
-
         return [
             'user_id' => $user->id,
             'gender' => $this->faker->randomElement(['male', 'female']),
@@ -37,5 +34,5 @@ class CandidateFactory extends Factory
 
         ];
     }
-}
 
+}

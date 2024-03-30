@@ -43,11 +43,6 @@ class Job extends Model
         return $this->belongsTo(JobCategory::class);
     }
 
-    public function educationLevels(): BelongsToMany
-    {
-        return $this->belongsToMany(EducationLevel::class)->withTimestamps();
-    }
-
     public function languages(): BelongsToMany
     {
         return $this->belongsToMany(Language::class)->withPivot('level')->withTimestamps(); // Incluye el campo 'level'

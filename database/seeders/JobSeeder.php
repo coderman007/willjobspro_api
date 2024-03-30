@@ -28,10 +28,6 @@ class JobSeeder extends Seeder
                 $job->languages()->attach($language->id, ['level' => $level]);
             }
 
-            // Asociar niveles de estudio
-            $educationLevels = EducationLevel::inRandomOrder()->limit(rand(1, 2))->pluck('id');
-            $job->educationLevels()->attach($educationLevels);
-
             // Asociar tipos de trabajo
             $jobTypes = JobType::inRandomOrder()->limit(rand(1, 2))->pluck('id');
             $job->jobTypes()->attach($jobTypes);

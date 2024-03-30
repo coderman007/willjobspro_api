@@ -116,6 +116,12 @@ class User extends Authenticatable
         return $this->belongsTo(ZipCode::class);
     }
 
+
+    public function socialNetworks(): HasMany
+    {
+        return $this->hasMany(SocialNetwork::class);
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);

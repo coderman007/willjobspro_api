@@ -4,27 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SocialNetwork extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
         'url',
     ];
 
-    public function candidates(): BelongsToMany
+
+    public function user(): BelongsTo
     {
-        return $this->belongsToMany(Candidate::class)->withTimestamps();
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsToMany
-     */
-    public function companies(): BelongsToMany
-    {
-        return $this->belongsToMany(Company::class)->withTimestamps();
-    }
 }

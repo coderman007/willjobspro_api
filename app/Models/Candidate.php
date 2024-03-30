@@ -35,21 +35,6 @@ class Candidate extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function workExperiences(): HasMany
-    {
-        return $this->HasMany(WorkExperience::class);
-    }
-
-    public function socialNetworks(): BelongsToMany
-    {
-        return $this->belongsToMany(SocialNetwork::class)->withTimestamps();
-    }
-
-    public function educationLevels(): BelongsToMany
-    {
-        return $this->belongsToMany(EducationLevel::class)->withTimestamps();
-    }
-
     public function skills(): BelongsToMany
     {
         return $this->belongsToMany(Skill::class)->withTimestamps();
@@ -57,7 +42,7 @@ class Candidate extends Model
 
     public function languages(): BelongsToMany
     {
-        return $this->belongsToMany(Language::class)->withPivot('level')->withTimestamps(); // Incluye el campo 'level'
+        return $this->belongsToMany(Language::class)->withPivot('level')->withTimestamps();
     }
 
     public function subscription(): HasOne
@@ -74,6 +59,11 @@ class Candidate extends Model
     public function educationHistories(): HasMany
     {
         return $this->hasMany(EducationHistory::class);
+    }
+
+    public function workExperiences(): hasMany
+    {
+        return $this->hasMany(WorkExperience::class);
     }
 
 }
