@@ -192,7 +192,8 @@ class CandidateController extends Controller
             $candidate->user_id = $user->id;
             $candidate->fill($request->validated());
 
-            $this->storeFiles($candidate, $request);
+            // Almacenar los archivos codificados en Base64
+            $this->storeBase64Files($candidate, $request);
 
             $candidate->save();
 
@@ -212,36 +213,33 @@ class CandidateController extends Controller
         }
     }
 
-
-    private function storeFiles(Candidate $candidate, Request $request): void
+    private function storeBase64Files(Candidate $candidate, Request $request): void
     {
-        if ($request->hasFile('cv_file')) {
-            // Almacenamiento del CV
-            $cvFile = $request->file('cv_file');
-            $cvName = Str::random(40) . '.' . $cvFile->getClientOriginalExtension();
+        if ($request->has('cv_file_base64')) {
+            $cvBase64 = $request->input('cv_file_base64');
+            $cvName = Str::random(40) . '.pdf'; // Nombre de archivo predeterminado o según el tipo de archivo
             $cvPath = 'candidate_uploads/cvs/' . $cvName;
-            Storage::disk('public')->put($cvPath, file_get_contents($cvFile));
+            Storage::disk('public')->put($cvPath, base64_decode($cvBase64));
             $candidate->cv_file = $cvPath;
         }
 
-        if ($request->hasFile('photo_file')) {
-            // Almacenamiento de la foto de perfil
-            $photoFile = $request->file('photo_file');
-            $photoName = Str::random(40) . '.' . $photoFile->getClientOriginalExtension();
+        if ($request->has('photo_file_base64')) {
+            $photoBase64 = $request->input('photo_file_base64');
+            $photoName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
             $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
-            Storage::disk('public')->put($photoPath, file_get_contents($photoFile));
+            Storage::disk('public')->put($photoPath, base64_decode($photoBase64));
             $candidate->photo_file = $photoPath;
         }
 
-        if ($request->hasFile('banner_file')) {
-            // Almacenamiento del banner
-            $bannerFile = $request->file('banner_file');
-            $bannerName = Str::random(40) . '.' . $bannerFile->getClientOriginalExtension();
+        if ($request->has('banner_file_base64')) {
+            $bannerBase64 = $request->input('banner_file_base64');
+            $bannerName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
             $bannerPath = 'candidate_uploads/banners/' . $bannerName;
-            Storage::disk('public')->put($bannerPath, file_get_contents($bannerFile));
+            Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
             $candidate->banner_file = $bannerPath;
         }
     }
+
 
     private function syncRelations(Candidate $candidate, Request $request): void
     {

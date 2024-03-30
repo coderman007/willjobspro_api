@@ -41,8 +41,4 @@ class Company extends Model
         return $this->hasMany(Job::class);
     }
 
-    public function socialNetworks(): BelongsToMany
-    {
-        return $this->belongsToMany(SocialNetwork::class)->withTimestamps();
-    }
 }
