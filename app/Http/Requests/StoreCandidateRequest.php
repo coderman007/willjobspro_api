@@ -59,8 +59,9 @@ class StoreCandidateRequest extends FormRequest
         // Reglas de validación para los idiomas (opcional)
         if ($this->filled('languages')) {
             $rules['languages'] = 'nullable|array';
-            $rules['languages.*'] = 'numeric|exists:languages,id';
-            $rules['languages.*.level'] = 'required|string|in:basic,intermediate,advanced,native';
+            $rules['languages.*.id'] ='required|numeric';
+            $rules['languages.*.level'] = 'required|string';
+
         }
 
         return $rules;

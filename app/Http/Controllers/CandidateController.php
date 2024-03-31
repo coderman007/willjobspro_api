@@ -153,7 +153,7 @@ class CandidateController extends Controller
             DB::beginTransaction();
 
             if (!Auth::check()) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json(['error' => 'Unauthorized. You can\'t do this!' ], 401);
             }
 
             $user = Auth::user();
@@ -200,24 +200,23 @@ class CandidateController extends Controller
             }
 
             // Sincronizar Idiomas
-            if ($request->has('languages')) {
-                $languages = $request->input('languages');
-                foreach ($languages as $language) {
-                    $candidate->languages()->attach($language['id'], ['level' => $language['level']]);
+            $languages = $request->input('languages') ?? [];
+            foreach ($languages as $languageData) {
+                // Verificar si el idioma está presente en la base de datos
+                $language = Language::find($languageData['id']);
+                if ($language) {
+                    // Asociar el idioma con el nivel correspondiente al candidato
+                    $candidate->languages()->attach($language->id, ['level' => $languageData['level']]);
                 }
             }
 
-            // Obtener las URL de las redes sociales proporcionadas en la solicitud
-            if ($request->has('social_networks')) {
-                $socialNetworkUrls = $request->input('social_networks');
-
-                // Iterar sobre las URL proporcionadas
-                foreach ($socialNetworkUrls as $url) {
-                    // Verificar si la URL ya existe en la tabla social_networks
-                    $socialNetwork = SocialNetwork::firstOrCreate(['url' => $url]);
-
-                    // Asociar la URL de la red social con el candidato en la tabla de relación
-                    $candidate->socialNetworks()->attach($socialNetwork->id);
+            // Asociar redes sociales al usuario
+            if ($request->filled('social_networks')) {
+                foreach ($request->social_networks as $socialNetworkData) {
+                    $socialNetwork = new SocialNetwork();
+                    $socialNetwork->user_id = $user->id;
+                    $socialNetwork->fill($socialNetworkData);
+                    $socialNetwork->save();
                 }
             }
 
@@ -235,28 +234,17 @@ class CandidateController extends Controller
         }
     }
 
+   // Método update
+
     public function update(UpdateCandidateRequest $request, int $userId): JsonResponse
     {
         try {
-            // Iniciar una transacción de base de datos para garantizar la consistencia
             DB::beginTransaction();
 
-            // Obtener el usuario autenticado
+            // Verificar la autorización y la autenticación del usuario
             $authUser = Auth::user();
-
-            // Verificar si el usuario está autenticado
-            if (!$authUser) {
+            if (!$authUser || $authUser->id != $userId) {
                 return response()->json(['error' => 'Unauthorized'], 401);
-            }
-
-            // Verificar si el ID de usuario pasado como parámetro coincide con el ID del usuario autenticado
-            if ($authUser->id != $userId) {
-                return response()->json(['error' => 'Unauthorized'], 401);
-            }
-
-            // Verificar si el usuario autenticado tiene el rol de candidato
-            if (!$authUser->hasRole('candidate')) {
-                return response()->json(['error' => 'Unauthorized'], 403);
             }
 
             // Obtener el candidato asociado al ID de usuario
@@ -267,56 +255,80 @@ class CandidateController extends Controller
                 return response()->json(['error' => 'Candidate profile not found'], 404);
             }
 
-            // Actualizar la ubicación del usuario en la tabla 'users'
-            $authUser->update([
-                'country_id' => $request->input('country_id'),
-                'state_id' => $request->input('state_id'),
-                'city_id' => $request->input('city_id'),
-                'zip_code_id' => $request->input('zip_code_id'),
-            ]);
-
-            // Actualizar los datos del candidato
+            // Actualizar los campos del candidato
             $candidate->update($request->validated());
 
-            // Sincronizar habilidades
-            $skills = $request->input('skills') ? explode(',', $request->input('skills')) : [];
-            $candidate->skills()->sync($skills);
+            // Almacenar los archivos codificados en Base64
+            $this->storeBase64Files($candidate, $request);
 
-            // Sincronizar niveles de estudio
-            $educationLevels = $request->input('education_levels') ? explode(',', $request->input('education_levels')) : [];
-            $candidate->educationLevels()->sync($educationLevels);
-
-            // Sincronizar idiomas
-            $languages = $request->input('languages') ? explode(',', $request->input('languages')) : [];
-            $candidate->languages()->sync($languages);
-
-            // Actualizar el currículum vitae si se proporciona
-            if ($request->hasFile('cv_file')) {
-                // Eliminar el archivo CV anterior si existe
-                if ($candidate->cv_file) {
-                    Storage::delete($candidate->cv_file);
-                }
-                // Almacenar el nuevo archivo CV
-                $cvPath = $request->file('cv_file')->store('cv_files');
-                $candidate->cv_file = $cvPath;
-                $candidate->save();
+            // Actualizar la relación de habilidades del candidato (opcional)
+            if ($request->filled('skills')) {
+                $skills = $request->input('skills');
+                $candidate->skills()->sync($skills);
             }
 
-            // Commit the transaction
+            // Actualizar la relación de experiencias laborales del candidato (opcional)
+            if ($request->filled('work_experiences')) {
+                $candidate->workExperiences()->delete(); // Eliminar las experiencias laborales existentes
+                foreach ($request->work_experiences as $workData) {
+                    $workExperience = new WorkExperience();
+                    $workExperience->candidate_id = $candidate->id;
+                    $workExperience->fill($workData);
+                    $workExperience->save();
+                }
+            }
+
+            // Actualizar la relación de historial académico del candidato (opcional)
+            if ($request->filled('education_history')) {
+                $candidate->educationHistories()->delete(); // Eliminar el historial académico existente
+                foreach ($request->education_history as $educationData) {
+                    $education = new EducationHistory();
+                    $education->candidate_id = $candidate->id;
+                    $education->fill($educationData);
+                    $education->save();
+                }
+            }
+
+            // Sincronizar idiomas del candidato (opcional)
+            if ($request->filled('languages')) {
+                $languages = $request->input('languages');
+                $candidate->languages()->detach(); // Desasociar todos los idiomas existentes
+                foreach ($languages as $languageData) {
+                    // Verificar si el idioma está presente en la base de datos
+                    $language = Language::find($languageData['id']);
+                    if ($language) {
+                        // Asociar el idioma con el nivel correspondiente al candidato
+                        $candidate->languages()->attach($language->id, ['level' => $languageData['level']]);
+                    }
+                }
+            }
+
+            // Actualizar las redes sociales asociadas al usuario
+            if ($request->filled('social_networks')) {
+                // Eliminar las redes sociales existentes
+                $authUser->socialNetworks()->delete();
+                foreach ($request->social_networks as $socialNetworkData) {
+                    $socialNetwork = new SocialNetwork();
+                    $socialNetwork->user_id = $authUser->id;
+                    $socialNetwork->fill($socialNetworkData);
+                    $socialNetwork->save();
+                }
+            }
+
             DB::commit();
 
-            // Return success response
+            $candidateResource = new CandidateResource($candidate);
             return response()->json([
                 'message' => 'Candidate profile updated successfully!',
-                'data' => new CandidateResource($candidate),
+                'data' => $candidateResource,
             ], 200);
 
         } catch (Exception $e) {
-            // Rollback the transaction in case of any error
             DB::rollBack();
             return $this->handleException($e);
         }
     }
+
 
     public function destroy(int $userId): JsonResponse
     {
@@ -351,7 +363,7 @@ class CandidateController extends Controller
             $candidate->delete();
 
             // Return success response
-            return response()->json(['message' => 'Candidate profile deleted successfully!'], 200);
+            return response()->json(['message' => 'Candidate profile deleted!'], 200);
 
         } catch (Exception $e) {
             return $this->handleException($e);
@@ -368,19 +380,28 @@ class CandidateController extends Controller
 
     private function storeBase64Files(Candidate $candidate, Request $request): void
     {
-        if ($request->filled('avatar')) {
-            $avatarData = $request->input('avatar');
-            $avatar = Str::random(10) . '.png'; // Generar un nombre aleatorio para el archivo
-            Storage::put('avatars/' . $avatar, base64_decode($avatarData)); // Almacenar el archivo decodificado
-            $candidate->avatar = 'avatars/' . $avatar; // Asignar la ruta del archivo al candidato
+        if ($request->has('cv_file_base64')) {
+            $cvBase64 = $request->input('cv_file_base64');
+            $cvName = Str::random(40) . '.pdf'; // Nombre de archivo predeterminado o según el tipo de archivo
+            $cvPath = 'candidate_uploads/cvs/' . $cvName;
+            Storage::disk('public')->put($cvPath, base64_decode($cvBase64));
+            $candidate->cv_file = $cvPath;
         }
 
-        if ($request->filled('cv_file_base64')) {
-            $cvData = $request->input('cv_file_base64');
-            $cv = Str::random(10) . '.pdf'; // Generar un nombre aleatorio para el archivo
-            Storage::put('cv_files/' . $cv, base64_decode($cvData)); // Almacenar el archivo decodificado
-            $candidate->cv_file = 'cv_files/' . $cv; // Asignar la ruta del archivo al candidato
+        if ($request->has('photo_file_base64')) {
+            $photoBase64 = $request->input('photo_file_base64');
+            $photoName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
+            $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
+            Storage::disk('public')->put($photoPath, base64_decode($photoBase64));
+            $candidate->photo_file = $photoPath;
+        }
+
+        if ($request->has('banner_file_base64')) {
+            $bannerBase64 = $request->input('banner_file_base64');
+            $bannerName = Str::random(40) . '.jpg'; // Nombre de archivo predeterminado o según el tipo de archivo
+            $bannerPath = 'candidate_uploads/banners/' . $bannerName;
+            Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
+            $candidate->banner_file = $bannerPath;
         }
     }
 }
-

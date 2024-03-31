@@ -23,11 +23,6 @@ class Company extends Model
         'banner_file',
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
 
     // Relación con el usuario
     public function user(): BelongsTo
