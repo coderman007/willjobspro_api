@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Country;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Response;
 
 class CountryController extends Controller
@@ -24,8 +25,8 @@ class CountryController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'iso_alpha_2' => 'required|string|max:2',
+            'name' => 'required|string|max:255|unique:countries',
+            'iso_alpha_2' => 'required|string|max:2|unique:countries',
         ]);
 
         if ($validator->fails()) {
@@ -51,8 +52,18 @@ class CountryController extends Controller
     public function update(Request $request, Country $country)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'iso_alpha_2' => 'required|string|max:2',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('countries')->ignore($country->id),
+            ],
+            'iso_alpha_2' => [
+                'required',
+                'string',
+                'max:2',
+                Rule::unique('countries')->ignore($country->id),
+            ],
         ]);
 
         if ($validator->fails()) {

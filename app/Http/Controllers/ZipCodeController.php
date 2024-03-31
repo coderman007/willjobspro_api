@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ZipCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Response;
 
 class ZipCodeController extends Controller
@@ -25,7 +26,7 @@ class ZipCodeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'city_id' => 'required|exists:cities,id',
-            'code' => 'required|string|max:255',
+            'code' => 'required|string|max:255|unique:zip_codes',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +53,12 @@ class ZipCodeController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'city_id' => 'required|exists:cities,id',
-            'code' => 'required|string|max:255',
+            'code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('zip_codes')->ignore($zipCode->id),
+            ],
         ]);
 
         if ($validator->fails()) {

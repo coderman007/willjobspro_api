@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\City;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Response;
 
 class CityController extends Controller
@@ -18,6 +20,26 @@ class CityController extends Controller
         return response()->json(['data' => $cities], 200);
     }
 
+    public function getCitiesByState($stateId): JsonResponse
+    {
+        // Validar que el estado exista en la base de datos
+        $validator = Validator::make(['state_id' => $stateId], [
+            'state_id' => 'required|exists:states,id',
+        ]);
+
+        // Verificar si la validación falla
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        // Obtener las ciudades asociadas al estado especificado
+        $cities = City::where('state_id', $stateId)->get();
+
+        // Devolver las ciudades en formato JSON
+        return response()->json(['data' => $cities], 200);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
@@ -25,7 +47,7 @@ class CityController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'state_id' => 'required|exists:states,id',
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:cities',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +74,12 @@ class CityController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'state_id' => 'required|exists:states,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('cities')->ignore($city->id),
+            ],
         ]);
 
         if ($validator->fails()) {

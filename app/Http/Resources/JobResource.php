@@ -33,7 +33,6 @@ class JobResource extends JsonResource
             'applied' => $this->getAttribute('applied'),
             'job_types' => $this->getAttribute('job_types'),
             'languages' => $this->getAttribute('languages'),
-            'education_levels' => $this->getAttribute('education_levels'),
         ];
     }
 }

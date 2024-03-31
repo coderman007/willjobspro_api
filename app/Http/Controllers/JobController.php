@@ -238,7 +238,7 @@ class JobController extends Controller
     private function buildJobQuery(Request $request): Builder
     {
         // Inicializar la consulta con las relaciones necesarias
-        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages', 'educationLevels']);
+        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages']);
 
         // Aplicar filtros basados en los parámetros de la solicitud
         $query->when($request->filled('search'), function ($query) use ($request) {

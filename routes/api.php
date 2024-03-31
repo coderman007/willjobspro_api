@@ -146,11 +146,15 @@ Route::group([
     Route::post('states', [StateController::class, 'store']);
     Route::put('states/{state}', [StateController::class, 'update']);
     Route::delete('states/{state}', [StateController::class, 'destroy']);
+    // Rutas para gestionar estados según el país
+    Route::get('countries/{country}/states', [StateController::class, 'getStatesByCountry']);
 
     // Rutas para ciudades
     Route::post('cities', [CityController::class, 'store']);
     Route::put('cities/{city}', [CityController::class, 'update']);
     Route::delete('cities/{city}', [CityController::class, 'destroy']);
+    // Rutas para gestionar ciudades según el estado
+    Route::get('states/{state}/cities', [CityController::class, 'getCitiesByState']);
 
     // Rutas para códigos postales
     Route::post('zip-codes', [ZipCodeController::class, 'store']);

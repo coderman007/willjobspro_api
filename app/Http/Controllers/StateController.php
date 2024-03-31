@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\State;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Response;
 
 class StateController extends Controller
@@ -18,6 +20,21 @@ class StateController extends Controller
         return response()->json(['data' => $states], 200);
     }
 
+    public function getStatesByCountry($countryId): JsonResponse
+    {
+        $validator = Validator::make(['country_id' => $countryId], [
+            'country_id' => 'required|exists:countries,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 400);
+        }
+
+        $states = State::where('country_id', $countryId)->get();
+        return response()->json(['data' => $states], 200);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      */
@@ -25,7 +42,7 @@ class StateController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'country_id' => 'required|exists:countries,id',
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:states',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +69,12 @@ class StateController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'country_id' => 'required|exists:countries,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('states')->ignore($state->id),
+            ],
         ]);
 
         if ($validator->fails()) {
