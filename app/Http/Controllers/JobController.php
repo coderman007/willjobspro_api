@@ -41,6 +41,63 @@ class JobController extends Controller
         }
     }
 
+    private function buildJobQuery(Request $request): Builder
+    {
+        // Inicializar la consulta con las relaciones necesarias
+        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages']);
+
+        // Aplicar filtros basados en los parámetros de la solicitud
+        $query->when($request->filled('search'), function ($query) use ($request) {
+            $searchTerm = $request->query('search');
+            return $query->where('title', 'like', '%' . $searchTerm . '%')
+                ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                ->orWhere('location', 'like', '%' . $searchTerm . '%');
+        });
+
+        // Filtrar por categoría
+        $query->when($request->filled('category_id'), function ($query) use ($request) {
+            $categoryId = $request->query('category_id');
+            return $query->whereHas('jobCategory', function ($q) use ($categoryId) {
+                $q->where('id', $categoryId);
+            });
+        });
+
+        // Filtrar por niveles de estudio
+        $query->when($request->filled('education_level_id'), function ($query) use ($request) {
+            $educationLevelId = $request->query('education_level_id');
+            return $query->whereHas('educationLevels', function ($q) use ($educationLevelId) {
+                $q->where('education_levels.id', $educationLevelId);
+            });
+        });
+
+        // Filtrar por idiomas
+        $query->when($request->filled('language_id'), function ($query) use ($request) {
+            $languageId = $request->query('language_id');
+            return $query->whereHas('languages', function ($q) use ($languageId) {
+                $q->where('languages.id', $languageId); // Calificar la columna id con el nombre de la tabla
+            });
+        });
+
+
+        // Filtrar por tipos de trabajo
+        $query->when($request->filled('job_type_id'), function ($query) use ($request) {
+            $jobTypeId = $request->query('job_type_id');
+            return $query->whereHas('jobTypes', function ($q) use ($jobTypeId) {
+                $q->where('job_types.id', $jobTypeId);
+            });
+        });
+
+        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
+            $sortBy = $request->query('sort_by');
+            $sortOrder = $request->query('sort_order');
+            return $query->orderBy($sortBy, $sortOrder);
+        }, function ($query) {
+            // Default order if not specified
+            return $query->orderBy('created_at', 'desc');
+        });
+
+        return $query;
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -235,63 +292,7 @@ class JobController extends Controller
      * @param Request $request
      * @return Builder
      */
-    private function buildJobQuery(Request $request): Builder
-    {
-        // Inicializar la consulta con las relaciones necesarias
-        $query = Job::with(['company', 'jobCategory', 'applications', 'jobTypes', 'languages']);
 
-        // Aplicar filtros basados en los parámetros de la solicitud
-        $query->when($request->filled('search'), function ($query) use ($request) {
-            $searchTerm = $request->query('search');
-            return $query->where('title', 'like', '%' . $searchTerm . '%')
-                ->orWhere('description', 'like', '%' . $searchTerm . '%')
-                ->orWhere('location', 'like', '%' . $searchTerm . '%');
-        });
-
-        // Filtrar por categoría
-        $query->when($request->filled('category_id'), function ($query) use ($request) {
-            $categoryId = $request->query('category_id');
-            return $query->whereHas('jobCategory', function ($q) use ($categoryId) {
-                $q->where('id', $categoryId);
-            });
-        });
-
-        // Filtrar por niveles de estudio
-        $query->when($request->filled('education_level_id'), function ($query) use ($request) {
-            $educationLevelId = $request->query('education_level_id');
-            return $query->whereHas('educationLevels', function ($q) use ($educationLevelId) {
-                $q->where('education_levels.id', $educationLevelId);
-            });
-        });
-
-        // Filtrar por idiomas
-        $query->when($request->filled('language_id'), function ($query) use ($request) {
-            $languageId = $request->query('language_id');
-            return $query->whereHas('languages', function ($q) use ($languageId) {
-                $q->where('languages.id', $languageId); // Calificar la columna id con el nombre de la tabla
-            });
-        });
-
-
-        // Filtrar por tipos de trabajo
-        $query->when($request->filled('job_type_id'), function ($query) use ($request) {
-            $jobTypeId = $request->query('job_type_id');
-            return $query->whereHas('jobTypes', function ($q) use ($jobTypeId) {
-                $q->where('job_types.id', $jobTypeId);
-            });
-        });
-
-        $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
-            $sortBy = $request->query('sort_by');
-            $sortOrder = $request->query('sort_order');
-            return $query->orderBy($sortBy, $sortOrder);
-        }, function ($query) {
-            // Default order if not specified
-            return $query->orderBy('created_at', 'desc');
-        });
-
-        return $query;
-    }
 
     /**
      * Load additional data for a job.
@@ -309,9 +310,6 @@ class JobController extends Controller
 
         // Obtener los nombres de los idiomas relacionados
         $job->setAttribute('languages', $job->languages->pluck('name')->implode(', '));
-
-        // Obtener los nombres de los niveles de educación relacionados
-        $job->setAttribute('education_levels', $job->educationLevels->pluck('name')->implode(', '));
     }
 
     /**
