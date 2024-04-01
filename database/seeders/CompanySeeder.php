@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\SocialNetwork;
+use App\Models\User;
 use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
 
@@ -16,7 +17,7 @@ class CompanySeeder extends Seeder
     {
         $faker = FakerFactory::create(); // Importación y creación de una instancia de Faker
 
-        $users = \App\Models\User::role('company')->get();
+        $users = User::role('company')->get();
 
         foreach ($users as $user) {
             // Verificar si ya existe una compañía para este usuario
