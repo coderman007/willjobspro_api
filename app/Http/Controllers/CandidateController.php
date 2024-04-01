@@ -96,7 +96,7 @@ class CandidateController extends Controller
                     'job_title' => $application->job->title, // Agregar el título de la oferta de trabajo
                     'job_salary' => $application->job->salary, // Agregar el salario de la oferta de trabajo
                     'company_id' => $application->job->company_id, // Agregar el ID de la compañía
-                    'company_name' => $application->job->company->name, // Agregar el nombre de la compañía
+                    'company_name' => $application->job->company->user->name, // Agregar el nombre de la compañía
                 ];
             }
 
