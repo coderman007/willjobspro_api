@@ -12,32 +12,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function index(Request $request): JsonResponse
-    {
-        try {
-            $perPage = $request->query('per_page', 10);
-
-            // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
-            $jobs = $this->buildJobQuery($request)->paginate($perPage);
-
-            // Retornar las ofertas de trabajo paginadas junto con datos adicionales
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
-                ->header('X-Total-Count', $jobs->total());
-        } catch (\Exception $e) {
-            // Manejar cualquier error y retornar una respuesta de error
-            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
-        }
-    }
-
     private function buildJobQuery(Request $request): Builder
     {
         // Inicializar la consulta con las relaciones necesarias
@@ -51,11 +29,17 @@ class JobController extends Controller
                 ->orWhere('location', 'like', '%' . $searchTerm . '%');
         });
 
-        // Filtrar por categoría
-        $query->when($request->filled('category_id'), function ($query) use ($request) {
-            $categoryId = $request->query('category_id');
-            return $query->whereHas('jobCategory', function ($q) use ($categoryId) {
-                $q->where('id', $categoryId);
+        // Filtrar por ID de la compañía
+        $query->when($request->filled('company_id'), function ($query) use ($request) {
+            $companyId = $request->query('company_id');
+            return $query->where('company_id', $companyId);
+        });
+
+        // Filtrar por ID de la categoría de trabajo
+        $query->when($request->filled('job_category_id'), function ($query) use ($request) {
+            $jobCategoryId = $request->query('job_category_id');
+            return $query->whereHas('jobCategory', function ($q) use ($jobCategoryId) {
+                $q->where('id', $jobCategoryId);
             });
         });
 
@@ -75,7 +59,6 @@ class JobController extends Controller
             });
         });
 
-
         // Filtrar por tipos de trabajo
         $query->when($request->filled('job_type_id'), function ($query) use ($request) {
             $jobTypeId = $request->query('job_type_id');
@@ -92,17 +75,63 @@ class JobController extends Controller
             });
         });
 
+        // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
             return $query->orderBy($sortBy, $sortOrder);
         }, function ($query) {
-            // Default order if not specified
+            // Ordenar por defecto si no se especifica
             return $query->orderBy('created_at', 'desc');
         });
 
         return $query;
     }
+
+    public function index(Request $request): JsonResponse
+    {
+        // Definir reglas de validación para los filtros
+        $rules = [
+            'search' => 'nullable|string',
+            'sort_by' => 'nullable|string|in:title,description,location,created_at',
+            'sort_order' => 'nullable|string|in:asc,desc',
+            'per_page' => 'nullable|integer|min:1',
+            'job_category_id' => 'nullable|exists:job_categories,id',
+            'company_id' => 'nullable|exists:companies,id',
+            'skill_id' => 'nullable|exists:skills,id',
+            'education_level_id' => 'nullable|exists:education_levels,id',
+            'language_id' => 'nullable|exists:languages,id',
+            'job_type_id' => 'nullable|exists:job_types,id',
+        ];
+
+        // Validar los parámetros de la solicitud
+        $validator = Validator::make($request->all(), $rules);
+
+        // Comprobar si la validación falla
+        if ($validator->fails()) {
+            return $this->jsonErrorResponse('Validation Error: ' . $validator->errors()->first(), 422);
+        }
+
+        // Verificar si se proporciona el parámetro perPage y si es un número válido
+        $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
+
+
+        try {
+            $perPage = $request->query('per_page', 10);
+
+            // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
+            $jobs = $this->buildJobQuery($request)->paginate($perPage);
+
+            // Retornar las ofertas de trabajo paginadas junto con datos adicionales
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
+                ->header('X-Total-Count', $jobs->total());
+        } catch (\Exception $e) {
+            // Manejar cualquier error y retornar una respuesta de error
+            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
+        }
+    }
+
+
 
     /**
      * Store a newly created resource in storage.
