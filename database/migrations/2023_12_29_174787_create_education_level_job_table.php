@@ -8,22 +8,19 @@ return new class extends Migration {
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::create('education_histories', function (Blueprint $table) {
+        Schema::create('education_level_job', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('candidate_id');
             $table->unsignedBigInteger('education_level_id');
-
-            $table->string('institution');
-            $table->string('field_of_study')->nullable();
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
+            $table->unsignedBigInteger('job_id');
             $table->timestamps();
 
-            $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
+            $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
             $table->foreign('education_level_id')->references('id')->on('education_levels')->onDelete('cascade');
 
+            // Asegurarse de que cada par de job_id y education_level_id sea único
+            $table->unique(['education_level_id', 'job_id']);
         });
     }
 
@@ -32,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('education_histories');
+        Schema::dropIfExists('education_level_job');
     }
 };

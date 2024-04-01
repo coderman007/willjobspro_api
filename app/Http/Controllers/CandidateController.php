@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
 use App\Models\EducationHistory;
+use App\Models\EducationLevel;
 use App\Models\Language;
 use App\Models\SocialNetwork;
 use App\Models\WorkExperience;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class CandidateController extends Controller
@@ -189,15 +191,30 @@ class CandidateController extends Controller
                 }
             }
 
-            // Crear el historial académico asociado al candidato (opcional)
-            if ($request->has('education_history')) {
+            // Verificar si se proporciona información sobre el historial académico
+            if ($request->filled('education_history')) {
                 foreach ($request->education_history as $educationData) {
+                    // Verificar si se proporciona el nivel de educación para este historial académico
+                    if (!isset($educationData['education_level_id'])) {
+                        // Si no se proporciona el nivel de educación, retornar un error
+                        return response()->json(['error' => 'Education level ID is required for each education record'], 422);
+                    }
+
+                    // Verificar si el nivel de educación proporcionado es válido
+                    if (!EducationLevel::where('id', $educationData['education_level_id'])->exists()) {
+                        // Si el nivel de educación no es válido, retornar un error
+                        return response()->json(['error' => 'Invalid education level ID provided'], 422);
+                    }
+
+                    // Crear el historial académico asociado al candidato y al nivel de educación
                     $education = new EducationHistory();
                     $education->candidate_id = $candidate->id;
+                    $education->education_level_id = $educationData['education_level_id'];
                     $education->fill($educationData);
                     $education->save();
                 }
             }
+
 
             // Sincronizar Idiomas
             $languages = $request->input('languages') ?? [];
@@ -280,14 +297,24 @@ class CandidateController extends Controller
 
             // Actualizar la relación de historial académico del candidato (opcional)
             if ($request->filled('education_history')) {
-                $candidate->educationHistories()->delete(); // Eliminar el historial académico existente
+                // Verificar si se proporciona el nivel educativo
+                if (!$request->filled('education_level_id')) {
+                    return response()->json(['error' => 'Education level ID is required for updating education history'], 422);
+                }
+
+                // Eliminar el historial académico existente
+                $candidate->educationHistories()->delete();
+
+                // Recorrer los datos del historial académico proporcionados por el candidato
                 foreach ($request->education_history as $educationData) {
                     $education = new EducationHistory();
                     $education->candidate_id = $candidate->id;
+                    $education->education_level_id = $request->education_level_id;
                     $education->fill($educationData);
                     $education->save();
                 }
             }
+
 
             // Sincronizar idiomas del candidato (opcional)
             if ($request->filled('languages')) {

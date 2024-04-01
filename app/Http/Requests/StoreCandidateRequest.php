@@ -28,16 +28,19 @@ class StoreCandidateRequest extends FormRequest
             'photo_file' => 'nullable|string',
             'banner_file' => 'nullable|string',
         ];
-        // Reglas de validación para el historial académico (opcional)
+
+        // Reglas de validación para el historial académico si se proporciona información sobre él
         if ($this->filled('education_history')) {
             $rules['education_history'] = 'nullable|array';
-            $rules['education_history.*.institution'] = 'required|string';
-            $rules['education_history.*.degree_title'] = 'required|string';
+            $rules['education_history.*.education_level_id'] = 'required|exists:education_levels,id';
+            $rules['education_history.*.institution'] = 'nullable|string';
             $rules['education_history.*.field_of_study'] = 'nullable|string';
-            $rules['education_history.*.start_date'] = 'required|date';
+            $rules['education_history.*.start_date'] = 'nullable|date';
             $rules['education_history.*.end_date'] = 'nullable|date|after_or_equal:education_history.*.start_date';
         }
+
         // Reglas de validación para la experiencia laboral (opcional)
+
         if ($this->filled('work_experiences')) {
             $rules['work_experiences'] = 'nullable|array';
             $rules['work_experiences.*.company'] = 'required|string';
@@ -79,9 +82,10 @@ class StoreCandidateRequest extends FormRequest
             'state_id.nullable' => 'The state id field is optional.',
             'city_id.nullable' => 'The city id field is optional.',
             'zip_code_id.nullable' => 'The zip code id field is optional.',
-            'education_history.*.institution.required' => 'The institution field is required.',
-            'education_history.*.degree_title.required' => 'The degree title field is required.',
-            'education_history.*.start_date.required' => 'The start date field is required.',
+            'education_level_id.exists' => 'The education level is required if education history is provided.',
+            'education_history.*.institution.nullable' => 'The institution field is optional.',
+            'education_history.*.field_of_study.nullable' => 'The field of study field is optional.',
+            'education_history.*.start_date.nullable' => 'The start date field is optional.',
             'education_history.*.end_date.after_or_equal' => 'The end date must be after or equal to the start date.',
             'work_experiences.*.company.required' => 'The company field is required.',
             'work_experiences.*.position.required' => 'The position field is required.',

@@ -53,6 +53,16 @@ class Job extends Model
         return $this->belongsToMany(JobType::class)->withTimestamps();
     }
 
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class)->withTimestamps();
+    }
+
+    public function educationLevels(): BelongsToMany
+    {
+        return $this->belongsToMany(EducationLevel::class)->withTimestamps();
+    }
+
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);

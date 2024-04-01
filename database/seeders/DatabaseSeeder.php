@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
             JobCategorySeeder::class,
             JobTypeSeeder::class,
+            EducationLevelSeeder::class,
             SocialNetworkSeeder::class,
             LanguageSeeder::class,
             SkillCategorySeeder::class,

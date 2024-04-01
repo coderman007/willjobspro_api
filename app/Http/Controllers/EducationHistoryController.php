@@ -22,29 +22,42 @@ class EducationHistoryController extends Controller
         return response()->json($educationHistories);
     }
 
-    /**
-     * Store a newly created education history in storage.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function store(Request $request): JsonResponse
     {
         // Validar los datos del formulario
-        $request->validate([
-            'candidate_id' => 'required|exists:candidates,id',
-            'institution' => 'required|string',
-            'degree_title' => 'required|string',
-            'field_of_study' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
+        $this->validateEducationHistory($request);
 
         // Crear un nuevo registro de historial académico
         $educationHistory = EducationHistory::create($request->all());
 
-        // Retornar una respuesta de éxito
+        // Retornar una respuesta de éxito con un mensaje descriptivo
         return response()->json(['message' => 'Education history created successfully', 'data' => $educationHistory], 201);
+    }
+
+    // Método para actualizar un historial académico existente
+    public function update(Request $request, EducationHistory $educationHistory): JsonResponse
+    {
+        // Validar los datos del formulario
+        $this->validateEducationHistory($request);
+
+        // Actualizar el registro de historial académico
+        $educationHistory->update($request->all());
+
+        // Retornar una respuesta de éxito con un mensaje descriptivo
+        return response()->json(['message' => 'Education history updated successfully', 'data' => $educationHistory]);
+    }
+
+    // Función para validar los datos del historial académico
+    private function validateEducationHistory(Request $request)
+    {
+        $request->validate([
+            'candidate_id' => 'required|exists:candidates,id',
+            'education_level_id' => 'required|exists:education_levels,id',
+            'institution' => 'required|string',
+            'field_of_study' => 'nullable|string',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
     }
 
     /**
@@ -57,32 +70,6 @@ class EducationHistoryController extends Controller
     {
         // Retornar el historial académico específico
         return response()->json($educationHistory);
-    }
-
-    /**
-     * Update the specified education history in storage.
-     *
-     * @param Request $request
-     * @param EducationHistory $educationHistory
-     * @return JsonResponse
-     */
-    public function update(Request $request, EducationHistory $educationHistory): JsonResponse
-    {
-        // Validar los datos del formulario
-        $request->validate([
-            'candidate_id' => 'required|exists:candidates,id',
-            'institution' => 'required|string',
-            'degree_title' => 'required|string',
-            'field_of_study' => 'nullable|string',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        // Actualizar el registro de historial académico
-        $educationHistory->update($request->all());
-
-        // Retornar una respuesta de éxito
-        return response()->json(['message' => 'Education history updated successfully', 'data' => $educationHistory]);
     }
 
     /**

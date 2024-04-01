@@ -6,13 +6,25 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCandidateRequest extends FormRequest
 {
-    public function authorize(): bool
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
     {
+        // Verificar si el usuario está autenticado y tiene el rol de candidato
         return auth()->check() && auth()->user()->hasRole('candidate');
     }
 
-    public function rules(): array
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
     {
+        // Definir las reglas de validación para la actualización del candidato
         $rules = [
             'gender' => 'nullable|string|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
@@ -23,26 +35,18 @@ class UpdateCandidateRequest extends FormRequest
             'state_id' => 'nullable|exists:states,id',
             'city_id' => 'nullable|exists:cities,id',
             'zip_code_id' => 'nullable|exists:zip_codes,id',
+            // Archivos base64
             'cv_file' => 'nullable|string',
             'photo_file' => 'nullable|string',
             'banner_file' => 'nullable|string',
         ];
 
-        // Reglas de validación adicionales para la actualización
-        $rules = $this->addUpdateValidationRules($rules);
-
-        return $rules;
-    }
-
-    private function addUpdateValidationRules(array $rules): array
-    {
-        // Reglas de validación para el historial académico (opcional)
         if ($this->filled('education_history')) {
             $rules['education_history'] = 'nullable|array';
-            $rules['education_history.*.institution'] = 'required|string';
-            $rules['education_history.*.degree_title'] = 'required|string';
+            $rules['education_history.*.education_level_id'] = 'required|exists:education_levels,id';
+            $rules['education_history.*.institution'] = 'nullable|string';
             $rules['education_history.*.field_of_study'] = 'nullable|string';
-            $rules['education_history.*.start_date'] = 'required|date';
+            $rules['education_history.*.start_date'] = 'nullable|date';
             $rules['education_history.*.end_date'] = 'nullable|date|after_or_equal:education_history.*.start_date';
         }
 
@@ -55,54 +59,57 @@ class UpdateCandidateRequest extends FormRequest
             $rules['work_experiences.*.start_date'] = 'required|date';
             $rules['work_experiences.*.end_date'] = 'nullable|date|after_or_equal:work_experiences.*.start_date';
         }
-
         // Reglas de validación para las redes sociales (opcional)
         if ($this->filled('social_networks')) {
             $rules['social_networks'] = 'nullable|array';
             $rules['social_networks.*.url'] = 'required|url';
         }
-
         // Reglas de validación para las habilidades de candidatos (opcional)
         if ($this->filled('skills')) {
             $rules['skills'] = 'nullable|array';
             $rules['skills.*'] = 'numeric|exists:skills,id';
         }
-
         // Reglas de validación para los idiomas (opcional)
         if ($this->filled('languages')) {
             $rules['languages'] = 'nullable|array';
-            $rules['languages.*.id'] = 'required|numeric';
+            $rules['languages.*.id'] ='required|numeric';
             $rules['languages.*.level'] = 'required|string';
         }
 
         return $rules;
     }
 
-    public function messages(): array
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
     {
+        // Definir mensajes de error personalizados para las reglas de validación
         return [
-            'gender.nullable' => 'El campo género es opcional.',
-            'date_of_birth.nullable' => 'El campo fecha de nacimiento es opcional.',
-            'phone_number.nullable' => 'El campo número de teléfono es opcional.',
-            'expected_salary.nullable' => 'El campo salario esperado es opcional.',
-            'status.nullable' => 'El campo estado es opcional.',
-            'country_id.exists' => 'El país seleccionado no es válido.',
-            'state_id.exists' => 'El estado seleccionado no es válido.',
-            'city_id.exists' => 'La ciudad seleccionada no es válida.',
-            'zip_code_id.exists' => 'El código postal seleccionado no es válido.',
-            'education_history.*.institution.required' => 'El campo institución es obligatorio para todo el historial académico.',
-            'education_history.*.degree_title.required' => 'El campo título de grado es obligatorio para todo el historial académico.',
-            'education_history.*.start_date.required' => 'El campo fecha de inicio es obligatorio para todo el historial académico.',
-            'education_history.*.end_date.after_or_equal' => 'La fecha de finalización debe ser posterior o igual a la fecha de inicio para todo el historial académico.',
-            'work_experiences.*.company.required' => 'El campo empresa es obligatorio para toda la experiencia laboral.',
-            'work_experiences.*.position.required' => 'El campo posición es obligatorio para toda la experiencia laboral.',
-            'work_experiences.*.start_date.required' => 'El campo fecha de inicio es obligatorio para toda la experiencia laboral.',
-            'work_experiences.*.end_date.after_or_equal' => 'La fecha de finalización debe ser posterior o igual a la fecha de inicio para toda la experiencia laboral.',
-            'social_networks.*.url.required' => 'El campo URL es obligatorio para las redes sociales.',
-            'social_networks.*.url.url' => 'El formato de URL no es válido para las redes sociales.',
-            'skills.*.exists' => 'La habilidad seleccionada no es válida.',
-            'languages.*.id.required' => 'El campo ID del idioma es obligatorio para todos los idiomas.',
-            'languages.*.level.required' => 'El campo nivel de idioma es obligatorio para todos los idiomas.',
+            'gender.nullable' => 'The gender field is optional.',
+            'date_of_birth.nullable' => 'The date of birth field is optional.',
+            'phone_number.nullable' => 'The phone number field is optional.',
+            'expected_salary.nullable' => 'The expected salary field is optional.',
+            'status.nullable' => 'The status field is optional.',
+            'country_id.nullable' => 'The country id field is optional.',
+            'state_id.nullable' => 'The state id field is optional.',
+            'city_id.nullable' => 'The city id field is optional.',
+            'zip_code_id.nullable' => 'The zip code id field is optional.',
+            'education_history.*.institution.nullable' => 'The institution field is optional.',
+            'education_history.*.field_of_study.nullable' => 'The field of study field is optional.',
+            'education_history.*.start_date.nullable' => 'The start date field is optional.',
+            'education_history.*.end_date.after_or_equal' => 'The end date must be after or equal to the start date.',
+            'work_experiences.*.company.required' => 'The company field is required.',
+            'work_experiences.*.position.required' => 'The position field is required.',
+            'work_experiences.*.start_date.required' => 'The start date field is required.',
+            'work_experiences.*.end_date.after_or_equal' => 'The end date must be after or equal to the start date.',
+            'social_networks.*.url.required' => 'The URL field is required for social networks.',
+            'social_networks.*.url.url' => 'The URL format is invalid for social networks.',
+            'cv_file.nullable' => 'The cv file field is optional.',
+            'photo_file.nullable' => 'The photo file field is optional.',
+            'banner_file.nullable' => 'The banner file field is optional.',
         ];
     }
 }

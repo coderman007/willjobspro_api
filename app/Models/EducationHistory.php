@@ -17,8 +17,8 @@ class EducationHistory extends Model
      */
     protected $fillable = [
         'candidate_id',
+        'education_level_id',
         'institution',
-        'degree_title',
         'field_of_study',
         'start_date',
         'end_date',
@@ -40,5 +40,13 @@ class EducationHistory extends Model
     public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
+    }
+
+    /**
+     * Get the education level associated with the education history.
+     */
+    public function educationLevel(): BelongsTo
+    {
+        return $this->belongsTo(EducationLevel::class);
     }
 }

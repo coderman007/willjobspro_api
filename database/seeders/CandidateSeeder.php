@@ -9,6 +9,7 @@ use App\Models\WorkExperience;
 use App\Models\EducationHistory;
 use App\Models\Skill;
 use App\Models\SocialNetwork;
+use App\Models\EducationLevel;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 
@@ -44,15 +45,20 @@ class CandidateSeeder extends Seeder
                 $candidate->languages()->attach($language->id, ['level' => $level]);
             }
 
+            // Obtener todos los niveles de educación
+            $educationLevels = EducationLevel::all();
+
             // Crear historial académico
-            EducationHistory::factory()->count(rand(1, 2))->create([
-                'candidate_id' => $candidate->id,
-                'institution' => $faker->company,
-                'degree_title' => $faker->sentence(3),
-                'field_of_study' => $faker->word,
-                'start_date' => $faker->dateTimeBetween('-10 years', '-5 years'),
-                'end_date' => $faker->dateTimeBetween('-4 years', 'now'),
-            ]);
+            $educationLevels->each(function ($educationLevel) use ($faker, $candidate) {
+                EducationHistory::factory()->create([
+                    'candidate_id' => $candidate->id,
+                    'education_level_id' => $educationLevel->id,
+                    'institution' => $faker->company,
+                    'field_of_study' => $faker->word,
+                    'start_date' => $faker->dateTimeBetween('-10 years', '-5 years'),
+                    'end_date' => $faker->dateTimeBetween('-4 years', 'now'),
+                ]);
+            });
 
             // Crear experiencia laboral
             WorkExperience::factory()->count(rand(1, 2))->create([
@@ -67,7 +73,6 @@ class CandidateSeeder extends Seeder
             // Asociar habilidades
             $skills = Skill::inRandomOrder()->limit(3)->get();
             $candidate->skills()->attach($skills->pluck('id'));
-
         });
     }
 }
