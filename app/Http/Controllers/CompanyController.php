@@ -283,5 +283,70 @@ class CompanyController extends Controller
         return response()->json(['error' => $message], $statusCode);
     }
 
+    public function getCompanyJobApplications(Request $request): JsonResponse
+    {
+        try {
+            // Verificar si el usuario autenticado tiene el rol 'company'
+            $user = Auth::user();
+            if (!$user->hasRole('company')) {
+                return response()->json(['error' => 'Unauthorized access to applications'], 403);
+            }
+
+            // Obtener la compañía autenticada y sus ofertas de trabajo
+            $company = $user->company;
+            $jobs = $company->jobs;
+
+            // Verificar si la compañía ha publicado ofertas de trabajo
+            if ($jobs->isEmpty()) {
+                return response()->json(['message' => 'The company has not published any job offers yet'], 200);
+            }
+
+            // Inicializar array para almacenar las aplicaciones
+            $applicationsData = [];
+
+            // Variable para verificar si hay aplicaciones
+            $hasApplications = false;
+
+            // Recorrer las ofertas de trabajo de la compañía y obtener las aplicaciones asociadas
+            foreach ($jobs as $job) {
+                $applications = $job->applications()->with(['candidate'])->get();
+
+                // Si hay aplicaciones, establecer la bandera en verdadero
+                if ($applications->count() > 0) {
+                    $hasApplications = true;
+                }
+
+                // Transformar las aplicaciones a un formato de respuesta
+                foreach ($applications as $application) {
+                    $applicationsData[] = [
+                        'id' => $application->id,
+                        'cover_letter' => $application->cover_letter,
+                        'status' => $application->status,
+                        'created_at' => $application->created_at,
+                        'candidate_id' => $application->candidate_id,
+                        'candidate_name' => $application->candidate->user->name, // Agregar el nombre del candidato
+                        'candidate_email' => $application->candidate->user->email, // Agregar el correo electrónico del candidato
+                        'job_id' => $application->job_id,
+                        'job_title' => $job->title, // Agregar el título de la oferta de trabajo
+                        'job_salary' => $job->salary, // Agregar el salario de la oferta de trabajo
+                        'company_id' => $job->company_id, // Agregar el ID de la compañía
+                        'company_name' => $company->user->name, // Agregar el nombre de la compañía
+                    ];
+                }
+            }
+
+            // Verificar si hay aplicaciones
+            if (!$hasApplications) {
+                return response()->json(['message' => 'No applications found for the company'], 200);
+            }
+
+            // Devolver la información de las aplicaciones
+            return response()->json(['data' => $applicationsData], 200);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
+
 }
 
