@@ -15,7 +15,7 @@ class CandidateResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'candidate_id' => $this->id,
+            'id' => $this->id,
             'user_id' => $this->user_id,
             'name' => $this->user->name,
             'email' => $this->user->email,

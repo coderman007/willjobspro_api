@@ -17,7 +17,7 @@ class CompanyResource extends JsonResource
     {
         // return parent::toArray($request);
         return [
-            'company_id' => $this->id,
+            'id' => $this->id,
             'user_id' => $this->user_id,
             'name' => $this->user->name,
             'contact_person' => $this->contact_person,
