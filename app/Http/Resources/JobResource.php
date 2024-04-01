@@ -9,11 +9,16 @@ class JobResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'job_offer_id' => $this->id,
-            'company_id' => $this->company->id,
-            'company_name' => $this->company->user->name,
-            'job_category_id' => $this->jobCategory->id,
-            'job_category_name' => $this->jobCategory->name,
+            'id' => $this->id,
+            'company' => [
+                'id' => $this->company->id,
+                'name' => $this->company->user->name,
+            ],
+            'job_category' => [
+                'id' => $this->jobCategory->id,
+                'name' => $this->jobCategory->name,
+                // Otros atributos de la categoría de trabajo si es necesario
+            ],
             'title' => $this->title,
             'description' => $this->description,
             'posted_date' => $this->posted_date,
@@ -24,10 +29,10 @@ class JobResource extends JsonResource
             'contact_phone' => $this->contact_phone,
             'experience_required' => $this->experience_required,
             'status' => $this->status,
-            'skills' => $this->skills,
-            'education_levels' => $this->educationLevels,
-            'job_types' => $this->jobTypes,
-            'languages' => $this->languages,
+            'job_types' => $this->getAttribute('jobTypes'),
+            'languages' => $this->getAttribute('languages'),
+            'education_levels' => $this->getAttribute('educationLevels'),
+            'skills' => $this->getAttribute('skills'),
         ];
     }
 }
