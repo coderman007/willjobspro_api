@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationRequest;
+use App\Http\Resources\ApplicationResource;
 use App\Models\Application;
 use App\Models\Job;
 use Illuminate\Database\QueryException;
@@ -67,7 +68,10 @@ class ApplicationController extends Controller
             // Obtener y paginar los resultados
             $applications = $query->get();
 
-            return response()->json(['applications' => $applications], 200);
+            // Transformar los resultados utilizando el recurso API
+            $formattedApplications = ApplicationResource::collection($applications);
+
+            return response()->json(['applications' => $formattedApplications], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
