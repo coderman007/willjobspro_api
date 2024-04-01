@@ -29,7 +29,17 @@ class CandidateResource extends JsonResource
             'city' => $this->user->city,
             'zip_code' => $this->user->zipCode,
             'skills' => $this->skills,
-            'education_histories' => $this->educationHistories,
+            'education_histories' => $this->educationHistories->map(function ($education) {
+                return [
+                    'id' => $education->id,
+                    'education_level_id' => $education->education_level_id,
+                    'education_level_name' => $education->educationLevel->name,
+                    'institution' => $education->institution,
+                    'field_of_study' => $education->field_of_study,
+                    'start_date' => $education->start_date,
+                    'end_date' => $education->end_date,
+                ];
+            }),
             'work_experiences' => $this->workExperiences,
             'languages' => $this->languages,
             'social_networks' => $this->user->socialNetworks,

@@ -75,7 +75,7 @@ class JobController extends Controller
             });
         });
 
-        // Ordenar resultados
+        /// Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
