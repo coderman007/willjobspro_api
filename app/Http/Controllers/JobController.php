@@ -29,11 +29,6 @@ class JobController extends Controller
             // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
             $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
-            // Iterar sobre las ofertas de trabajo para añadir datos adicionales
-            foreach ($jobs as $job) {
-                $this->loadAdditionalData($job);
-            }
-
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
             return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
                 ->header('X-Total-Count', $jobs->total());
@@ -86,6 +81,14 @@ class JobController extends Controller
             $jobTypeId = $request->query('job_type_id');
             return $query->whereHas('jobTypes', function ($q) use ($jobTypeId) {
                 $q->where('job_types.id', $jobTypeId);
+            });
+        });
+
+        // Filtrar por habilidades
+        $query->when($request->filled('skill_id'), function ($query) use ($request) {
+            $skillId = $request->query('skill_id');
+            return $query->whereHas('skills', function ($q) use ($skillId) {
+                $q->where('skills.id', $skillId);
             });
         });
 
@@ -197,14 +200,6 @@ class JobController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param UpdateJobRequest $request
-     * @param Job $job
-     * @return JsonResponse
-     */
-
-    /**
-     * Update the specified resource in storage.
-     *
      * @param StoreJobRequest $request
      * @param Job $job
      * @return JsonResponse
@@ -290,9 +285,6 @@ class JobController extends Controller
         }
     }
 
-
-
-
     /**
      * Remove the specified resource from storage.
      *
@@ -314,32 +306,6 @@ class JobController extends Controller
         } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage(), 500);
         }
-    }
-
-    /**
-     * Build the job query based on the request filters.
-     *
-     * @param Request $request
-     * @return Builder
-     */
-
-
-    /**
-     * Load additional data for a job.
-     *
-     * @param Job $job
-     * @return void
-     */
-    private function loadAdditionalData(Job $job): void
-    {
-        // Calcular si el usuario ha aplicado a esta oferta de trabajo
-        $job->setAttribute('applied', $job->applications->count() > 0);
-
-        // Obtener los nombres de los tipos de trabajo relacionados
-        $job->setAttribute('job_types', $job->jobTypes->pluck('name')->implode(', '));
-
-        // Obtener los nombres de los idiomas relacionados
-        $job->setAttribute('languages', $job->languages->pluck('name')->implode(', '));
     }
 
     /**
