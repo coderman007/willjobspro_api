@@ -23,6 +23,7 @@ class ApplicationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+
     public function index(Request $request): JsonResponse
     {
         try {
@@ -65,17 +66,24 @@ class ApplicationController extends Controller
             // Ordenar por fecha de aplicación de forma predeterminada
             $query->orderBy('application_date', 'desc');
 
-            // Obtener y paginar los resultados
+            // Obtener las aplicaciones
             $applications = $query->get();
+
+            // Verificar si hay aplicaciones disponibles
+            if ($applications->isEmpty()) {
+                return response()->json(['data' => [], 'message' => 'No applications available.'], 200);
+            }
 
             // Transformar los resultados utilizando el recurso API
             $formattedApplications = ApplicationResource::collection($applications);
 
-            return response()->json(['applications' => $formattedApplications], 200);
+            return response()->json(['data' => $formattedApplications], 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
     }
+
+
 
 
     // Función auxiliar para obtener los filtros dinámicos
