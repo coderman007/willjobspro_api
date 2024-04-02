@@ -167,10 +167,43 @@ class ApplicationController extends Controller
      * @param Application $application
      * @return JsonResponse
      */
-    public function show(Application $application): JsonResponse
+
+    public function show(Application $application)
     {
         try {
-            return response()->json(['data' => $application], 200);
+            // Obtener el usuario autenticado
+            $user = Auth::user();
+
+            // Declarar una variable para almacenar el recurso API
+            $formattedApplication = null;
+
+            // Verificar el tipo de usuario y sus permisos para acceder al detalle de la aplicación
+            switch ($user->getUserType()) {
+                case 'admin':
+                    // Los administradores tienen acceso total
+                    $formattedApplication = new ApplicationResource($application);
+                    break;
+                case 'company':
+                    // Verificar si la aplicación está relacionada con una oferta de trabajo publicada por la compañía
+                    if ($application->job->company_id !== $user->company->id) {
+                        return response()->json(['error' => 'You do not have permissions to access this resource.'], 403);
+                    }
+                    $formattedApplication = new ApplicationResource($application);
+                    break;
+                case 'candidate':
+                    // Verificar si la aplicación fue creada por el candidato autenticado
+                    if ($application->candidate_id !== $user->candidate->id) {
+                        return response()->json(['error' => 'You do not have permissions to access this resource.'], 403);
+                    }
+                    $formattedApplication = new ApplicationResource($application);
+                    break;
+                default:
+                    // Manejar otros roles según sea necesario
+                    break;
+            }
+
+            // Si el usuario tiene permisos, devolver el detalle de la aplicación utilizando el recurso API
+            return response()->json(['data' => $formattedApplication], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the application!',

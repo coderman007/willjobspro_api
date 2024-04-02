@@ -18,12 +18,15 @@ class ApplicationResource extends JsonResource
             'id' => $this->id,
             'candidate_id' => $this->candidate_id,
             'job_id' => $this->job_id,
+            "job_title" => $this->job->title,
+            "job_salary" => $this->job->salary,
             'company_id' => $this->job->company_id,
             'company_name' => $this->job->company->user->name,
             'cover_letter' => $this->cover_letter,
             'application_date' => $this->application_date,
             'rejection_date' => $this->rejection_date,
             'status' => $this->status,
+
         ];
     }
 }

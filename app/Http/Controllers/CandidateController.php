@@ -92,11 +92,12 @@ class CandidateController extends Controller
                     'cover_letter' => $application->cover_letter,
                     'status' => $application->status,
                     'created_at' => $application->created_at,
+                    'candidate_id' => $application->candidate_id,
                     'job_id' => $application->job_id,
-                    'job_title' => $application->job->title, // Agregar el título de la oferta de trabajo
-                    'job_salary' => $application->job->salary, // Agregar el salario de la oferta de trabajo
-                    'company_id' => $application->job->company_id, // Agregar el ID de la compañía
-                    'company_name' => $application->job->company->user->name, // Agregar el nombre de la compañía
+                    'job_title' => $application->job->title,
+                    'job_salary' => $application->job->salary,
+                    'company_id' => $application->job->company_id,
+                    'company_name' => $application->job->company->user->name,
                 ];
             }
 
