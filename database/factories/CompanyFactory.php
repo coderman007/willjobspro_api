@@ -22,9 +22,6 @@ class CompanyFactory extends Factory
             $user->assignRole('company');
         }
 
-        $logoPath = $this->faker->image('public/storage/company_uploads/logos', 100, 100, null, false);
-        $bannerPath = $this->faker->image('public/storage/company_uploads/banners', 800, 400, null, false);
-
         return [
             'user_id' => $user->id,
             'contact_person' => $this->faker->name,
@@ -33,8 +30,8 @@ class CompanyFactory extends Factory
             'description' => $this->faker->paragraph,
             'website' => $this->faker->url,
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
-            'logo_file' => $logoPath,
-            'banner_file' => $bannerPath,
+            'logo_file' => 'company_uploads/logos/' . $this->faker->image('public/storage/company_uploads/logos', 100, 100, null, false),
+            'banner_file' => 'company_uploads/banners/' . $this->faker->image('public/storage/company_uploads/banners', 800, 400, null, false),
         ];
     }
 }

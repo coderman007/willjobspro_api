@@ -122,10 +122,12 @@ class CompanyController extends Controller
 
             // Actualiza los campos de la compañía con los datos validados del formulario
             $company = new Company;
-            $company->fill($request->validated());
 
             // Asocia el usuario autenticado como propietario de la compañía
             $company->user_id = $user->id;
+
+            $company->fill($request->validated());
+
 
             // Almacena los archivos codificados en Base64
             $this->storeBase64Files($company, $request);
@@ -133,7 +135,7 @@ class CompanyController extends Controller
             // Guarda la compañía en la base de datos
             $company->save();
 
-            // Asocia las redes sociales a la compañía
+            // Asocia las redes sociales al usuario
             if ($request->filled('social_networks')) {
                 foreach ($request->social_networks as $socialNetworkData) {
                     $socialNetwork = new SocialNetwork();
@@ -151,7 +153,7 @@ class CompanyController extends Controller
 
             // Devuelve una respuesta JSON con el mensaje de éxito y la información de la compañía
             return response()->json([
-                'message' => 'Company created successfully!',
+                'message' => 'Company profile created successfully!',
                 'data' => $companyResource,
             ], 201);
 
