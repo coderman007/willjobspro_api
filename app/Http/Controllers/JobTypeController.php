@@ -20,7 +20,7 @@ class JobTypeController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
-            $jobTypes = JobType::paginate($perPage);
+            $jobTypes = JobType::get();
 
             return response()->json([
                 'message' => 'Job types successfully retrieved',

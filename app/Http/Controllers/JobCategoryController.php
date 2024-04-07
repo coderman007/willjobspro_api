@@ -20,7 +20,7 @@ class JobCategoryController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
-            $jobCategories = JobCategory::paginate($perPage);
+            $jobCategories = JobCategory::get();
 
             return response()->json([
                 'message' => 'Job categories successfully retrieved',
