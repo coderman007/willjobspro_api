@@ -17,7 +17,7 @@ class EducationLevelController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $educationLevels = EducationLevel::paginate(10);
+            $educationLevels = EducationLevel::paginate(10)->items();
 
             return response()->json([
                 'message' => 'Education levels successfully retrieved',
