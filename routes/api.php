@@ -10,6 +10,7 @@ use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobTypeController;
 use App\Http\Controllers\CountryController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\StateController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ZipCodeController;
@@ -37,10 +38,16 @@ Route::get('companies', [CompanyController::class, 'index']);
 Route::get('companies/{company}', [CompanyController::class, 'show']);
 Route::get('job-categories', [JobCategoryController::class, 'index']);
 Route::get('job-types', [JobTypeController::class, 'index']);
+Route::get('skill-categories', [SkillCategoryController::class, 'index']);
+Route::get('skill-categories/{skill_category}', [SkillCategoryController::class, 'show']);
+Route::get('skills', [SkillController::class, 'index']);
+Route::get('skills/{skill}', [SkillController::class, 'show']);
 Route::get('jobs/{job}', [JobController::class, 'show']);
 Route::get('jobs/{user?}', [JobController::class, 'index']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
+Route::get('languages', [LanguageController::class, 'index']);
+Route::get('languages/{languages}', [LanguageController::class, 'show']);
 Route::get('link-storage', [CommandController::class, 'linkStorage']);
 
 // Rutas comunes a todos los usuarios, protegidas solo con autenticación.
@@ -56,15 +63,11 @@ Route::group([
     Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'getSubscription']);
 
     // Rutas para gestionar categorías de habilidades
-    Route::get('skill-categories', [SkillCategoryController::class, 'index']);
-    Route::get('skill-categories/{skill_category}', [SkillCategoryController::class, 'show']);
     Route::post('skill-categories', [SkillCategoryController::class, 'store']);
     Route::put('skill-categories/{skill_category}', [SkillCategoryController::class, 'update']);
     Route::delete('skill-categories/{skill_category}', [SkillCategoryController::class, 'destroy']);
 
     // Rutas para gestionar habilidades
-    Route::get('skills', [SkillController::class, 'index']);
-    Route::get('skills/{skill}', [SkillController::class, 'show']);
     Route::post('skills', [SkillController::class, 'store']);
     Route::put('skills/{skill}', [SkillController::class, 'update']);
     Route::delete('skills/{skill}', [SkillController::class, 'destroy']);
@@ -128,6 +131,11 @@ Route::group([
     Route::post('education-levels', [EducationLevelController::class, 'store']);
     Route::put('education-levels/{education_level}', [EducationLevelController::class, 'update']);
     Route::delete('education-levels/{education_level}', [EducationLevelController::class, 'destroy']);
+
+    // Rutas para Idiomas
+    Route::post('languages', [LanguageController::class, 'store']);
+    Route::put('languages/{languages}', [LanguageController::class, 'update']);
+    Route::delete('languages/{languages}', [LanguageController::class, 'destroy']);
 
     // Rutas para gestionar experiencias laborales
     Route::get('work-experiences', [WorkExperienceController::class, 'index']);

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateSkillRequest extends FormRequest
+class UpdateLanguageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,9 +23,7 @@ class UpdateSkillRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'skill_category_id' => 'required|exists:skill_categories,id',
-            'name' => 'required|string|unique:skills,name,' . $this->route('skill')->id . ',id,skill_category_id,' . $this->input('skill_category_id'),
-            'description' => 'nullable|string'
+            'name' => 'required|string|unique:languages,name,'
         ];
     }
 }

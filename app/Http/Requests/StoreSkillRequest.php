@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreSkillRequest extends FormRequest
@@ -11,18 +12,20 @@ class StoreSkillRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return auth()->check() && auth()->user()->hasRole('admin');
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
-            //
+            'skill_category_id' => 'required|exists:skill_categories,id',
+            'name' => 'required|string|unique:skills,name,NULL,id,skill_category_id,' . $this->input('skill_category_id'),
+            'description' => 'nullable|string'
         ];
     }
 }

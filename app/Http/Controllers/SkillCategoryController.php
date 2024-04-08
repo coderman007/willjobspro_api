@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSkillCategoryRequest;
+use App\Http\Requests\UpdateSkillCategoryRequest;
+use App\Models\Language;
 use App\Models\SkillCategory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -10,89 +14,130 @@ class SkillCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        // Permitir que todos los usuarios autenticados vean la lista de categorías de habilidades
-        $categories = SkillCategory::all();
-        return response()->json(['categories' => $categories], 200);
+        try {
+            $perPage = $request->query('per_page', 10);
+            $skillCategories = SkillCategory::paginate($perPage)->items();
+
+            return response()->json([
+                'message' => 'Skill categories successfully retrieved',
+                'data' => $skillCategories
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while getting the skill categories list!',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @param StoreSkillCategoryRequest $request
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreSkillCategoryRequest $request): JsonResponse
     {
-        // Validar que el usuario tenga el rol de admin
-        if (!Auth::user()->hasRole('admin')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
+            $validatedData = $request->validated();
+            $skillCategory = SkillCategory::create($validatedData);
+
+            return response()->json([
+                'message' => 'Skill category successfully created',
+                'data' => $skillCategory
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while creating the skill category!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
-
-        // Validar los datos de entrada y crear la categoría de habilidad
-        $request->validate([
-            'name' => 'required|string|unique:skill_categories,name',
-            'description' => 'nullable|string'
-        ]);
-
-        $category = SkillCategory::create([
-            'name' => $request->name,
-            'description' => $request->description
-        ]);
-
-        return response()->json(['category' => $category], 201);
     }
 
     /**
      * Display the specified resource.
+     *
+     * @param SkillCategory $skillCategory
+     * @return JsonResponse
      */
-    public function show(SkillCategory $skillCategory)
+    public function show(SkillCategory $skillCategory): JsonResponse
     {
-        // Validar que el usuario tenga el rol de admin
-        if (!Auth::user()->hasRole('admin')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        try {
+            return response()->json([
+                'message' => 'Skill category detail successfully retrieved',
+                'data' => $skillCategory,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while retrieving the skill category!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
-
-        // Permitir que todos los usuarios autenticados vean los detalles de la categoría de habilidad
-        return response()->json(['category' => $skillCategory], 200);
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @param UpdateSkillCategoryRequest $request
+     * @param SkillCategory $skillCategory
+     * @return JsonResponse
      */
-    public function update(Request $request, SkillCategory $skillCategory)
+    public function update(UpdateSkillCategoryRequest $request, SkillCategory $skillCategory): JsonResponse
     {
-        // Validar que el usuario tenga el rol de admin
-        if (!Auth::user()->hasRole('admin')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
+            $validatedData = $request->validated();
+            $skillCategory->update($validatedData);
+
+            return response()->json([
+                'message' => 'Skill category successfully updated',
+                'data' => $skillCategory
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while updating the skill category!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
-
-        // Validar los datos de entrada y actualizar la categoría de habilidad
-        $request->validate([
-            'name' => 'required|string|unique:skill_categories,name,' . $skillCategory->id,
-            'description' => 'nullable|string'
-        ]);
-
-        $skillCategory->update([
-            'name' => $request->name,
-            'description' => $request->description
-        ]);
-
-        return response()->json(['category' => $skillCategory], 200);
     }
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @param SkillCategory $skillCategory
+     * @return JsonResponse
      */
-    public function destroy(SkillCategory $skillCategory)
+    public function destroy(SkillCategory $skillCategory): JsonResponse
     {
-        // Validar que el usuario tenga el rol de admin
-        if (!Auth::user()->hasRole('admin')) {
-            return response()->json(['message' => 'No tienes permisos para realizar esta acción.'], 403);
+        try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
+            $skillCategory->delete();
+
+            return response()->json([
+                'message' => 'Skill category deleted',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while deleting the skill category!',
+                'details' => $e->getMessage(),
+            ], 500);
         }
-
-        // Eliminar la categoría de habilidad
-        $skillCategory->delete();
-
-        return response()->json(null, 204);
     }
 }

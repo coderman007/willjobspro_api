@@ -6,18 +6,22 @@ use App\Http\Requests\StoreEducationLevelRequest;
 use App\Http\Requests\UpdateEducationLevelRequest;
 use App\Models\EducationLevel;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class EducationLevelController extends Controller
 {
     /**
      * Display a listing of the education levels.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         try {
-            $educationLevels = EducationLevel::paginate(10)->items();
+            $perPage = $request->query('per_page', 10);
+            $educationLevels = EducationLevel::paginate($perPage)->items();
 
             return response()->json([
                 'message' => 'Education levels successfully retrieved',
@@ -61,6 +65,10 @@ class EducationLevelController extends Controller
     public function store(StoreEducationLevelRequest $request): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $validatedData = $request->validated();
             $educationLevel = EducationLevel::create($validatedData);
 
@@ -86,6 +94,10 @@ class EducationLevelController extends Controller
     public function update(UpdateEducationLevelRequest $request, EducationLevel $educationLevel): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $validatedData = $request->validated();
             $educationLevel->update($validatedData);
 
@@ -110,6 +122,10 @@ class EducationLevelController extends Controller
     public function destroy(EducationLevel $educationLevel): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $educationLevel->delete();
 
             return response()->json([

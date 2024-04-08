@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateJobTypeRequest;
 use App\Models\JobType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class JobTypeController extends Controller
 {
@@ -16,11 +17,11 @@ class JobTypeController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         try {
-            $perPage = $request->query('per_page', 10); // Obtener el número de elementos por página
-            $jobTypes = JobType::get();
+            $perPage = $request->query('per_page', 10);
+            $jobTypes = JobType::paginate($perPage)->items();
 
             return response()->json([
                 'message' => 'Job types successfully retrieved',
@@ -28,7 +29,7 @@ class JobTypeController extends Controller
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'An error occurred while getting the job type list!',
+                'error' => 'An error occurred while getting the job types list!',
                 'details' => $e->getMessage(),
             ], 500);
         }
@@ -43,6 +44,10 @@ class JobTypeController extends Controller
     public function store(StoreJobTypeRequest $request): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $validatedData = $request->validated();
             $jobType = JobType::create($validatedData);
 
@@ -89,6 +94,10 @@ class JobTypeController extends Controller
     public function update(UpdateJobTypeRequest $request, JobType $jobType): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $validatedData = $request->validated();
             $jobType->update($validatedData);
 
@@ -113,6 +122,10 @@ class JobTypeController extends Controller
     public function destroy(JobType $jobType): JsonResponse
     {
         try {
+            if (!Auth::user()->hasRole('admin')) {
+                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
+            }
+
             $jobType->delete();
 
             return response()->json([
