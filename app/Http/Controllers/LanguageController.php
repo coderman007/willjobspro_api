@@ -72,9 +72,6 @@ class LanguageController extends Controller
     public function show(Language $language): JsonResponse
     {
         try {
-            if (!Auth::user()->hasRole('admin')) {
-                return response()->json(['message' => 'You do not have permission to perform this action.'], 403);
-            }
 
             return response()->json([
                 'message' => 'Language detail successfully retrieved',
