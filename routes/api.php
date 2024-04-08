@@ -47,7 +47,7 @@ Route::get('jobs/{user?}', [JobController::class, 'index']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
 Route::get('languages', [LanguageController::class, 'index']);
-Route::get('languages/{languages}', [LanguageController::class, 'show']);
+Route::get('languages/{language}', [LanguageController::class, 'show']);
 Route::get('link-storage', [CommandController::class, 'linkStorage']);
 
 // Rutas comunes a todos los usuarios, protegidas solo con autenticación.
