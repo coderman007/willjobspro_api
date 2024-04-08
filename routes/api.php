@@ -134,8 +134,8 @@ Route::group([
 
     // Rutas para Idiomas
     Route::post('languages', [LanguageController::class, 'store']);
-    Route::put('languages/{languages}', [LanguageController::class, 'update']);
-    Route::delete('languages/{languages}', [LanguageController::class, 'destroy']);
+    Route::put('languages/{language}', [LanguageController::class, 'update']);
+    Route::delete('languages/{language}', [LanguageController::class, 'destroy']);
 
     // Rutas para gestionar experiencias laborales
     Route::get('work-experiences', [WorkExperienceController::class, 'index']);
