@@ -32,8 +32,8 @@ class CompanyResource extends JsonResource
             'zip_code' => $this->user->zipCode,
             'jobs' => $this->jobs,
             'social_networks' => $this->user->socialNetworks,
-            'logo' => $this->logo_file ? url('storage/' . $this->logo_file) : null,
-            'banner' => $this->banner_file ? url('storage/' . $this->banner_file) : null,
+            'logo' => $this->logo ? url('storage/' . $this->logo) : null,
+            'banner' => $this->banner ? url('storage/' . $this->banner) : null,
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJobTypeRequest;
 use App\Http\Requests\UpdateJobTypeRequest;
 use App\Models\JobType;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,11 +73,19 @@ class JobTypeController extends Controller
     public function show(JobType $jobType): JsonResponse
     {
         try {
+            // La instancia de $jobType ya estará disponible si se encuentra en la base de datos
             return response()->json([
                 'message' => 'Job type detail successfully retrieved',
                 'data' => $jobType,
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            // Maneja el caso en el que el ID no existe en la base de datos
+            return response()->json([
+                'error' => 'Job type not found',
+                'details' => 'The specified job type ID does not exist in the database.',
+            ], 404);
         } catch (\Exception $e) {
+            // Maneja cualquier otro error que pueda ocurrir
             return response()->json([
                 'error' => 'An error occurred while retrieving the job type!',
                 'details' => $e->getMessage(),

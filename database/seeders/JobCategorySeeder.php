@@ -8,7 +8,7 @@ use App\Models\JobCategory;
 
 class JobCategorySeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         JobCategory::create(['name' => 'Software Development', 'description' => 'Jobs related to software development']);
         JobCategory::create(['name' => 'Marketing', 'description' => 'Jobs related to marketing']);

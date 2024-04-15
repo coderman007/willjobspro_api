@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreLanguageRequest;
 use App\Http\Requests\UpdateLanguageRequest;
 use App\Models\Language;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,12 +73,19 @@ class LanguageController extends Controller
     public function show(Language $language): JsonResponse
     {
         try {
-
+            // Si el idioma existe en la base de datos, simplemente se devolverá como parte del parámetro $language
             return response()->json([
                 'message' => 'Language detail successfully retrieved',
                 'data' => $language,
             ], 200);
+        } catch (ModelNotFoundException $e) {
+            // Maneja el caso en el que el ID no existe en la base de datos
+            return response()->json([
+                'error' => 'Language not found',
+                'details' => 'The specified language ID does not exist in the database.',
+            ], 404);
         } catch (\Exception $e) {
+            // Maneja cualquier otro error que pueda ocurrir
             return response()->json([
                 'error' => 'An error occurred while retrieving the language!',
                 'details' => $e->getMessage(),

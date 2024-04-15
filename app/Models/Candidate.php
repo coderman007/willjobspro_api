@@ -18,12 +18,14 @@ class Candidate extends Model
         'date_of_birth',
         'phone_number',
         'expected_salary',
-        'status',
-        'cv_file',
-        'photo_file',
-        'banner_file',
+        'cv',
+        'photo',
+        'banner',
     ];
 
+    protected $attributes = [
+        'status' => 'Active',
+    ];
 
     // Relación con el usuario
     public function user(): BelongsTo

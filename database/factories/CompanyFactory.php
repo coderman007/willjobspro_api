@@ -30,8 +30,8 @@ class CompanyFactory extends Factory
             'description' => $this->faker->paragraph,
             'website' => $this->faker->url,
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
-            'logo_file' => 'company_uploads/logos/' . $this->faker->image('public/storage/company_uploads/logos', 100, 100, null, false),
-            'banner_file' => 'company_uploads/banners/' . $this->faker->image('public/storage/company_uploads/banners', 800, 400, null, false),
+            'logo' => 'company_uploads/logos/' . $this->faker->image('public/storage/company_uploads/logos', 100, 100, null, false),
+            'banner' => 'company_uploads/banners/' . $this->faker->image('public/storage/company_uploads/banners', 800, 400, null, false),
         ];
     }
 }

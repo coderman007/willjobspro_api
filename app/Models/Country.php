@@ -13,6 +13,7 @@ class Country extends Model
     protected $fillable = [
         'name',
         'iso_alpha_2',
+        'dial_code',
     ];
 
     // Relación con estados
@@ -21,5 +22,16 @@ class Country extends Model
         return $this->hasMany(State::class);
     }
 
+    // Relación con usuarios
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    // Relación con ofertas de trabajo
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
 }
 

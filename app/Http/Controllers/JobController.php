@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
 use App\Models\Job;
 use App\Models\Language;
+use App\Services\LocationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -120,36 +121,30 @@ class JobController extends Controller
             $perPage = $request->query('per_page', 10);
 
             // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
-            $jobs = $this->buildJobQuery($request)->paginate($perPage);
+            $jobs = $this->buildJobQuery($request)->paginate($perPage)->items();
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200)
-                ->header('X-Total-Count', $jobs->total());
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
         } catch (\Exception $e) {
             // Manejar cualquier error y retornar una respuesta de error
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
         }
     }
 
-
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param StoreJobRequest $request
-     * @return JsonResponse
-     */
     public function store(StoreJobRequest $request): JsonResponse
     {
         try {
-            // Validar los datos de la solicitud
-            $validatedData = $request->validated();
+            // Iniciar una transacción de base de datos
+            DB::beginTransaction();
 
             // Obtener el usuario autenticado y asegurarse de que sea una empresa
             $user = auth()->user();
             if (!$user->hasRole('company')) {
-                return $this->jsonErrorResponse('Only users with role Company can create job offers.', 403);
+                return response()->json(['error' => 'Only users with role Company can create job offers.'], 403);
             }
+
+            // Validar los datos de la solicitud
+            $validatedData = $request->validated();
 
             // Obtener el ID de la compañía del usuario autenticado
             $companyId = $user->company->id;
@@ -159,6 +154,16 @@ class JobController extends Controller
 
             // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
+
+            // Asociar ubicación
+            $locationService = new LocationService();
+            $locationData = $request->input('location');
+            $locationResult = $locationService->createAndAssociateLocationForJob($locationData, $job);
+            if (isset($locationResult['errors'])) {
+                // Revertir la transacción en caso de error
+                DB::rollBack();
+                return response()->json(['errors' => $locationResult['errors']], 422);
+            }
 
             // Asociar habilidades
             if ($request->filled('skills')) {
@@ -188,33 +193,30 @@ class JobController extends Controller
                     }
                 }
             }
+            // Confirmar la transacción
+            DB::commit();
 
             // Cargar las relaciones asociadas a la oferta de trabajo
             $job->load('skills', 'jobTypes', 'educationLevels', 'languages');
 
             // Devolver una respuesta exitosa con la oferta de trabajo creada
-            return $this->jsonResponse($job, 'Job offer created successfully', 201);
+            $jobResource = new JobResource($job);
+            return response()->json([
+                'message' => 'Job offer created successfully!',
+                'data' => $jobResource,
+            ], 201);
         } catch (\Exception $e) {
-            // Manejar cualquier error y devolver una respuesta de error
-            return $this->jsonErrorResponse($e->getMessage(), 500);
+            // Manejar cualquier error y revertir la transacción
+            DB::rollBack();
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-
-    /**
-     * Display the specified resource.
-     *
-     * @param Job $job
-     * @return JsonResponse
-     */
     public function show(Job $job): JsonResponse
     {
         try {
             // Cargar la oferta de trabajo con sus relaciones
             $job->load(['company.user', 'jobCategory', 'skills', 'jobTypes', 'languages', 'educationLevels']);
-
-            // Cargar datos adicionales
-            $this->loadAdditionalData($job);
 
             // Devolver la oferta de trabajo como un recurso API
             return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully', 200);
@@ -225,38 +227,40 @@ class JobController extends Controller
         }
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param StoreJobRequest $request
-     * @param Job $job
-     * @return JsonResponse
-     */
-    public function update(StoreJobRequest $request, Job $job)
+    public function update(UpdateJobRequest $request, Job $job)
     {
         try {
             // Comenzar una transacción de base de datos
             DB::beginTransaction();
 
-            // Validar los datos de la solicitud
-            $validatedData = $request->validated();
-
-            // Obtener el usuario autenticado y asegurarse de que sea una empresa
+            // Obtener el usuario autenticado
             $user = auth()->user();
+
+            // Verificar si el usuario está autenticado y es propietario de la oferta a través del modelo Company
+            if (!$user || $job->company->user_id !== $user->id) {
+                return $this->jsonErrorResponse('Unauthorized', 403);
+            }
+
+            // Verificar si el usuario tiene el rol de "company"
             if (!$user->hasRole('company')) {
-                // Devolver un error si el usuario no tiene el rol adecuado
                 return $this->jsonErrorResponse('Only users with role Company can update job offers.', 403);
             }
 
-            // Verificar si el usuario es el propietario de la oferta de trabajo
-            if ($user->id !== $job->company_id) {
-                // Devolver un error si el usuario no es el propietario de la oferta
-                return $this->jsonErrorResponse('You are not authorized to update this job offer.', 403);
-            }
+            // Validar los datos de la solicitud
+            $validatedData = $request->validated();
 
             // Actualizar la oferta de trabajo con los datos validados
             $job->update($validatedData);
+
+            // Asociar ubicación
+            $locationService = new LocationService();
+            $locationData = $request->input('location');
+            $locationResult = $locationService->updateAndAssociateLocationForJob($locationData, $job);
+            if (isset($locationResult['errors'])) {
+                // Revertir la transacción en caso de error
+                DB::rollBack();
+                return response()->json(['errors' => $locationResult['errors']], 422);
+            }
 
             // Asociar habilidades
             if ($request->filled('skills')) {
@@ -314,12 +318,6 @@ class JobController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param Job $job
-     * @return JsonResponse
-     */
     public function destroy(Job $job): JsonResponse
     {
         try {
@@ -337,14 +335,6 @@ class JobController extends Controller
         }
     }
 
-    /**
-     * Function to generate a consistent JSON response.
-     *
-     * @param mixed $data The data to include in the response
-     * @param string|null $message The response message
-     * @param int $status The HTTP status code
-     * @return JsonResponse
-     */
     protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200): JsonResponse
     {
         $response = [
@@ -356,13 +346,6 @@ class JobController extends Controller
         return response()->json($response, $status);
     }
 
-    /**
-     * Function to generate a consistent JSON error response.
-     *
-     * @param string|null $message The error message
-     * @param int $status The HTTP status code
-     * @return JsonResponse
-     */
     protected function jsonErrorResponse(?string $message = null, int $status = 500): JsonResponse
     {
         $response = [

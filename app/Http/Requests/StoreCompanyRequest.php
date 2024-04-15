@@ -20,39 +20,45 @@ class StoreCompanyRequest extends FormRequest
             'description' => 'nullable|string',
             'website' => 'nullable|url',
             'status' => 'nullable|in:Active,Blocked',
-            'country_id' => 'nullable|exists:countries,id',
-            'state_id' => 'nullable|exists:states,id',
-            'city_id' => 'nullable|exists:cities,id',
-            'zip_code_id' => 'nullable|exists:zip_codes,id',
-            // Archivos base64
-            'logo_file_base64' => 'nullable|string',
-            'banner_file_base64' => 'nullable|string',
+            'logo' => 'nullable|string', // Archivo base64
+            'banner' => 'nullable|string', // Archivo base64
         ];
 
-        // Reglas de validación para las redes sociales (opcional)
-        if ($this->filled('social_networks')) {
-            $rules['social_networks'] = 'nullable|array';
-            $rules['social_networks.*.url'] = 'required|url';
-        }
+        if ($this->filled('location')) {
+            $locationRules = [
+                'location.country' => 'required|string',
+                'location.state' => 'required|string',
+                'location.city' => 'required|string',
+                'location.zip_code' => 'required|string|max:10',
+                'location.dial_code' => 'required|string|max:10',
+                'location.iso_alpha_2' => 'required|string|size:2',
+            ];
 
+            $rules = array_merge($rules, $locationRules);
+        }
 
         return $rules;
     }
-        public function messages(): array
-        {
-            return [
-                'contact_person.required' => 'The contact person field is required.',
-                'phone_number.max' => 'The phone number may not be greater than :max characters.',
-                'website.url' => 'The website format is invalid.',
-                'logo_file_base64.string' => 'The logo file must be a string.',
-                'banner_file_base64.string' => 'The banner file must be a string.',
-                'social_networks.*.name.required' => 'The social network name field is required.',
-                'social_networks.*.url.required' => 'The social network URL field is required.',
-                'social_networks.*.url.url' => 'The social network URL format is invalid.',
-                'country_id.exists' => 'The selected country is invalid.',
-                'state_id.exists' => 'The selected state is invalid.',
-                'city_id.exists' => 'The selected city is invalid.',
-                'zip_code_id.exists' => 'The selected ZIP code is invalid.',
-            ];
-        }
+
+    public function messages(): array
+    {
+        return [
+            'contact_person.required' => 'El campo persona de contacto es obligatorio.',
+            'phone_number.max' => 'El número de teléfono no puede tener más de :max caracteres.',
+            'website.url' => 'El formato del sitio web no es válido.',
+            'logo.string' => 'El archivo del logotipo debe ser una cadena.',
+            'banner.string' => 'El archivo del banner debe ser una cadena.',
+            'location.country.required' => 'El país es obligatorio.',
+            'location.state.required' => 'El estado es obligatorio.',
+            'location.city.required' => 'La ciudad es obligatoria.',
+            'location.zip_code.required' => 'El código postal es obligatorio.',
+            'location.zip_code.max' => 'El código postal no puede tener más de :max caracteres.',
+            'location.dial_code.required' => 'El dial code es obligatorio.',
+            'location.dial_code.max' => 'El dial code no puede tener más de :max caracteres.',
+            'location.iso_alpha_2.required' => 'El código ISO alpha 2 es obligatorio.',
+            'location.iso_alpha_2.string' => 'El código ISO alpha 2 debe ser una cadena.',
+            'location.iso_alpha_2.size' => 'El código ISO alpha 2 debe tener :size caracteres.',
+        ];
     }
+
+}

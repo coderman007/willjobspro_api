@@ -19,17 +19,25 @@ return new class extends Migration {
             $table->text('description');
             $table->dateTime('posted_date');
             $table->dateTime('deadline');
-            $table->string('location');
+            $table->unsignedBigInteger('country_id')->nullable();
+            $table->unsignedBigInteger('state_id')->nullable();
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->unsignedBigInteger('zip_code_id')->nullable();
             $table->decimal('salary', 10, 2);
             $table->string('contact_email');
             $table->string('contact_phone');
             $table->string('experience_required')->nullable();
-            $table->enum('status', ['Open', 'Closed', 'Under Review'])->default('Open');;
+            $table->enum('status', ['Open', 'Closed', 'Under Review'])->default('Open');
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
             $table->foreign('job_category_id')->references('id')->on('job_categories')->onDelete('cascade');
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->onDelete('set null');
+            $table->foreign('country_id')->references('id')->on('countries');
+            $table->foreign('state_id')->references('id')->on('states');
+            $table->foreign('city_id')->references('id')->on('cities');
+            $table->foreign('zip_code_id')->references('id')->on('zip_codes');
+
 
         });
     }

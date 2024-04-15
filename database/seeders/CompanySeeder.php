@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
-use App\Models\SocialNetwork;
 use App\Models\User;
 use Faker\Factory as FakerFactory;
 use Illuminate\Database\Seeder;
@@ -13,7 +12,7 @@ class CompanySeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run()
+    public function run(): void
     {
         $faker = FakerFactory::create(); // Importación y creación de una instancia de Faker
 

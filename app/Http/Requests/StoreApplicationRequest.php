@@ -25,7 +25,6 @@ class StoreApplicationRequest extends FormRequest
         return [
             'job_id' => 'required|exists:jobs,id',
             'cover_letter' => 'nullable|string|max:500',
-            'status' => 'required|in:Pending,Reviewed,Accepted,Rejected',
             'application_date' => 'nullable|date',
             'rejection_date' => 'nullable|date|after_or_equal:application_date',
         ];
@@ -45,8 +44,6 @@ class StoreApplicationRequest extends FormRequest
             'cover_letter.required' => 'The cover letter is required.',
             'cover_letter.string' => 'The cover letter must be a string.',
             'cover_letter.max' => 'The cover letter must be less than 500 characters.',
-            'status.required' => 'The status is required.',
-            'status.in' => 'The status is invalid.',
             'application_date.date' => 'The application date is invalid.',
             'rejection_date.date' => 'The rejection date is invalid.',
             'rejection_date.after_or_equal' => 'The rejection date must be after the application date.',

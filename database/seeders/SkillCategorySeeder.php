@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\SkillCategory;
 
@@ -14,40 +13,41 @@ class SkillCategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Gestión Empresarial', 'description' => 'Habilidades relacionadas con la gestión empresarial.'],
-            ['name' => 'Recursos Humanos', 'description' => 'Habilidades relacionadas con la gestión de recursos humanos.'],
-            ['name' => 'Ventas y Marketing', 'description' => 'Habilidades relacionadas con ventas y marketing.'],
-            ['name' => 'Contabilidad y Finanzas', 'description' => 'Habilidades relacionadas con contabilidad y finanzas.'],
-            ['name' => 'Servicio al Cliente', 'description' => 'Habilidades relacionadas con el servicio al cliente.'],
-            ['name' => 'Logística y Cadena de Suministro', 'description' => 'Habilidades relacionadas con logística y cadena de suministro.'],
-            ['name' => 'Educación y Formación', 'description' => 'Habilidades relacionadas con educación y formación.'],
-            ['name' => 'Salud y Cuidado Personal', 'description' => 'Habilidades relacionadas con salud y cuidado personal.'],
-            ['name' => 'Diseño de Moda', 'description' => 'Habilidades relacionadas con diseño de moda.'],
-            ['name' => 'Arquitectura y Construcción', 'description' => 'Habilidades relacionadas con arquitectura y construcción.'],
-            ['name' => 'Medio Ambiente y Sostenibilidad', 'description' => 'Habilidades relacionadas con medio ambiente y sostenibilidad.'],
-            ['name' => 'Investigación y Desarrollo', 'description' => 'Habilidades relacionadas con investigación y desarrollo.'],
-            ['name' => 'Ciencia de Datos', 'description' => 'Habilidades relacionadas con ciencia de datos.'],
-            ['name' => 'Agricultura y Agroindustria', 'description' => 'Habilidades relacionadas con agricultura y agroindustria.'],
-            ['name' => 'Periodismo y Comunicación', 'description' => 'Habilidades relacionadas con periodismo y comunicación.'],
-            ['name' => 'Turismo y Hostelería', 'description' => 'Habilidades relacionadas con turismo y hostelería.'],
-            ['name' => 'Arte y Entretenimiento', 'description' => 'Habilidades relacionadas con arte y entretenimiento.'],
-            ['name' => 'Servicios Legales', 'description' => 'Habilidades relacionadas con servicios legales.'],
-            ['name' => 'Traducción e Idiomas', 'description' => 'Habilidades relacionadas con traducción e idiomas.'],
-            ['name' => 'Psicología y Bienestar', 'description' => 'Habilidades relacionadas con psicología y bienestar.'],
-            ['name' => 'Investigación de Mercados', 'description' => 'Habilidades relacionadas con investigación de mercados.'],
-            ['name' => 'Publicidad y Relaciones Públicas', 'description' => 'Habilidades relacionadas con publicidad y relaciones públicas.'],
-            ['name' => 'Ingeniería Civil', 'description' => 'Habilidades relacionadas con ingeniería civil.'],
-            ['name' => 'Energías Renovables', 'description' => 'Habilidades relacionadas con energías renovables.'],
-            ['name' => 'Recreación y Deportes', 'description' => 'Habilidades relacionadas con recreación y deportes.'],
-            ['name' => 'Asesoría Financiera', 'description' => 'Habilidades relacionadas con asesoría financiera.'],
-            ['name' => 'Política y Asuntos Públicos', 'description' => 'Habilidades relacionadas con política y asuntos públicos.'],
-            ['name' => 'Desarrollo Comunitario', 'description' => 'Habilidades relacionadas con desarrollo comunitario.'],
-            ['name' => 'Diseño Industrial', 'description' => 'Habilidades relacionadas con diseño industrial.'],
-            ['name' => 'Consultoría Empresarial', 'description' => 'Habilidades relacionadas con consultoría empresarial.'],
+            ['name' => 'Business Management', 'description' => 'Skills related to business management.'],
+            ['name' => 'Human Resources', 'description' => 'Skills related to human resources management.'],
+            ['name' => 'Sales and Marketing', 'description' => 'Skills related to sales and marketing.'],
+            ['name' => 'Accounting and Finance', 'description' => 'Skills related to accounting and finance.'],
+            ['name' => 'Customer Service', 'description' => 'Skills related to customer service.'],
+            ['name' => 'Logistics and Supply Chain', 'description' => 'Skills related to logistics and supply chain.'],
+            ['name' => 'Education and Training', 'description' => 'Skills related to education and training.'],
+            ['name' => 'Health and Personal Care', 'description' => 'Skills related to health and personal care.'],
+            ['name' => 'Fashion Design', 'description' => 'Skills related to fashion design.'],
+            ['name' => 'Architecture and Construction', 'description' => 'Skills related to architecture and construction.'],
+            ['name' => 'Environment and Sustainability', 'description' => 'Skills related to environment and sustainability.'],
+            ['name' => 'Research and Development', 'description' => 'Skills related to research and development.'],
+            ['name' => 'Data Science', 'description' => 'Skills related to data science.'],
+            ['name' => 'Agriculture and Agribusiness', 'description' => 'Skills related to agriculture and agribusiness.'],
+            ['name' => 'Journalism and Communication', 'description' => 'Skills related to journalism and communication.'],
+            ['name' => 'Tourism and Hospitality', 'description' => 'Skills related to tourism and hospitality.'],
+            ['name' => 'Art and Entertainment', 'description' => 'Skills related to art and entertainment.'],
+            ['name' => 'Legal Services', 'description' => 'Skills related to legal services.'],
+            ['name' => 'Translation and Languages', 'description' => 'Skills related to translation and languages.'],
+            ['name' => 'Psychology and Well-being', 'description' => 'Skills related to psychology and well-being.'],
+            ['name' => 'Market Research', 'description' => 'Skills related to market research.'],
+            ['name' => 'Advertising and Public Relations', 'description' => 'Skills related to advertising and public relations.'],
+            ['name' => 'Civil Engineering', 'description' => 'Skills related to civil engineering.'],
+            ['name' => 'Renewable Energy', 'description' => 'Skills related to renewable energy.'],
+            ['name' => 'Recreation and Sports', 'description' => 'Skills related to recreation and sports.'],
+            ['name' => 'Financial Advisory', 'description' => 'Skills related to financial advisory.'],
+            ['name' => 'Politics and Public Affairs', 'description' => 'Skills related to politics and public affairs.'],
+            ['name' => 'Community Development', 'description' => 'Skills related to community development.'],
+            ['name' => 'Industrial Design', 'description' => 'Skills related to industrial design.'],
+            ['name' => 'Business Consulting', 'description' => 'Skills related to business consulting.'],
         ];
 
+
         foreach ($categories as $category) {
-            SkillCategory::create($category);
+            SkillCategory::firstOrCreate($category);
         }
     }
 }

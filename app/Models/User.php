@@ -86,7 +86,7 @@ class User extends Authenticatable
         return null;
     }
 
-    public function candidate()
+    public function candidate():HasOne
     {
         return $this->hasOne(Candidate::class);
     }

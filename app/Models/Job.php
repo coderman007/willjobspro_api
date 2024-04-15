@@ -20,12 +20,18 @@ class Job extends Model
         'description',
         'posted_date',
         'deadline',
-        'location',
+        'country_id',
+        'state_id',
+        'city_id',
+        'zip_code_id',
         'salary',
         'contact_email',
         'contact_phone',
         'experience_required',
-        'status',
+    ];
+
+    protected $attributes = [
+        'status' => 'Open',
     ];
 
     public function applications(): HasMany
@@ -66,5 +72,25 @@ class Job extends Model
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function state(): BelongsTo
+    {
+        return $this->belongsTo(State::class);
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    public function zipCode(): BelongsTo
+    {
+        return $this->belongsTo(ZipCode::class);
     }
 }

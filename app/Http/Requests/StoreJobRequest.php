@@ -19,12 +19,10 @@ class StoreJobRequest extends FormRequest
             'description' => 'required|string',
             'posted_date' => 'required|date',
             'deadline' => 'required|date',
-            'location' => 'required|string',
             'salary' => 'required|numeric|min:0',
             'contact_email' => 'required|email',
             'contact_phone' => 'required|string',
             'experience_required' => 'nullable|string',
-            'status' => 'string|in:Open,Closed,Under Review',
             'subscription_plan_id' => 'nullable|exists:subscription_plans,id',
         ];
 
@@ -49,6 +47,16 @@ class StoreJobRequest extends FormRequest
             $rules['languages.*.level'] = ['required', 'string'];
         }
 
+        // Reglas opcionales para la ubicación
+        if ($this->filled('location')) {
+            $rules['location.country'] = ['required', 'string'];
+            $rules['location.state'] = ['required', 'string'];
+            $rules['location.city'] = ['required', 'string'];
+            $rules['location.zip_code'] = ['required', 'string', 'max:10'];
+            $rules['location.dial_code'] = ['required', 'string', 'max:10'];
+            $rules['location.iso_alpha_2'] = ['required', 'string', 'max:2'];
+        }
+
         return $rules;
     }
 
@@ -65,18 +73,22 @@ class StoreJobRequest extends FormRequest
             'description' => 'Description',
             'posted_date' => 'Posted date',
             'deadline' => 'Deadline',
-            'location' => 'Location',
             'salary' => 'Salary',
             'contact_email' => 'Contact email',
             'contact_phone' => 'Contact phone',
             'experience_required' => 'Experience required',
-            'status' => 'Status',
             'subscription_plan_id' => 'Subscription plan',
             'skills.*' => 'Skill',
             'job_types.*' => 'Job type',
             'education_levels.*' => 'Education level',
             'languages.*.id' => 'Language',
             'languages.*.level' => 'Language level',
+            'location.country' => 'Country',
+            'location.state' => 'State',
+            'location.city' => 'City',
+            'location.zip_code' => 'Zip code',
+            'location.dial_code' => 'Dial code',
+            'location.iso_alpha_2' => 'ISO alpha 2',
         ];
     }
 
@@ -93,8 +105,6 @@ class StoreJobRequest extends FormRequest
             'posted_date.date' => 'The posted date must be a valid date.',
             'deadline.required' => 'The deadline field is required.',
             'deadline.date' => 'The deadline must be a valid date.',
-            'location.required' => 'The location field is required.',
-            'location.string' => 'The location field must be a string.',
             'salary.required' => 'The salary field is required.',
             'salary.numeric' => 'The salary field must be a numeric value.',
             'salary.min' => 'The salary cannot be a negative value.',
@@ -102,8 +112,6 @@ class StoreJobRequest extends FormRequest
             'contact_email.email' => 'The contact email must be a valid email address.',
             'contact_phone.required' => 'The contact phone field is required.',
             'experience_required.string' => 'The experience required field must be a string.',
-            'status.string' => 'The status field must be a string.',
-            'status.in' => 'The selected status is invalid.',
             'subscription_plan_id.exists' => 'The selected subscription plan is invalid.',
             'skills.*.required' => 'At least one skill is required for the job.',
             'skills.*.exists' => 'One or more selected skills are invalid.',
@@ -114,8 +122,12 @@ class StoreJobRequest extends FormRequest
             'languages.*.id.required' => 'At least one language is required.',
             'languages.*.id.exists' => 'One or more selected languages are invalid.',
             'languages.*.level.required' => 'The language level is required for each selected language.',
+            'location.country.required' => 'The country field is required.',
+            'location.state.required' => 'The state field is required.',
+            'location.city.required' => 'The city field is required.',
+            'location.zip_code.required' => 'The zip code field is required.',
+            'location.dial_code.required' => 'The dial code field is required.',
+            'location.iso_alpha_2.required' => 'The ISO alpha 2 field is required.',
         ];
     }
-
-
 }

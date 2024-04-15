@@ -43,9 +43,9 @@ class CandidateResource extends JsonResource
             'work_experiences' => $this->workExperiences,
             'languages' => $this->languages,
             'social_networks' => $this->user->socialNetworks,
-            'cv' => $this->cv_file ? url('storage/' . $this->cv_file) : null,
-            'profile_photo' => $this->photo_file ? url('storage/' . $this->photo_file) : null,
-            'banner' => $this->banner_file ? url('storage/' . $this->banner_file) : null,
+            'cv' => $this->cv ? url('storage/' . $this->cv) : null,
+            'profile_photo' => $this->photo ? url('storage/' . $this->photo) : null,
+            'banner' => $this->banner ? url('storage/' . $this->banner) : null,
         ];
     }
 }

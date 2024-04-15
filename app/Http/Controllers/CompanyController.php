@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Country;
+use App\Models\State;
+use App\Models\City;
+use App\Models\ZipCode;
+
 
 class CompanyController extends Controller
 {
@@ -68,8 +73,6 @@ class CompanyController extends Controller
             return $this->handleException($e);
         }
     }
-
-
     public function show(int $companyId): JsonResponse
     {
         try {
@@ -96,15 +99,12 @@ class CompanyController extends Controller
             return $this->handleException($e);
         }
     }
-
-
-
     public function store(StoreCompanyRequest $request): JsonResponse
     {
-        try {
-            // Inicia una transacción de base de datos
-            DB::beginTransaction();
+        // Inicia una transacción de base de datos
+        DB::beginTransaction();
 
+        try {
             // Verifica si el usuario está autenticado
             if (!Auth::check()) {
                 return response()->json(['error' => 'Unauthorized'], 401);
@@ -118,16 +118,33 @@ class CompanyController extends Controller
                 return response()->json(['error' => 'You do not have permission to create a company'], 403);
             }
 
-            $user->update($request->only(['country_id', 'state_id', 'city_id', 'zip_code_id']));
+            // Gestionar ubicaciones
+            if ($request->filled('location')) {
+                // Obtener los datos de ubicación del formulario
+                $locationData = $request->input('location');
+
+                // Buscar o crear las ubicaciones correspondientes
+                $country = Country::firstOrCreate([
+                    'name' => $locationData['country'],
+                    'dial_code' => $locationData['dial_code'],
+                    'iso_alpha_2' => $locationData['iso_alpha_2']
+                ]);
+                $state = State::firstOrCreate(['name' => $locationData['state'], 'country_id' => $country->id]);
+                $city = City::firstOrCreate(['name' => $locationData['city'], 'state_id' => $state->id]);
+                $zipCode = ZipCode::firstOrCreate(['code' => $locationData['zip_code'], 'city_id' => $city->id]);
+
+                // Asociar las ubicaciones con el usuario
+                $user->country_id = $country->id;
+                $user->state_id = $state->id;
+                $user->city_id = $city->id;
+                $user->zip_code_id = $zipCode->id;
+                $user->save();
+            }
 
             // Actualiza los campos de la compañía con los datos validados del formulario
             $company = new Company;
-
-            // Asocia el usuario autenticado como propietario de la compañía
             $company->user_id = $user->id;
-
             $company->fill($request->validated());
-
 
             // Almacena los archivos codificados en Base64
             $this->storeBase64Files($company, $request);
@@ -151,74 +168,93 @@ class CompanyController extends Controller
             // Transforma la compañía a un recurso CompanyResource
             $companyResource = new CompanyResource($company);
 
-            // Devuelve una respuesta JSON con el mensaje de éxito y la información de la compañía
+            // Devuelve una respuesta JSON con la información de la compañía
             return response()->json([
                 'message' => 'Company profile created successfully!',
                 'data' => $companyResource,
             ], 201);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // En caso de error, hace un rollback de la transacción de base de datos
             DB::rollBack();
 
-            // Maneja la excepción y devuelve una respuesta JSON con el mensaje de error
-            return $this->handleException($e);
+            // Devuelve una respuesta JSON con el código y el mensaje de error
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-
     public function update(UpdateCompanyRequest $request, int $userId): JsonResponse
     {
-        try {
-            DB::beginTransaction();
+        // Inicia una transacción de base de datos
+        DB::beginTransaction();
 
+        try {
             // Verificar la autorización y la autenticación del usuario
-            $authUser = Auth::user();
-            if (!$authUser || $authUser->id != $userId) {
+            $user = Auth::user();
+            if (!$user || $user->id != $userId) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
-            // Obtener la compañía asociada al ID de usuario
-            $company = $authUser->company;
+            // Obtener la compañía asociada al usuario autenticado
+            $company = $user->company;
 
             // Verificar si la compañía existe
             if (!$company) {
                 return response()->json(['error' => 'Company profile not found'], 404);
             }
 
-            // Actualizar los campos del candidato
-            $company->update($request->validated());
+
+            // Gestionar ubicaciones
+            if ($request->filled('location')) {
+                // Obtener los datos de ubicación del formulario
+                $locationData = $request->input('location');
+
+                // Buscar o crear las ubicaciones correspondientes
+                $country = Country::firstOrCreate([
+                    'name' => $locationData['country'],
+                    'dial_code' => $locationData['dial_code'],
+                    'iso_alpha_2' => $locationData['iso_alpha_2']
+                ]);
+                $state = State::firstOrCreate(['name' => $locationData['state'], 'country_id' => $country->id]);
+                $city = City::firstOrCreate(['name' => $locationData['city'], 'state_id' => $state->id]);
+                $zipCode = ZipCode::firstOrCreate(['code' => $locationData['zip_code'], 'city_id' => $city->id]);
+
+                // Asociar las ubicaciones con el usuario
+                $user->country_id = $country->id;
+                $user->state_id = $state->id;
+                $user->city_id = $city->id;
+                $user->zip_code_id = $zipCode->id;
+                $user->save();
+            }
+
+            // Actualiza los campos de la compañía con los datos validados del formulario
+            $company->fill($request->validated());
 
             // Almacena los archivos codificados en Base64
             $this->storeBase64Files($company, $request);
 
-            // Actualiza la relación de redes sociales de la compañía (opcional)
-            if ($request->filled('social_networks')) {
-                $authUser->socialNetworks()->delete(); // Elimina las redes sociales existentes
-                foreach ($request->social_networks as $socialNetworkData) {
-                    $socialNetwork = new SocialNetwork();
-                    $socialNetwork->user_id = $authUser->id;
-                    $socialNetwork->fill($socialNetworkData);
-                    $socialNetwork->save();
-                }
-            }
+            // Guarda los cambios en la base de datos
+            $company->save();
 
+            // Confirma la transacción de base de datos
             DB::commit();
 
-            // Devuelve una respuesta JSON con el mensaje de éxito y los datos actualizados de la compañía
+            // Transforma la compañía a un recurso CompanyResource
+            $companyResource = new CompanyResource($company);
+
+            // Devuelve una respuesta JSON con la información de la compañía actualizada
             return response()->json([
-                'message' => 'Company updated successfully!',
-                'data' => new CompanyResource($company),
+                'message' => 'Company profile updated successfully!',
+                'data' => $companyResource,
             ], 200);
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
+            // En caso de error, hace un rollback de la transacción de base de datos
             DB::rollBack();
-            // Maneja la excepción y devuelve una respuesta JSON con el mensaje de error
-            return $this->handleException($e);
+
+            // Devuelve una respuesta JSON con el código y el mensaje de error
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-
     public function destroy(int $userId): JsonResponse
     {
         try {
@@ -228,15 +264,15 @@ class CompanyController extends Controller
             }
 
             // Obtiene el usuario autenticado
-            $authUser = Auth::user();
+            $user = Auth::user();
 
             // Verifica si el usuario autenticado es el propietario de la compañía a eliminar
-            if ($authUser->id !== $userId) {
+            if ($user->id !== $userId) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 
             // Obtiene la compañía asociada al usuario
-            $company = $authUser->company;
+            $company = $user->company;
 
             // Verifica si la compañía existe
             if (!$company) {
@@ -254,29 +290,24 @@ class CompanyController extends Controller
             return $this->handleException($e);
         }
     }
-
-
-
     private function storeBase64Files(Company $company, Request $request): void
     {
-        if ($request->has('logo_file_base64')) {
-            $logoBase64 = $request->input('logo_file_base64');
+        if ($request->has('logo')) {
+            $logoBase64 = $request->input('logo');
             $logoName = Str::random(40) . '.png'; // Cambiar la extensión según el tipo de archivo permitido
             $logoPath = 'company_uploads/logos/' . $logoName;
             Storage::disk('public')->put($logoPath, base64_decode($logoBase64));
-            $company->logo_file = $logoPath;
+            $company->logo = $logoPath;
         }
 
-        if ($request->has('banner_file_base64')) {
-            $bannerBase64 = $request->input('banner_file_base64');
+        if ($request->has('banner')) {
+            $bannerBase64 = $request->input('banner');
             $bannerName = Str::random(40) . '.jpg'; // Cambiar la extensión según el tipo de archivo permitido
             $bannerPath = 'company_uploads/banners/' . $bannerName;
             Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
-            $company->banner_file = $bannerPath;
+            $company->banner = $bannerPath;
         }
     }
-
-
     private function handleException(Exception $exception): JsonResponse
     {
         $statusCode = $exception->getCode() ?: 500;
@@ -284,7 +315,6 @@ class CompanyController extends Controller
 
         return response()->json(['error' => $message], $statusCode);
     }
-
     public function getCompanyJobApplications(Request $request): JsonResponse
     {
         try {
@@ -351,4 +381,3 @@ class CompanyController extends Controller
 
 
 }
-

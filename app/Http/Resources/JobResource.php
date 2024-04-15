@@ -10,20 +10,19 @@ class JobResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'company' => [
-                'id' => $this->company->id,
-                'name' => $this->company->user->name,
-            ],
-            'job_category' => [
-                'id' => $this->jobCategory->id,
-                'name' => $this->jobCategory->name,
-                // Otros atributos de la categoría de trabajo si es necesario
-            ],
             'title' => $this->title,
             'description' => $this->description,
             'posted_date' => $this->posted_date,
             'deadline' => $this->deadline,
-            'location' => $this->location,
+            'location' => [
+                'country' => [
+                    'name' => $this->country->name,
+                    'dial_code' => $this->country->dial_code,
+                    'iso_alpha_2' => $this->country->iso_alpha_2],
+                'state' => $this->state->name,
+                'city' => $this->city->name,
+                'zip_code' => $this->zipCode->code,
+            ],
             'salary' => $this->salary,
             'contact_email' => $this->contact_email,
             'contact_phone' => $this->contact_phone,
@@ -33,6 +32,7 @@ class JobResource extends JsonResource
             'languages' => $this->getAttribute('languages'),
             'education_levels' => $this->getAttribute('educationLevels'),
             'skills' => $this->getAttribute('skills'),
+
         ];
     }
 }

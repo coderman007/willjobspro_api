@@ -22,10 +22,17 @@ class ZipCode extends Model
         return $this->belongsTo(City::class);
     }
 
-    // public function users(): HasMany
-    // {
-    //     return $this->hasMany(User::class);
-    // }
+    // Relación con usuarios
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    // Relación con ofertas de trabajo
+    public function jobs(): HasMany
+    {
+        return $this->hasMany(Job::class);
+    }
 
 }
 

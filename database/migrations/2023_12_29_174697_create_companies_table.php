@@ -19,9 +19,9 @@ return new class extends Migration {
             $table->string('industry')->nullable();
             $table->text('description')->nullable();
             $table->string('website')->nullable();
-            $table->enum('status', ['Active', 'Blocked'])->nullable()->default('Active');
-            $table->string('logo_file')->nullable();
-            $table->string('banner_file')->nullable();
+            $table->enum('status', ['Active', 'Blocked'])->default('Active');
+            $table->string('logo')->nullable();
+            $table->string('banner')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

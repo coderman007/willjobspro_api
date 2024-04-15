@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
         // Crear un usuario administrador
         $adminUser = User::factory()->create([

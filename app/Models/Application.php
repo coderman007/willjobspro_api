@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Application extends Model
 {
@@ -15,20 +16,23 @@ class Application extends Model
         'cover_letter',
         'application_date',
         'rejection_date',
-        'status',
     ];
 
-    protected $dates = [
+    protected $attributes = [
+        'status' => 'Pending',
+    ];
+
+    protected array $dates = [
         'application_date',
         'rejection_date',
     ];
 
-    public function candidate()
+    public function candidate(): BelongsTo
     {
         return $this->belongsTo(Candidate::class);
     }
 
-    public function job()
+    public function job(): BelongsTo
     {
         return $this->belongsTo(Job::class);
     }

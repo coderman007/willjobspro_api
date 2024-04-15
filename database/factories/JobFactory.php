@@ -32,7 +32,6 @@ class JobFactory extends Factory
             'description' => $this->faker->paragraph,
             'posted_date' => $this->faker->dateTimeBetween('-30 days', 'now'),
             'deadline' => $this->faker->dateTimeBetween('now', '+30 days'),
-            'location' => $this->faker->city,
             'salary' => $this->faker->numberBetween(30000, 80000),
             'contact_email' => $this->faker->companyEmail,
             'contact_phone' => $this->faker->phoneNumber,

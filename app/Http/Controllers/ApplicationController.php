@@ -67,12 +67,7 @@ class ApplicationController extends Controller
             $query->orderBy('application_date', 'desc');
 
             // Obtener las aplicaciones
-            $applications = $query->get();
-
-            // Verificar si hay aplicaciones disponibles
-            if ($applications->isEmpty()) {
-                return response()->json(['data' => [], 'message' => 'No applications available.'], 200);
-            }
+            $applications = $query->paginate($perPage)->items();
 
             // Transformar los resultados utilizando el recurso API
             $formattedApplications = ApplicationResource::collection($applications);
@@ -82,8 +77,6 @@ class ApplicationController extends Controller
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
     }
-
-
 
 
     // Función auxiliar para obtener los filtros dinámicos
@@ -135,7 +128,7 @@ class ApplicationController extends Controller
             $validatedData['candidate_id'] = $candidateId;
             $application = Application::create($validatedData);
 
-            return response()->json(['data' => $application, 'message' => 'Application created successfully!'], 201);
+            return response()->json(['message' => 'Application created successfully!', 'data' => $application], 201);
         } catch (QueryException $e) {
             // Manejo de errores de base de datos
             return response()->json([

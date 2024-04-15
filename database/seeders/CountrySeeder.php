@@ -27,12 +27,13 @@ class CountrySeeder extends Seeder
                 try {
                     // Crear o actualizar el país
                     Country::updateOrCreate(
-                        ['iso_alpha_2' => $countryData['iso_alpha_2']],
-                        ['name' => $countryData['country']]
+                        ['name' => $countryData['country']],
+                        ['iso_alpha_2' => $countryData['iso_alpha_2'], 'dial_code' => $countryData['dial_code']]
                     );
+
                 } catch (\Exception $e) {
                     // Manejar el error, por ejemplo, loguearlo
-                    Log::error("Error al procesar el país: {$countryData['country']}, ISO: {$countryData['iso_alpha_2']}. Error: {$e->getMessage()}");
+                    Log::error("Error while trying processing Country: {$countryData['country']}, ISO: {$countryData['iso_alpha_2']}, Dial Code: {$countryData['dial_code']}'. Error: {$e->getMessage()}");
                 }
             }
         }
