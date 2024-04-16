@@ -29,6 +29,7 @@ class JobResource extends JsonResource
                 'name' => $this->company->user->name,
                 'logo' => $serverPath . $this->company->logo,
                 'banner' =>  $serverPath . $this->company->banner,
+                'banner_proof' => $this->company->banner ? url('storage/' . $this->banner) : null,
             ],
             'job_types' => $this->getAttribute('jobTypes'),
             'languages' => $this->getAttribute('languages'),

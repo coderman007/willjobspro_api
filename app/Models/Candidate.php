@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property mixed|string $cv
+ * @property mixed|string $photo
+ * @property mixed|string $banner
+ */
 class Candidate extends Model
 {
     use HasFactory;
