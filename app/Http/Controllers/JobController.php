@@ -155,15 +155,18 @@ class JobController extends Controller
             // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
 
-            // Asociar ubicación
-            $locationService = new LocationService();
-            $locationData = $request->input('location');
-            $locationResult = $locationService->createAndAssociateLocationForJob($locationData, $job);
-            if (isset($locationResult['errors'])) {
-                // Revertir la transacción en caso de error
-                DB::rollBack();
-                return response()->json(['errors' => $locationResult['errors']], 422);
+            // Asociar ubicación si los datos están presentes
+            if ($request->filled('location')) {
+                $locationService = new LocationService();
+                $locationData = $request->input('location');
+                $locationResult = $locationService->createAndAssociateLocationForJob($locationData, $job);
+                if (isset($locationResult['errors'])) {
+                    // Revertir la transacción en caso de error
+                    DB::rollBack();
+                    return response()->json(['errors' => $locationResult['errors']], 422);
+                }
             }
+
 
             // Asociar habilidades
             if ($request->filled('skills')) {
