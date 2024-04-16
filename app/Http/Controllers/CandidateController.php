@@ -105,7 +105,6 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
-
     public function show(int $userId): JsonResponse
     {
         try {
@@ -147,7 +146,6 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
-
     public function store(StoreCandidateRequest $request): JsonResponse
     {
         try {
@@ -283,7 +281,6 @@ class CandidateController extends Controller
             $candidate->banner = $bannerPath;
         }
     }
-
     public function update(UpdateCandidateRequest $request, int $userId): JsonResponse
     {
         try {
@@ -390,7 +387,6 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
-
     public function destroy(int $userId): JsonResponse
     {
         try {

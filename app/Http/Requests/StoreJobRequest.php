@@ -49,12 +49,13 @@ class StoreJobRequest extends FormRequest
 
         // Reglas opcionales para la ubicación
         if ($this->filled('location')) {
-            $rules['location.country'] = ['required', 'string'];
-            $rules['location.state'] = ['required', 'string'];
-            $rules['location.city'] = ['required', 'string'];
-            $rules['location.zip_code'] = ['required', 'string', 'max:10'];
-            $rules['location.dial_code'] = ['required', 'string', 'max:10'];
-            $rules['location.iso_alpha_2'] = ['required', 'string', 'max:2'];
+            $rules['location'] = 'nullable|array';
+            $rules['location.country'] = 'sometimes|required|string';
+            $rules['location.state'] = 'sometimes|required|string';
+            $rules['location.city'] = 'sometimes|required|string';
+            $rules['location.zip_code'] = 'sometimes|required|string';
+            $rules['location.iso_alpha_2'] = 'sometimes|required|string|max:2';
+            $rules['location.dial_code'] = 'sometimes|required|string';
         }
 
         return $rules;

@@ -15,11 +15,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('candidate_id');
             $table->unsignedBigInteger('job_id');
-
-            $table->dateTime('application_date')->nullable();
-            $table->dateTime('rejection_date')->nullable();
+            $table->dateTime('application_date')->default(now()); // Fecha de aplicación completada automáticamente
+            $table->dateTime('rejection_date')->nullable(); // Fecha de rechazo
             $table->text('cover_letter')->nullable();
-            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected'])->default('Pending')->nullable();
+            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected', 'Expired'])->default('Pending')->nullable();
             $table->timestamps();
 
             $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');

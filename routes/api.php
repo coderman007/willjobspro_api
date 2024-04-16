@@ -120,6 +120,7 @@ Route::group([
     Route::get('applications/{application}', [ApplicationController::class, 'show']);
     Route::post('applications', [ApplicationController::class, 'store']);
     Route::put('applications/{application}', [ApplicationController::class, 'update']);
+    Route::put('/applications/{application}/status', [ApplicationController::class, 'updateStatus']);
     Route::delete('applications/{application}', [ApplicationController::class, 'destroy']);
 
     // Rutas para suscripciones

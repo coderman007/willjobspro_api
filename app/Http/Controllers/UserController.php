@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,17 +18,16 @@ class UserController extends Controller
     /**
      * Handle an exception.
      *
-     * @param \Exception $e
+     * @param Exception $e
      * @param string $errorMessage
-     * @param int $statusCode
      * @return JsonResponse
      */
-    private function handleException(\Exception $e, string $errorMessage, int $statusCode): JsonResponse
+    private function handleException(Exception $e, string $errorMessage): JsonResponse
     {
         return response()->json([
             'error' => $errorMessage,
             'details' => $e->getMessage()
-        ], $statusCode);
+        ], 500);
     }
 
     /**
@@ -60,15 +62,17 @@ class UserController extends Controller
 
             if ($request->has('sort')) {
                 $sortField = $request->input('sort');
-                $users->orderBy($sortField, 'asc');
+                $users->orderBy($sortField);
             }
 
             // Paginate the users
-            $paginatedUsers = $users->paginate($perPage);
+            $paginatedUsers = $users->paginate($perPage)->items();
 
-            return response()->json(['data' => $paginatedUsers], 200);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'An error occurred while getting users', 500);
+            // Retornar las ofertas de trabajo paginadas junto con datos adicionales
+            return $this->jsonResponse(UserResource::collection($paginatedUsers), 'users retrieved successfully!');
+        } catch (Exception $e) {
+            // Manejar cualquier error y retornar una respuesta de error
+            return $this->jsonErrorResponse('Error retrieving users: ' . $e->getMessage());
         }
     }
 
@@ -78,7 +82,7 @@ class UserController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function show($id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         try {
             $user = User::findOrFail($id);
@@ -99,14 +103,14 @@ class UserController extends Controller
                     ],
                     'roles' => $roles,
                 ]
-            ], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            ]);
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'error' => 'User not found.',
                 'details' => $e->getMessage(),
             ], 404);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'An error ocurred while getting the user.', 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An error occurred while getting the user.');
         }
     }
 
@@ -142,14 +146,14 @@ class UserController extends Controller
             return response()->json([
                 'message' => 'User updated successfully',
                 'data' => $user,
-            ], 200);
+            ]);
         } catch (QueryException $e) {
             return response()->json([
                 'error' => 'Database error while updating the user',
                 'details' => $e->getMessage(),
             ], 500);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'An unexpected error occurred while updating the user', 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An unexpected error occurred while updating the user');
         }
     }
 
@@ -170,9 +174,33 @@ class UserController extends Controller
 
             $user->delete();
 
-            return response()->json(['message' => 'User deleted'], 200);
-        } catch (\Exception $e) {
-            return $this->handleException($e, 'An error ocurred while deleting the user.', 500);
+            return response()->json(['message' => 'User deleted']);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An error occurred while deleting the user.');
         }
+
     }
+
+    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200): JsonResponse
+    {
+        $response = [
+            'success' => true,
+            'data' => $data,
+            'message' => $message,
+        ];
+
+        return response()->json($response, $status);
+    }
+
+    protected function jsonErrorResponse(?string $message = null, int $status = 500): JsonResponse
+    {
+        $response = [
+            'success' => false,
+            'error' => $message,
+        ];
+
+        return response()->json($response, $status);
+    }
+
 }
+

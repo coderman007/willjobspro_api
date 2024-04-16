@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateApplicationRequest;
 use App\Http\Resources\ApplicationResource;
 use App\Models\Application;
 use App\Models\Job;
+use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,7 +74,7 @@ class ApplicationController extends Controller
             $formattedApplications = ApplicationResource::collection($applications);
 
             return response()->json(['data' => $formattedApplications], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
     }
@@ -135,7 +136,7 @@ class ApplicationController extends Controller
                 'error' => 'An error occurred in the database while creating the application.',
                 'details' => $e->getMessage()
             ], 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while creating the application!',
                 'details' => $e->getMessage()
@@ -205,7 +206,7 @@ class ApplicationController extends Controller
 
             // Si el usuario tiene permisos, devolver el detalle de la aplicación utilizando el recurso API
             return response()->json(['data' => $formattedApplication], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while getting the application!',
                 'details' => $e->getMessage()
@@ -236,14 +237,13 @@ class ApplicationController extends Controller
             $application->update($validatedData);
 
             return response()->json(['data' => $application, 'message' => 'Application updated successfully!'], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while updating the application!',
                 'details' => $e->getMessage()
             ], 500);
         }
     }
-
 
     /**
      * Remove the specified resource from storage.
@@ -269,9 +269,52 @@ class ApplicationController extends Controller
             $application->delete();
 
             return response()->json(['message' => 'Application deleted successfully!'], 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'error' => 'An error occurred while deleting the application!',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update the status of the specified application.
+     *
+     * @param Request $request
+     * @param Application $application
+     * @return JsonResponse
+     */
+    public function updateStatus(Request $request, Application $application): JsonResponse
+    {
+        try {
+            // Verificar si el usuario autenticado es una empresa
+            if (!Auth::user()->hasRole('company')) {
+                return response()->json(['error' => 'Only companies can update the status of an application.'], 403);
+            }
+
+            // Verificar si la aplicación está relacionada con una oferta de trabajo publicada por la empresa
+            if ($application->job->company_id !== Auth::user()->company->id) {
+                return response()->json(['error' => 'You do not have permissions to access this resource.'], 403);
+            }
+
+            // Validar la solicitud y actualizar el estado de la aplicación
+            $request->validate([
+                'status' => 'required|in:Pending,Reviewed,Accepted,Rejected',
+            ]);
+
+            $application->status = $request->input('status');
+
+            // Si el estado es "Rejected", establecer la fecha de rechazo
+            if ($request->input('status') === 'Rejected') {
+                $application->rejection_date = now();
+            }
+
+            $application->save();
+
+            return response()->json(['data' => $application, 'message' => 'Application status updated successfully!'], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'An error occurred while updating the application status!',
                 'details' => $e->getMessage()
             ], 500);
         }
