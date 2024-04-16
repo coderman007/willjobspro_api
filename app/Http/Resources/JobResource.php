@@ -24,7 +24,7 @@ class JobResource extends JsonResource
             'contact_phone' => $this->contact_phone,
             'experience_required' => $this->experience_required,
             'status' => $this->status,
-            'category' => $this->category,
+            'category' => $this->category_id,
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->user->name,
