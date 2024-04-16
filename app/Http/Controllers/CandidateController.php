@@ -134,7 +134,6 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
-
     public function show(int $userId): JsonResponse
     {
         try {
@@ -189,6 +188,12 @@ class CandidateController extends Controller
 
             if (!$user->hasRole('candidate')) {
                 return response()->json(['error' => 'You do not have permission to create a candidate'], 403);
+            }
+
+            // Verificar si el usuario autenticado ya tiene un perfil de candidato
+            $user = Auth::user();
+            if ($user->candidate) {
+                return response()->json(['error' => 'You already have a candidate profile'], 422);
             }
 
             $candidate = new Candidate;
@@ -444,7 +449,6 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
-
     public function destroy(int $userId): JsonResponse
     {
         try {
