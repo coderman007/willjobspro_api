@@ -18,13 +18,6 @@ use Illuminate\Support\Facades\Schema;
 
 class ApplicationController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-
     public function index(Request $request): JsonResponse
     {
         try {
@@ -78,20 +71,11 @@ class ApplicationController extends Controller
             return response()->json(['error' => 'An error occurred while getting the application list!', 'details' => $e->getMessage()], 500);
         }
     }
-
-
     // Función auxiliar para obtener los filtros dinámicos
     private function getFilters(): array
     {
         return Schema::hasTable('applications') ? DB::getSchemaBuilder()->getColumnListing('applications') : [];
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param StoreApplicationRequest $request
-     * @return JsonResponse
-     */
     public function store(StoreApplicationRequest $request): JsonResponse
     {
         try {
@@ -143,33 +127,6 @@ class ApplicationController extends Controller
             ], 500);
         }
     }
-
-
-    protected function userOwnsCandidate($candidateId)
-    {
-        $user = auth()->user();
-
-        // Verificar si el usuario está autenticado y tiene el rol 'candidate'
-        if ($user && $user->hasRole('candidate')) {
-            // Obtener el candidato asociado al usuario
-            $userCandidate = $user->candidate;
-
-            // Verificar si el candidato existe y su ID coincide con $candidateId
-            if ($userCandidate && $userCandidate->id == $candidateId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param Application $application
-     * @return JsonResponse
-     */
-
     public function show(Application $application)
     {
         try {
@@ -213,14 +170,6 @@ class ApplicationController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param UpdateApplicationRequest $request
-     * @param Application $application
-     * @return JsonResponse
-     */
     public function update(UpdateApplicationRequest $request, Application $application): JsonResponse
     {
         try {
@@ -244,13 +193,6 @@ class ApplicationController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param Application $application
-     * @return JsonResponse
-     */
     public function destroy(Application $application): JsonResponse
     {
         try {
@@ -276,14 +218,6 @@ class ApplicationController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Update the status of the specified application.
-     *
-     * @param Request $request
-     * @param Application $application
-     * @return JsonResponse
-     */
     public function updateStatus(Request $request, Application $application): JsonResponse
     {
         try {
@@ -318,5 +252,22 @@ class ApplicationController extends Controller
                 'details' => $e->getMessage()
             ], 500);
         }
+    }
+    protected function userOwnsCandidate($candidateId)
+    {
+        $user = auth()->user();
+
+        // Verificar si el usuario está autenticado y tiene el rol 'candidate'
+        if ($user && $user->hasRole('candidate')) {
+            // Obtener el candidato asociado al usuario
+            $userCandidate = $user->candidate;
+
+            // Verificar si el candidato existe y su ID coincide con $candidateId
+            if ($userCandidate && $userCandidate->id == $candidateId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

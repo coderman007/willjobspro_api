@@ -79,6 +79,7 @@ Route::group([
     Route::put('candidates/{candidate}', [CandidateController::class, 'update']);
     Route::delete('candidates/{candidate}', [CandidateController::class, 'destroy']);
     Route::get('candidates/applications', [CandidateController::class, 'getAllApplications']);
+    Route::get('jobs/unapplied', [CandidateController::class, 'getUnappliedJobs']);
     Route::get('candidates/{candidate}', [CandidateController::class, 'show']);
 
     // Rutas para gestionar compañías

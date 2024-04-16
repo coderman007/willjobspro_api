@@ -8,6 +8,7 @@ use App\Http\Resources\CandidateResource;
 use App\Models\Candidate;
 use App\Models\EducationHistory;
 use App\Models\EducationLevel;
+use App\Models\Job;
 use App\Models\Language;
 use App\Models\SocialNetwork;
 use App\Models\WorkExperience;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+
 
 class CandidateController extends Controller
 {
@@ -104,6 +106,59 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+    public function getUnappliedJobs(): JsonResponse
+    {
+        try {
+            // Verificar si el usuario autenticado tiene el rol 'candidate'
+            $user = Auth::user();
+            if (!$user->hasRole('candidate')) {
+                return response()->json(['error' => 'Unauthorized access'], 403);
+            }
+
+            // Obtener el candidato actual
+            $candidate = $user->candidate;
+
+            // Obtener todas las aplicaciones del candidato
+            $appliedJobIds = $candidate->applications()->pluck('job_id')->toArray();
+
+            // Obtener todas las ofertas de trabajo que el candidato no ha aplicado
+            $unappliedJobs = Job::whereNotIn('id', $appliedJobIds)->get();
+
+            // Transformar las ofertas de trabajo a un formato de respuesta
+            $unappliedJobsData = $unappliedJobs->map(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'title' => $job->title,
+                    'description' => $job->description,
+                    'posted_date' => $job->posted_date,
+                    'deadline' => $job->deadline,
+                    'salary' => $job->salary,
+                    'contact_email' => $job->contact_email,
+                    'contact_phone' => $job->contact_phone,
+                    'experience_required' => $job->experience_required,
+                    'status' => $job->status,
+                    'company' => [
+                        'id' => $job->company->id,
+                        'name' => $job->company->user->name,
+                        'logo' => $job->company->logo,
+                        'banner' => $job->company->banner,
+                    ],
+                    'job_types' => $job->job_types,
+                    'languages' => $job->languages,
+                    'education_levels' => $job->education_levels,
+                    'skills' => $job->skills,
+                    'location' => $job->location,
+                    // Agregar más campos según sea necesario
+                ];
+            });
+
+            // Devolver la información de las ofertas de trabajo no aplicadas
+            return response()->json(['data' => $unappliedJobsData]);
+        } catch (Exception $e) {
+            return $this->handleException($e);
+        }
+    }
+
     public function show(int $userId): JsonResponse
     {
         try {
