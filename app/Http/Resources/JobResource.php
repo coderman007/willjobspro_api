@@ -24,9 +24,9 @@ class JobResource extends JsonResource
             'status' => $this->status,
             'company' => [
                 'id' => $this->company->id,
-                'name' => $this->company->name,
-                'logo' => $this->company->logo,
-                'banner' => $this->company->banner,
+                'name' => $this->company->user->name,
+                'logo' => 'https://coderman.pixela2.com.co/public/storage/' . $this->company->logo,
+                'banner' =>  'https://coderman.pixela2.com.co/public/storage/' . $this->company->banner,
             ],
             'job_types' => $this->getAttribute('jobTypes'),
             'languages' => $this->getAttribute('languages'),
