@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
+use App\Http\Resources\ApplicationResource;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use App\Models\SocialNetwork;
@@ -348,23 +349,11 @@ class CompanyController extends Controller
                     $hasApplications = true;
                 }
 
-                // Transformar las aplicaciones a un formato de respuesta
-                foreach ($applications as $application) {
-                    $applicationsData[] = [
-                        'id' => $application->id,
-                        'cover_letter' => $application->cover_letter,
-                        'status' => $application->status,
-                        'created_at' => $application->created_at,
-                        'candidate_id' => $application->candidate_id,
-                        'candidate_name' => $application->candidate->user->name, // Agregar el nombre del candidato
-                        'candidate_email' => $application->candidate->user->email, // Agregar el correo electrónico del candidato
-                        'job_id' => $application->job_id,
-                        'job_title' => $job->title, // Agregar el título de la oferta de trabajo
-                        'job_salary' => $job->salary, // Agregar el salario de la oferta de trabajo
-                        'company_id' => $job->company_id, // Agregar el ID de la compañía
-                        'company_name' => $company->user->name, // Agregar el nombre de la compañía
-                    ];
-                }
+                // Transformar las aplicaciones utilizando ApplicationResource
+                $applicationsResource = ApplicationResource::collection($applications);
+
+                // Agregar las aplicaciones transformadas al array de datos
+                $applicationsData = array_merge($applicationsData, $applicationsResource->toArray($request));
             }
 
             // Verificar si hay aplicaciones
@@ -378,6 +367,5 @@ class CompanyController extends Controller
             return $this->handleException($e);
         }
     }
-
 
 }

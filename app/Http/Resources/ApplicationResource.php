@@ -14,12 +14,19 @@ class ApplicationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
         return [
             'id' => $this->id,
             'candidate_id' => $this->candidate_id,
             'job_id' => $this->job_id,
             "job_title" => $this->job->title,
             "job_salary" => $this->job->salary,
+            'company' => [
+                'id' => $this->job->company->id,
+                'name' => $this->job->company->user->name,
+                'logo' => $serverPath . $this->job->company->logo,
+                'banner' =>  $serverPath . $this->job->company->banner,
+            ],
             'company_id' => $this->job->company_id,
             'company_name' => $this->job->company->user->name,
             'cover_letter' => $this->cover_letter,
