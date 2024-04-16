@@ -98,7 +98,6 @@ class CandidateController extends Controller
                     'company_name' => $application->job->company->user->name,
                 ];
             }
-
             // Devolver la información de las aplicaciones
             return response()->json(['data' => $applicationsData]);
         } catch (Exception $e) {

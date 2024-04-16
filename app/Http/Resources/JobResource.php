@@ -41,7 +41,7 @@ class JobResource extends JsonResource
                 'zip_code' => $this->zipCode->code,
             ];
         } else {
-            $data['location'] = null; // Ubicación no proporcionada
+            $data['location'] = []; // Ubicación no proporcionada
         }
 
         return $data;
