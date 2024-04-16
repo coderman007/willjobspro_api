@@ -35,6 +35,7 @@ class JobResource extends JsonResource
             'languages' => $this->getAttribute('languages'),
             'education_levels' => $this->getAttribute('educationLevels'),
             'skills' => $this->getAttribute('skills'),
+            'total_applications' => $this->applications->count(),
         ];
 
         // Verificar si la ubicación está presente

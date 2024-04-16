@@ -90,7 +90,7 @@ class UpdateCandidateRequest extends FormRequest
      *
      * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         // Definir mensajes de error personalizados para las reglas de validación
         return [
