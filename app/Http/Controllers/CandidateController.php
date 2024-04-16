@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
+use App\Http\Resources\JobResource;
 use App\Models\Candidate;
 use App\Models\EducationHistory;
 use App\Models\EducationLevel;
@@ -124,33 +125,8 @@ class CandidateController extends Controller
             // Obtener todas las ofertas de trabajo que el candidato no ha aplicado
             $unappliedJobs = Job::whereNotIn('id', $appliedJobIds)->get();
 
-            // Transformar las ofertas de trabajo a un formato de respuesta
-            $unappliedJobsData = $unappliedJobs->map(function ($job) {
-                return [
-                    'id' => $job->id,
-                    'title' => $job->title,
-                    'description' => $job->description,
-                    'posted_date' => $job->posted_date,
-                    'deadline' => $job->deadline,
-                    'salary' => $job->salary,
-                    'contact_email' => $job->contact_email,
-                    'contact_phone' => $job->contact_phone,
-                    'experience_required' => $job->experience_required,
-                    'status' => $job->status,
-                    'company' => [
-                        'id' => $job->company->id,
-                        'name' => $job->company->user->name,
-                        'logo' => $job->company->logo,
-                        'banner' => $job->company->banner,
-                    ],
-                    'job_types' => $job->job_types,
-                    'languages' => $job->languages,
-                    'education_levels' => $job->education_levels,
-                    'skills' => $job->skills,
-                    'location' => $job->location,
-                    // Agregar más campos según sea necesario
-                ];
-            });
+            // Transformar las ofertas de trabajo utilizando el recurso JobResource
+            $unappliedJobsData = JobResource::collection($unappliedJobs);
 
             // Devolver la información de las ofertas de trabajo no aplicadas
             return response()->json(['data' => $unappliedJobsData]);
