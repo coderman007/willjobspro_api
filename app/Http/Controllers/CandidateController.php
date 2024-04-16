@@ -300,10 +300,35 @@ class CandidateController extends Controller
             }
 
             // Almacenar los archivos codificados en Base64
-            $this->storeBase64Files($candidate, $request);
+            if ($request->has('cv')) {
+                $cvBase64 = $request->input('cv');
+                $cvName = Str::random(40) . '.pdf';
+                $cvPath = 'candidate_uploads/cvs/' . $cvName;
+                Storage::disk('public')->put($cvPath, base64_decode($cvBase64));
+                Storage::disk('public')->delete($candidate->cv); // Eliminar el archivo existente
+                $candidate->cv = $cvPath;
+            }
 
-            // Actualizar los campos del candidato
-            $candidate->update($request->validated());
+            if ($request->has('photo')) {
+                $photoBase64 = $request->input('photo');
+                $photoName = Str::random(40) . '.jpg';
+                $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
+                Storage::disk('public')->put($photoPath, base64_decode($photoBase64));
+                Storage::disk('public')->delete($candidate->photo); // Eliminar el archivo existente
+                $candidate->photo = $photoPath;
+            }
+
+            if ($request->has('banner')) {
+                $bannerBase64 = $request->input('banner');
+                $bannerName = Str::random(40) . '.jpg';
+                $bannerPath = 'candidate_uploads/banners/' . $bannerName;
+                Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
+                Storage::disk('public')->delete($candidate->banner); // Eliminar el archivo existente
+                $candidate->banner = $bannerPath;
+            }
+
+            // Actualizar los campos del candidato excepto los archivos
+            $candidate->update($request->except(['cv', 'photo', 'banner']));
 
             // Crear o actualizar ubicaciones utilizando LocationService
             $locationService = new LocationService();
@@ -375,6 +400,7 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            // Devolver la respuesta con éxito
             $candidateResource = new CandidateResource($candidate);
             return response()->json([
                 'message' => 'Candidate profile updated successfully!',
@@ -382,10 +408,12 @@ class CandidateController extends Controller
             ]);
 
         } catch (Exception $e) {
+            // Si ocurre alguna excepción, revertir los cambios y devolver el error
             DB::rollBack();
             return $this->handleException($e);
         }
     }
+
     public function destroy(int $userId): JsonResponse
     {
         try {
