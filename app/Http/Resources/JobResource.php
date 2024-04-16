@@ -11,6 +11,8 @@ class JobResource extends JsonResource
 {
     public function toArray($request): array
     {
+        $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
+
         $data = [
             'id' => $this->id,
             'title' => $this->title,
@@ -25,8 +27,8 @@ class JobResource extends JsonResource
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->user->name,
-                'logo' => 'https://coderman.pixela2.com.co/public/storage/' . $this->company->logo,
-                'banner' =>  'https://coderman.pixela2.com.co/public/storage/' . $this->company->banner,
+                'logo' => $serverPath . $this->company->logo,
+                'banner' =>  $serverPath . $this->company->banner,
             ],
             'job_types' => $this->getAttribute('jobTypes'),
             'languages' => $this->getAttribute('languages'),
