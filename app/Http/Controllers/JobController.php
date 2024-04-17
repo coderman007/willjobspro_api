@@ -75,7 +75,8 @@ class JobController extends Controller
         $query->when($request->filled('search'), function ($query) use ($request) {
             $searchTerm = $request->query('search');
             return $query->where('title', 'like', '%' . $searchTerm . '%')
-                ->orWhere('description', 'like', '%' . $searchTerm . '%');
+                ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                ->orWhere('posted_date', 'like', '%' . $searchTerm . '%');
         });
 
         // Filtrar por nombre de compañía
