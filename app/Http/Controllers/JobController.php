@@ -128,32 +128,26 @@ class JobController extends Controller
         });
 
         // Filtrar por ubicación
-        $query->where(function ($query) use ($request, &$usingCompanyLocation) {
-            // Filtrar por ubicación específica si se proporciona
-            $query->when($request->filled('country_id'), function ($query) use ($request) {
-                $countryId = $request->query('country_id');
-                $query->where('country_id', $countryId);
-            });
-
-            $query->when($request->filled('state_id'), function ($query) use ($request) {
-                $stateId = $request->query('state_id');
-                $query->where('state_id', $stateId);
-            });
-
-            $query->when($request->filled('city_id'), function ($query) use ($request) {
-                $cityId = $request->query('city_id');
-                $query->where('city_id', $cityId);
-            });
-
-            $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
-                $zipCodeId = $request->query('zip_code_id');
-                $query->where('zip_code_id', $zipCodeId);
-            });
-
-            // Filtrar por ubicación de la compañía si la oferta de trabajo no tiene ubicación específica
-            $query->orWhereDoesntHave('country')->orWhereDoesntHave('state')->orWhereDoesntHave('city')->orWhereDoesntHave('zipCode');
-            $usingCompanyLocation = true; // Indicar que se está utilizando la ubicación de la compañía
+        $query->when($request->filled('country_id'), function ($query) use ($request) {
+            $countryId = $request->query('country_id');
+            return $query->where('country_id', $countryId);
         });
+
+        $query->when($request->filled('state_id'), function ($query) use ($request) {
+            $stateId = $request->query('state_id');
+            return $query->where('state_id', $stateId);
+        });
+
+        $query->when($request->filled('city_id'), function ($query) use ($request) {
+            $cityId = $request->query('city_id');
+            return $query->where('city_id', $cityId);
+        });
+
+        $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
+            $zipCodeId = $request->query('zip_code_id');
+            return $query->where('zip_code_id', $zipCodeId);
+        });
+
 
         // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
@@ -164,14 +158,6 @@ class JobController extends Controller
             // Ordenar por defecto si no se especifica
             $query->orderBy('created_at', 'desc');
         });
-
-        // Agregar mensaje informativo si se está utilizando la ubicación de la compañía
-        if ($usingCompanyLocation) {
-            $query->with('company'); // Cargar relación de compañía para mostrar su ubicación
-            $query->with(['company.country', 'company.state', 'company.city', 'company.zipCode']); // Cargar ubicación de la compañía
-            $query->addSelect(\DB::raw('"Using company location as fallback" as filter_message')); // Agregar columna con mensaje informativo
-        }
-
 
         return $query;
     }
