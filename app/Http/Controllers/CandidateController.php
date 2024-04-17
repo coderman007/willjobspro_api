@@ -400,10 +400,10 @@ class CandidateController extends Controller
             // Verificar si se proporciona información sobre el historial académico
             if ($request->filled('education_history')) {
                 // Recupera el candidato basado en su ID
-                $candidate = Candidate::findOrFail($candidate_id);
+                $candidate = Candidate::findOrFail($candidate->id);
 
                 // Obtén todos los historiales académicos existentes asociados a ese candidato
-                $candidate->educationHistory()->delete();
+                $candidate->educationHistories()->delete();
 
                 foreach ($request->education_history as $educationData) {
                     // Verificar si se proporciona el nivel de educación para este historial académico
