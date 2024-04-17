@@ -397,9 +397,12 @@ class CandidateController extends Controller
                 }
             }
 
-            // Actualizar la relación de historial académico del candidato (opcional)
+            // Verificar si se proporciona nueva información para el historial académico
             if ($request->filled('education_history')) {
-                $candidate->educationHistory()->delete(); // Eliminar todos los registros existentes
+                // Eliminar los registros existentes de historial académico
+                $candidate->educationHistory()->detach();
+
+                // Agregar los nuevos registros de historial académico proporcionados por el usuario
                 foreach ($request->education_history as $educationData) {
                     // Verificar si se proporciona el nivel educativo
                     if (!isset($educationData['education_level_id'])) {
@@ -410,6 +413,9 @@ class CandidateController extends Controller
                     $education->candidate_id = $candidate->id;
                     $education->fill($educationData);
                     $education->save();
+
+                    // Asociar el nivel educativo con el candidato en la tabla pivote
+                    $candidate->educationHistory()->attach($education->id, ['education_level_id' => $educationData['education_level_id']]);
                 }
             }
 
