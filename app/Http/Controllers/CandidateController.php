@@ -212,6 +212,13 @@ class CandidateController extends Controller
 
             $candidate->save();
 
+            // Verificar si se proporciona una dirección en la solicitud
+            if ($request->filled('address')) {
+                // Guardar la dirección proporcionada en el usuario asociado
+                $user->address = $request->input('address');
+                $user->save();
+            }
+
             // Crear o actualizar ubicaciones utilizando LocationService
             $locationService = new LocationService();
             $locationResult = $locationService->createAndAssociateLocation($request->input('location'), $user);
@@ -374,6 +381,19 @@ class CandidateController extends Controller
 
             // Actualizar los campos del candidato excepto los archivos
             $candidate->update($request->except(['cv', 'photo', 'banner']));
+
+            // Verificar si se proporciona una dirección en la solicitud
+            if ($request->filled('address')) {
+                // Eliminar la dirección anterior si existe
+                if ($authUser->address) {
+                    $authUser->address = null;
+                    $authUser->save();
+                }
+
+                // Guardar la nueva dirección proporcionada en el usuario asociado
+                $authUser->address = $request->input('address');
+                $authUser->save();
+            }
 
             // Crear o actualizar ubicaciones utilizando LocationService
             if ($request->has('location')) {

@@ -125,6 +125,13 @@ class CompanyController extends Controller
                 return response()->json(['error' => 'You already have a company profile'], 422);
             }
 
+            // Verificar si se proporciona una dirección en la solicitud
+            if ($request->filled('address')) {
+                // Guardar la dirección proporcionada en el usuario asociado
+                $user->address = $request->input('address');
+                $user->save();
+            }
+
             // Gestionar ubicaciones
             if ($request->filled('location')) {
                 // Obtener los datos de ubicación del formulario
@@ -209,6 +216,18 @@ class CompanyController extends Controller
                 return response()->json(['error' => 'Company profile not found'], 404);
             }
 
+            // Verificar si se proporciona una dirección en la solicitud
+            if ($request->filled('address')) {
+                // Eliminar la dirección anterior si existe
+                if ($user->address) {
+                    $user->address = null;
+                    $user->save();
+                }
+
+                // Guardar la nueva dirección proporcionada en el usuario asociado
+                $user->address = $request->input('address');
+                $user->save();
+            }
 
             // Gestionar ubicaciones
             if ($request->filled('location')) {

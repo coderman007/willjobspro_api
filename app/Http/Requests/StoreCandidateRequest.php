@@ -17,6 +17,7 @@ class StoreCandidateRequest extends FormRequest
             'gender' => 'nullable|string|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
             'phone_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
             'expected_salary' => 'nullable|numeric',
             // Archivos base64
             'cv' => 'nullable|string',

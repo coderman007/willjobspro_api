@@ -16,6 +16,7 @@ class UpdateCompanyRequest extends FormRequest
         $rules = [
             'contact_person' => 'string',
             'phone_number' => 'nullable|string|max:20',
+            'address' => 'nullable|string',
             'industry' => 'nullable|string',
             'description' => 'nullable|string',
             'website' => 'nullable|url',

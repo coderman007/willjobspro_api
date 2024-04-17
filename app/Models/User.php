@@ -33,6 +33,7 @@ class User extends Authenticatable
         'state_id',
         'city_id',
         'zip_code_id',
+        'address',
         'name',
         'email',
         'password',
