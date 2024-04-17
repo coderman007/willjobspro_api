@@ -397,27 +397,36 @@ class CandidateController extends Controller
                 }
             }
 
-            // Verificar si se proporciona nueva información para el historial académico
+            // Verificar si se proporciona información sobre el historial académico
             if ($request->filled('education_history')) {
-                // Eliminar los registros existentes de historial académico
-                $candidate->educationHistories()->detach();
+                // Recupera el candidato basado en su ID
+                $candidate = Candidate::findOrFail($candidate_id);
 
-                // Agregar los nuevos registros de historial académico proporcionados por el usuario
+                // Obtén todos los historiales académicos existentes asociados a ese candidato
+                $candidate->educationHistory()->delete();
+
                 foreach ($request->education_history as $educationData) {
-                    // Verificar si se proporciona el nivel educativo
+                    // Verificar si se proporciona el nivel de educación para este historial académico
                     if (!isset($educationData['education_level_id'])) {
-                        return response()->json(['error' => 'Education level ID is required for updating education history'], 422);
+                        // Si no se proporciona el nivel de educación, retornar un error
+                        return response()->json(['error' => 'Education level ID is required for each education record'], 422);
                     }
 
+                    // Verificar si el nivel de educación proporcionado es válido
+                    if (!EducationLevel::where('id', $educationData['education_level_id'])->exists()) {
+                        // Si el nivel de educación no es válido, retornar un error
+                        return response()->json(['error' => 'Invalid education level ID provided'], 422);
+                    }
+
+                    // Crear el historial académico asociado al candidato y al nivel de educación
                     $education = new EducationHistory();
                     $education->candidate_id = $candidate->id;
+                    $education->education_level_id = $educationData['education_level_id'];
                     $education->fill($educationData);
                     $education->save();
-
-                    // Asociar el nivel educativo con el candidato en la tabla pivote
-                    $candidate->educationHistory()->attach($education->id, ['education_level_id' => $educationData['education_level_id']]);
                 }
             }
+
 
             // Actualizar las redes sociales asociadas al usuario (opcional)
             if ($request->filled('social_networks')) {
