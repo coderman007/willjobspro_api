@@ -77,6 +77,8 @@ class CandidateController extends Controller
     public function getAllApplications(): JsonResponse
     {
         try {
+            $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
+
             // Verificar si el usuario autenticado tiene el rol 'candidate'
             $user = Auth::user();
             if (!$user->hasRole('candidate')) {
@@ -100,7 +102,7 @@ class CandidateController extends Controller
                     'job_salary' => $application->job->salary,
                     'company_id' => $application->job->company_id,
                     'company_name' => $application->job->company->user->name,
-                    'company_logo' => $application->job->company->logo,
+                    'company_logo' => $serverPath . $application->job->company->logo,
                 ];
             }
             // Devolver la información de las aplicaciones
