@@ -400,7 +400,7 @@ class CandidateController extends Controller
             // Verificar si se proporciona nueva información para el historial académico
             if ($request->filled('education_history')) {
                 // Eliminar los registros existentes de historial académico
-                $candidate->educationHistory()->detach();
+                $candidate->educationHistories()->detach();
 
                 // Agregar los nuevos registros de historial académico proporcionados por el usuario
                 foreach ($request->education_history as $educationData) {
