@@ -367,14 +367,17 @@ class CandidateController extends Controller
             $candidate->update($request->except(['cv', 'photo', 'banner']));
 
             // Crear o actualizar ubicaciones utilizando LocationService
-            $locationService = new LocationService();
-            $locationResult = $locationService->updateAndAssociateLocation($request->input('location'), $authUser);
+            if ($request->has('location')) {
+                // Crear o actualizar ubicaciones utilizando LocationService
+                $locationService = new LocationService();
+                $locationResult = $locationService->updateAndAssociateLocation($request->input('location'), $authUser);
 
-            // Verificar si ocurrieron errores durante la creación de ubicaciones
-            if ($locationResult !== true) {
-                // Si hay errores, revertir cambios en la base de datos y devolver los errores
-                DB::rollBack();
-                return response()->json(['errors' => $locationResult['errors']], 422);
+                // Verificar si ocurrieron errores durante la creación de ubicaciones
+                if ($locationResult !== true) {
+                    // Si hay errores, revertir cambios en la base de datos y devolver los errores
+                    DB::rollBack();
+                    return response()->json(['errors' => $locationResult['errors']], 422);
+                }
             }
 
             // Actualizar la relación de habilidades del candidato (opcional)
