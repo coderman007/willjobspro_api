@@ -126,18 +126,19 @@ class JobController extends Controller
             });
         });
 
-        /// Ordenar resultados
+        // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
             return $query->orderBy($sortBy, $sortOrder);
         }, function ($query) {
             // Ordenar por defecto si no se especifica
-            return $query->orderBy('created_at', 'desc');
+            $query->orderBy('created_at', 'desc');
         });
 
         return $query;
     }
+
     public function store(StoreJobRequest $request): JsonResponse
     {
         try {
