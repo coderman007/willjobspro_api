@@ -73,6 +73,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     public function getAllApplications(): JsonResponse
     {
         try {
@@ -107,6 +108,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     public function getUnappliedJobs(): JsonResponse
     {
         try {
@@ -134,6 +136,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     public function show(int $userId): JsonResponse
     {
         try {
@@ -175,6 +178,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     public function store(StoreCandidateRequest $request): JsonResponse
     {
         try {
@@ -290,6 +294,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     private function storeBase64Files(Candidate $candidate, Request $request): void
     {
         if ($request->has('cv')) {
@@ -316,6 +321,7 @@ class CandidateController extends Controller
             $candidate->banner = $bannerPath;
         }
     }
+
     public function update(UpdateCandidateRequest $request, int $userId): JsonResponse
     {
         try {
@@ -397,37 +403,25 @@ class CandidateController extends Controller
                 }
             }
 
-            // Verificar si se proporciona información sobre el historial académico
+            // Actualizar la relación de historial académico del candidato (opcional)
             if ($request->filled('education_history')) {
-                // Recupera el candidato basado en su ID
-                $candidate = Candidate::findOrFail($candidate->id);
-
-                // Obtén todos los historiales académicos existentes asociados a ese candidato
+                // Eliminar registros existentes de historial académico
                 $candidate->educationHistories()->delete();
 
+                // Crear nuevos registros de historial académico
                 foreach ($request->education_history as $educationData) {
-                    // Verificar si se proporciona el nivel de educación para este historial académico
+                    // Verificar si se proporciona el nivel educativo
                     if (!isset($educationData['education_level_id'])) {
-                        // Si no se proporciona el nivel de educación, retornar un error
-                        return response()->json(['error' => 'Education level ID is required for each education record'], 422);
+                        DB::rollBack();
+                        return response()->json(['error' => 'Education level ID is required for updating education history'], 422);
                     }
 
-                    // Verificar si el nivel de educación proporcionado es válido
-                    if (!EducationLevel::where('id', $educationData['education_level_id'])->exists()) {
-                        // Si el nivel de educación no es válido, retornar un error
-                        return response()->json(['error' => 'Invalid education level ID provided'], 422);
-                    }
-
-                    // Crear el historial académico asociado al candidato y al nivel de educación
                     $education = new EducationHistory();
                     $education->candidate_id = $candidate->id;
-                    $education->education_level_id = $educationData['education_level_id'];
                     $education->fill($educationData);
                     $education->save();
                 }
             }
-
-
             // Actualizar las redes sociales asociadas al usuario (opcional)
             if ($request->filled('social_networks')) {
                 $authUser->socialNetworks()->delete(); // Eliminar las redes sociales existentes
@@ -494,6 +488,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     private function handleException(Exception $exception): JsonResponse
     {
         $statusCode = $exception->getCode() ?: 500;
