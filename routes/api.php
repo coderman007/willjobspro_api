@@ -83,6 +83,9 @@ Route::group([
     Route::get('candidates/{candidate}', [CandidateController::class, 'show']);
 
     // Rutas para gestionar compañías
+
+    // Obtener los candidatos que han aplicado a una oferta laboral publicada por la compañía.
+    Route::get('/companies/applicants', [CompanyController::class, 'getCompanyJobApplications']);
     Route::post('companies', [CompanyController::class, 'store']);
     Route::put('companies/{company}', [CompanyController::class, 'update']);
     Route::delete('companies/{company}', [CompanyController::class, 'destroy']);
@@ -113,8 +116,6 @@ Route::group([
     Route::put('jobs/{job}', [JobController::class, 'update']);
     Route::delete('jobs/{job}', [JobController::class, 'destroy']);
 
-    // Obtener los candidatos que han aplicado a una oferta laboral publicada por la compañía.
-    Route::get('/companies/applicants', [CompanyController::class, 'getCompanyJobApplications']);
 
     // Rutas para crear, actualizar y eliminar aplicaciones de trabajo
     Route::get('applications', [ApplicationController::class, 'index']);
