@@ -100,6 +100,7 @@ class CandidateController extends Controller
                     'job_salary' => $application->job->salary,
                     'company_id' => $application->job->company_id,
                     'company_name' => $application->job->company->user->name,
+                    'company_logo' => $application->job->company->logo,
                 ];
             }
             // Devolver la información de las aplicaciones
