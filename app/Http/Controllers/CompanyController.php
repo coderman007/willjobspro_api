@@ -119,6 +119,12 @@ class CompanyController extends Controller
                 return response()->json(['error' => 'You do not have permission to create a company'], 403);
             }
 
+            // Verificar si el usuario autenticado ya tiene un perfil de compañía
+            $user = Auth::user();
+            if ($user->company) {
+                return response()->json(['error' => 'You already have a company profile'], 422);
+            }
+
             // Gestionar ubicaciones
             if ($request->filled('location')) {
                 // Obtener los datos de ubicación del formulario

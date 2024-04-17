@@ -335,7 +335,7 @@ class CandidateController extends Controller
                 return response()->json(['error' => 'Candidate profile not found'], 404);
             }
 
-            // Almacenar los archivos codificados en Base64
+            // Almacenar los archivos codificados en Base64 (si se proporcionan)
             if ($request->has('cv')) {
                 $cvBase64 = $request->input('cv');
                 $cvName = Str::random(40) . '.pdf';
@@ -365,17 +365,6 @@ class CandidateController extends Controller
 
             // Actualizar los campos del candidato excepto los archivos
             $candidate->update($request->except(['cv', 'photo', 'banner']));
-
-            // Crear o actualizar ubicaciones utilizando LocationService
-            $locationService = new LocationService();
-            $locationResult = $locationService->updateAndAssociateLocation($request->input('location'), $authUser);
-
-            // Verificar si ocurrieron errores durante la creación de ubicaciones
-            if ($locationResult !== true) {
-                // Si hay errores, revertir cambios en la base de datos y devolver los errores
-                DB::rollBack();
-                return response()->json(['errors' => $locationResult['errors']], 422);
-            }
 
             // Actualizar la relación de habilidades del candidato (opcional)
             if ($request->filled('skills')) {
@@ -409,21 +398,7 @@ class CandidateController extends Controller
                 }
             }
 
-            // Sincronizar idiomas del candidato (opcional)
-            if ($request->filled('languages')) {
-                $languages = $request->input('languages');
-                $candidate->languages()->detach(); // Desasociar todos los idiomas existentes
-                foreach ($languages as $languageData) {
-                    // Verificar si el idioma está presente en la base de datos
-                    $language = Language::find($languageData['id']);
-                    if ($language) {
-                        // Asociar el idioma con el nivel correspondiente al candidato
-                        $candidate->languages()->attach($language->id, ['level' => $languageData['level']]);
-                    }
-                }
-            }
-
-            // Actualizar las redes sociales asociadas al usuario
+            // Actualizar las redes sociales asociadas al usuario (opcional)
             if ($request->filled('social_networks')) {
                 $authUser->socialNetworks()->delete(); // Eliminar las redes sociales existentes
                 foreach ($request->social_networks as $socialNetworkData) {
@@ -449,6 +424,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
     public function destroy(int $userId): JsonResponse
     {
         try {
