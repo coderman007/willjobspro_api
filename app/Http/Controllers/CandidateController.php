@@ -366,6 +366,17 @@ class CandidateController extends Controller
             // Actualizar los campos del candidato excepto los archivos
             $candidate->update($request->except(['cv', 'photo', 'banner']));
 
+            // Crear o actualizar ubicaciones utilizando LocationService
+            $locationService = new LocationService();
+            $locationResult = $locationService->updateAndAssociateLocation($request->input('location'), $authUser);
+
+            // Verificar si ocurrieron errores durante la creación de ubicaciones
+            if ($locationResult !== true) {
+                // Si hay errores, revertir cambios en la base de datos y devolver los errores
+                DB::rollBack();
+                return response()->json(['errors' => $locationResult['errors']], 422);
+            }
+
             // Actualizar la relación de habilidades del candidato (opcional)
             if ($request->filled('skills')) {
                 $skills = $request->input('skills');
@@ -374,7 +385,7 @@ class CandidateController extends Controller
 
             // Actualizar la relación de experiencias laborales del candidato (opcional)
             if ($request->filled('work_experiences')) {
-                $candidate->workExperiences()->delete(); // Eliminar las experiencias laborales existentes
+                $candidate->workExperiences()->delete(); // Eliminar todas las experiencias laborales existentes
                 foreach ($request->work_experiences as $workData) {
                     $workExperience = new WorkExperience();
                     $workExperience->candidate_id = $candidate->id;
@@ -385,6 +396,7 @@ class CandidateController extends Controller
 
             // Actualizar la relación de historial académico del candidato (opcional)
             if ($request->filled('education_history')) {
+                $candidate->educationHistory()->delete(); // Eliminar todos los registros existentes
                 foreach ($request->education_history as $educationData) {
                     // Verificar si se proporciona el nivel educativo
                     if (!isset($educationData['education_level_id'])) {
