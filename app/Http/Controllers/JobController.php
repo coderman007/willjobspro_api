@@ -129,24 +129,30 @@ class JobController extends Controller
         // Filtrar por ubicación
         $query->where(function ($query) use ($request, &$usingCompanyLocation) {
             // Filtrar por ubicación específica si se proporciona
-            $query->when($request->filled('country_id'), function ($query) use ($request) {
-                $countryId = $request->query('country_id');
-                $query->where('country_id', $countryId);
+            $query->when($request->filled('country'), function ($query) use ($request) {
+                $countryName = $request->query('country');
+                $query->whereHas('country', function ($q) use ($countryName) {
+                    $q->where('name', 'like', '%' . $countryName . '%');
+                });
             });
 
-            $query->when($request->filled('state_id'), function ($query) use ($request) {
-                $stateId = $request->query('state_id');
-                $query->where('state_id', $stateId);
+            $query->when($request->filled('state'), function ($query) use ($request) {
+                $stateName = $request->query('state');
+                $query->whereHas('state', function ($q) use ($stateName) {
+                    $q->where('name', 'like', '%' . $stateName . '%');
+                });
             });
 
-            $query->when($request->filled('city_id'), function ($query) use ($request) {
-                $cityId = $request->query('city_id');
-                $query->where('city_id', $cityId);
+            $query->when($request->filled('city'), function ($query) use ($request) {
+                $cityName = $request->query('city');
+                $query->whereHas('city', function ($q) use ($cityName) {
+                    $q->where('name', 'like', '%' . $cityName . '%');
+                });
             });
 
-            $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
-                $zipCodeId = $request->query('zip_code_id');
-                $query->where('zip_code_id', $zipCodeId);
+            $query->when($request->filled('zip_code'), function ($query) use ($request) {
+                $zipCode = $request->query('zip_code');
+                $query->where('zip_code', 'like', '%' . $zipCode . '%');
             });
 
             // Filtrar por ubicación de la compañía si la oferta de trabajo no tiene ubicación específica
