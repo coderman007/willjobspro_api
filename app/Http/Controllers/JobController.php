@@ -48,15 +48,14 @@ class JobController extends Controller
             return $this->jsonErrorResponse('Validation Error: ' . $validator->errors()->first(), 422);
         }
 
-        // Verificar si se proporciona el parámetro perPage y si es un número válido
-        $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
-
-
         try {
-            $perPage = $request->query('per_page', 10);
+            // Verificar si se proporciona el parámetro perPage y si es un número válido
+            $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
 
             // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
             $jobs = $this->buildJobQuery($request)->paginate($perPage)->items();
+
+            var_dump($this->company()->banner);
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
             return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
