@@ -22,10 +22,9 @@ class ApplicationResource extends JsonResource
                 'id' => $this->candidate_id,
                 'gender' => $this->candidate->gender,
                 'date_of_birth' => $this->candidate->date_of_birth,
-                'location' => [
-                    'country' => $this->candidate->user->country->name,
-                ],
-                'cv_url' => $this->candidate->cv ? $serverPath . $this->candidate->cv : null,
+                'country' => $this->candidate->user->country->name,
+                'expected_salary' => $this->candidate->expected_salary,
+                'cv' => $this->candidate->cv ? $serverPath . $this->candidate->cv : null,
                 'profile_photo' => $this->candidate->photo ? $serverPath . $this->candidate->photo : null,
                 'cover_letter' => $this->cover_letter,
 
@@ -48,7 +47,6 @@ class ApplicationResource extends JsonResource
                 'id' => $this->job->company->id,
                 'name' => $this->job->company->user->name,
                 'logo' => $serverPath . $this->job->company->logo,
-                'banner' => $serverPath . $this->job->company->banner,
             ],
         ];
     }
