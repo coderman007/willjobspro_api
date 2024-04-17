@@ -8,7 +8,6 @@ use App\Http\Resources\JobResource;
 use App\Models\Job;
 use App\Models\Language;
 use App\Services\LocationService;
-use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
+
     public function index(Request $request): JsonResponse
     {
         // Reglas de validación para los filtros
@@ -32,10 +32,6 @@ class JobController extends Controller
             'language_name' => 'nullable|string',
             'job_type_name' => 'nullable|string',
             'job_category_name' => 'nullable|string',
-            'country' => 'nullable|string',
-            'state' => 'nullable|string',
-            'city' => 'nullable|string',
-            'zip_code' => 'nullable|string',
             'company_id' => 'nullable|exists:companies,id',
             'skill_id' => 'nullable|exists:skills,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
@@ -52,16 +48,19 @@ class JobController extends Controller
             return $this->jsonErrorResponse('Validation Error: ' . $validator->errors()->first(), 422);
         }
 
+        // Verificar si se proporciona el parámetro perPage y si es un número válido
+        $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
+
+
         try {
-            // Verificar si se proporciona el parámetro perPage y si es un número válido
-            $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
+            $perPage = $request->query('per_page', 10);
 
             // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
             $jobs = $this->buildJobQuery($request)->paginate($perPage)->items();
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
             return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // Manejar cualquier error y retornar una respuesta de error
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
         }
@@ -131,30 +130,24 @@ class JobController extends Controller
         // Filtrar por ubicación
         $query->where(function ($query) use ($request, &$usingCompanyLocation) {
             // Filtrar por ubicación específica si se proporciona
-            $query->when($request->filled('country'), function ($query) use ($request) {
-                $countryName = $request->query('country');
-                $query->whereHas('country', function ($q) use ($countryName) {
-                    $q->where('name', 'like', '%' . $countryName . '%');
-                });
+            $query->when($request->filled('country_id'), function ($query) use ($request) {
+                $countryId = $request->query('country_id');
+                $query->where('country_id', $countryId);
             });
 
-            $query->when($request->filled('state'), function ($query) use ($request) {
-                $stateName = $request->query('state');
-                $query->whereHas('state', function ($q) use ($stateName) {
-                    $q->where('name', 'like', '%' . $stateName . '%');
-                });
+            $query->when($request->filled('state_id'), function ($query) use ($request) {
+                $stateId = $request->query('state_id');
+                $query->where('state_id', $stateId);
             });
 
-            $query->when($request->filled('city'), function ($query) use ($request) {
-                $cityName = $request->query('city');
-                $query->whereHas('city', function ($q) use ($cityName) {
-                    $q->where('name', 'like', '%' . $cityName . '%');
-                });
+            $query->when($request->filled('city_id'), function ($query) use ($request) {
+                $cityId = $request->query('city_id');
+                $query->where('city_id', $cityId);
             });
 
-            $query->when($request->filled('zip_code'), function ($query) use ($request) {
-                $zipCode = $request->query('zip_code');
-                $query->where('zip_code', 'like', '%' . $zipCode . '%');
+            $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
+                $zipCodeId = $request->query('zip_code_id');
+                $query->where('zip_code_id', $zipCodeId);
             });
 
             // Filtrar por ubicación de la compañía si la oferta de trabajo no tiene ubicación específica
@@ -174,8 +167,11 @@ class JobController extends Controller
 
         // Agregar mensaje informativo si se está utilizando la ubicación de la compañía
         if ($usingCompanyLocation) {
+            $query->with('company'); // Cargar relación de compañía para mostrar su ubicación
+            $query->with(['company.country', 'company.state', 'company.city', 'company.zipCode']); // Cargar ubicación de la compañía
             $query->addSelect(\DB::raw('"Using company location as fallback" as filter_message')); // Agregar columna con mensaje informativo
         }
+
 
         return $query;
     }
@@ -257,7 +253,7 @@ class JobController extends Controller
                 'message' => 'Job offer created successfully!',
                 'data' => $jobResource,
             ], 201);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // Manejar cualquier error y revertir la transacción
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -274,7 +270,7 @@ class JobController extends Controller
             return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully', 200);
         } catch (ModelNotFoundException $e) {
             return $this->jsonErrorResponse('Job not found.', 404);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage(), 500);
         }
     }
@@ -362,7 +358,7 @@ class JobController extends Controller
             // Devolver una respuesta exitosa con la oferta de trabajo actualizada
             $jobResource = new JobResource($job);
             return $this->jsonResponse($jobResource, 'Job offer updated successfully', 200);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             // Revertir la transacción en caso de error
             DB::rollBack();
             // Manejar cualquier error y devolver una respuesta de error
@@ -382,7 +378,7 @@ class JobController extends Controller
             $job->delete();
 
             return $this->jsonResponse(null, 'Job offer deleted successfully!', 200);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage(), 500);
         }
     }
