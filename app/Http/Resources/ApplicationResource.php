@@ -26,7 +26,7 @@ class ApplicationResource extends JsonResource
                 'id' => $this->candidate_id,
                 'gender' => $this->candidate->gender,
                 'cv_url' => $this->candidate->cv ? $serverPath . $this->candidate->cv : null,
-                'profile_photo' => $this->photo ? url('storage/' . $this->photo) : null,
+                'profile_photo' => $this->candidate->photo ? $serverPath . $this->candidate->photo : null,
                 'cover_letter' => $this->cover_letter,
 
             ],
