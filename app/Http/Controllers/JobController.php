@@ -55,7 +55,7 @@ class JobController extends Controller
             // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
             $jobs = $this->buildJobQuery($request)->paginate($perPage)->items();
 
-            var_dump($this->company()->banner);
+            dd($this->company()->banner);
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
             return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
