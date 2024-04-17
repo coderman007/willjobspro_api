@@ -27,6 +27,7 @@ class JobResource extends JsonResource
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->user->name,
+                'address' => $this->company->user->address,
                 'logo' => $serverPath . $this->company->logo,
                 'banner' =>  $serverPath . $this->company->banner,
             ],

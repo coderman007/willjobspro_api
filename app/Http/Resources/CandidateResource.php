@@ -28,6 +28,7 @@ class CandidateResource extends JsonResource
             'state' => $this->user->state,
             'city' => $this->user->city,
             'zip_code' => $this->user->zipCode,
+            'address' => $this->user->address,
             'skills' => $this->skills,
             'education_histories' => $this->educationHistories->map(function ($education) {
                 return [

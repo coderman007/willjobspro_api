@@ -30,6 +30,7 @@ class CompanyResource extends JsonResource
             'state' => $this->user->state,
             'city' => $this->user->city,
             'zip_code' => $this->user->zipCode,
+            'address' => $this->user->address,
             'jobs' => $this->jobs,
             'social_networks' => $this->user->socialNetworks,
             'logo' => $this->logo ? url('storage/' . $this->logo) : null,
