@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
-
     public function index(Request $request): JsonResponse
     {
         // Reglas de validación para los filtros
@@ -33,6 +32,10 @@ class JobController extends Controller
             'language_name' => 'nullable|string',
             'job_type_name' => 'nullable|string',
             'job_category_name' => 'nullable|string',
+            'country' => 'nullable|string',
+            'state' => 'nullable|string',
+            'city' => 'nullable|string',
+            'zip_code' => 'nullable|string',
             'company_id' => 'nullable|exists:companies,id',
             'skill_id' => 'nullable|exists:skills,id',
             'education_level_id' => 'nullable|exists:education_levels,id',
@@ -48,7 +51,6 @@ class JobController extends Controller
         if ($validator->fails()) {
             return $this->jsonErrorResponse('Validation Error: ' . $validator->errors()->first(), 422);
         }
-
 
         try {
             // Verificar si se proporciona el parámetro perPage y si es un número válido
@@ -172,8 +174,6 @@ class JobController extends Controller
 
         // Agregar mensaje informativo si se está utilizando la ubicación de la compañía
         if ($usingCompanyLocation) {
-            $query->with('company'); // Cargar relación de compañía para mostrar su ubicación
-            $query->with(['company.country', 'company.state', 'company.city', 'company.zipCode']); // Cargar ubicación de la compañía
             $query->addSelect(\DB::raw('"Using company location as fallback" as filter_message')); // Agregar columna con mensaje informativo
         }
 
