@@ -38,6 +38,9 @@ class JobController extends Controller
             'language_id' => 'nullable|exists:languages,id',
             'job_type_id' => 'nullable|exists:job_types,id',
             'job_category_id' => 'nullable|exists:job_categories,id',
+            'country_name' => 'nullable|string',
+            'state_name' => 'nullable|string',
+            'city_name' => 'nullable|string',
         ];
 
         // Validar los parámetros de la solicitud
@@ -124,21 +127,30 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por ubicación
-        $query->when($request->filled('country_id'), function ($query) use ($request) {
-            $countryId = $request->query('country_id');
-            return $query->where('country_id', $countryId);
+        // Filtrar por país
+        $query->when($request->filled('country_name'), function ($query) use ($request) {
+            $countryName = $request->query('country_name');
+            return $query->whereHas('country', function ($q) use ($countryName) {
+                $q->where('name', 'like', '%' . $countryName . '%');
+            });
         });
 
-        $query->when($request->filled('state_id'), function ($query) use ($request) {
-            $stateId = $request->query('state_id');
-            return $query->where('state_id', $stateId);
+        // Filtrar por estado
+        $query->when($request->filled('state_name'), function ($query) use ($request) {
+            $stateName = $request->query('state_name');
+            return $query->whereHas('state', function ($q) use ($stateName) {
+                $q->where('name', 'like', '%' . $stateName . '%');
+            });
         });
 
-        $query->when($request->filled('city_id'), function ($query) use ($request) {
-            $cityId = $request->query('city_id');
-            return $query->where('city_id', $cityId);
-        });
+        // Filtrar por ciudad
+        /*$query->when($request->filled('city_name'), function ($query) use ($request) {
+            $cityName = $request->query('city_name');
+            return $query->whereHas('city', function ($q) use ($cityName) {
+                $q->where('name', 'like', '%' . $cityName . '%');
+            });
+        });*/
+
 
         $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
             $zipCodeId = $request->query('zip_code_id');

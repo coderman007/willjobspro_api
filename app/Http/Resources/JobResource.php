@@ -4,9 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @method getAttribute(string $string)
- */
 class JobResource extends JsonResource
 {
     public function toArray($request): array
@@ -16,7 +13,7 @@ class JobResource extends JsonResource
         $data = [
             'id' => $this->id,
             'title' => $this->title,
-            'description' => $this->description,
+            'description' => $this->description ?? null,
             'posted_date' => $this->posted_date,
             'deadline' => $this->deadline,
             'salary' => $this->salary,
@@ -27,15 +24,15 @@ class JobResource extends JsonResource
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->user->name,
-                'address' => $this->company->user->address,
-                'logo' => $serverPath . $this->company->logo,
-                'banner' =>  $serverPath . $this->company->banner,
+                'address' => $this->company->user->address ?? null,
+                'logo' => $this->company->logo ? $serverPath . $this->company->logo : null,
+                'banner' =>  $this->company->banner ? $serverPath . $this->company->banner : null,
             ],
             'job_category' => $this->jobCategory->name,
-            'job_types' => $this->getAttribute('jobTypes'),
-            'languages' => $this->getAttribute('languages'),
-            'education_levels' => $this->getAttribute('educationLevels'),
-            'skills' => $this->getAttribute('skills'),
+            'job_types' => $this->getAttribute('jobTypes') ?? null,
+            'languages' => $this->getAttribute('languages') ?? null,
+            'education_levels' => $this->getAttribute('educationLevels') ?? null,
+            'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
         ];
 
