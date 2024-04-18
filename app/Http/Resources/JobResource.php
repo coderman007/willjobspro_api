@@ -4,9 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @method getAttribute(string $string)
- */
 class JobResource extends JsonResource
 {
     public function toArray($request): array
@@ -39,28 +36,20 @@ class JobResource extends JsonResource
             'total_applications' => $this->applications->count(),
         ];
 
-        // Verificar si se están aplicando filtros por ubicación y la ubicación de la oferta es nula
-        if ($request->filled('country_name') && $request->filled('state_name') && $request->filled('city_name') &&
-            (!$this->country || !$this->state || !$this->city || !$this->zipCode)
-        ) {
-            $data['location'] = null; // Ubicación no proporcionada
-            $data['message'] = 'La ubicación corresponde a la ubicación de la compañía';
+        // Verificar si la ubicación está presente
+        if ($this->country && $this->state && $this->city && $this->zipCode) {
+            $data['location'] = [
+                'country' => [
+                    'name' => $this->country->name,
+                    'dial_code' => $this->country->dial_code,
+                    'iso_alpha_2' => $this->country->iso_alpha_2
+                ],
+                'state' => $this->state->name,
+                'city' => $this->city->name,
+                'zip_code' => $this->zipCode->code,
+            ];
         } else {
-            // Verificar si la ubicación está presente
-            if ($this->country && $this->state && $this->city && $this->zipCode) {
-                $data['location'] = [
-                    'country' => [
-                        'name' => $this->country->name,
-                        'dial_code' => $this->country->dial_code,
-                        'iso_alpha_2' => $this->country->iso_alpha_2
-                    ],
-                    'state' => $this->state->name,
-                    'city' => $this->city->name,
-                    'zip_code' => $this->zipCode->code,
-                ];
-            } else {
-                $data['location'] = null; // Ubicación no proporcionada
-            }
+            $data['location'] = null; // Ubicación no proporcionada
         }
 
         return $data;
