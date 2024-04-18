@@ -127,7 +127,7 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por país
+        // Filtro por ubicación de la oferta de trabajo
         $query->when($request->filled('country_name'), function ($query) use ($request) {
             $countryName = $request->query('country_name');
             return $query->whereHas('country', function ($q) use ($countryName) {
@@ -135,7 +135,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por estado
         $query->when($request->filled('state_name'), function ($query) use ($request) {
             $stateName = $request->query('state_name');
             return $query->whereHas('state', function ($q) use ($stateName) {
@@ -143,20 +142,35 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por ciudad
-        /*$query->when($request->filled('city_name'), function ($query) use ($request) {
+        $query->when($request->filled('city_name'), function ($query) use ($request) {
             $cityName = $request->query('city_name');
             return $query->whereHas('city', function ($q) use ($cityName) {
                 $q->where('name', 'like', '%' . $cityName . '%');
             });
-        });*/
-
-
-        $query->when($request->filled('zip_code_id'), function ($query) use ($request) {
-            $zipCodeId = $request->query('zip_code_id');
-            return $query->where('zip_code_id', $zipCodeId);
         });
 
+        // Si la oferta de trabajo no tiene una ubicación asociada, filtrar por la ubicación de la compañía
+        $query->orWhereDoesntHave('country')
+            ->orWhereDoesntHave('state')
+            ->orWhereDoesntHave('city')
+            ->when($request->filled('country_name'), function ($query) use ($request) {
+                $countryName = $request->query('country_name');
+                return $query->whereHas('company.country', function ($q) use ($countryName) {
+                    $q->where('name', 'like', '%' . $countryName . '%');
+                });
+            })
+            ->when($request->filled('state_name'), function ($query) use ($request) {
+                $stateName = $request->query('state_name');
+                return $query->whereHas('company.state', function ($q) use ($stateName) {
+                    $q->where('name', 'like', '%' . $stateName . '%');
+                });
+            })
+            ->when($request->filled('city_name'), function ($query) use ($request) {
+                $cityName = $request->query('city_name');
+                return $query->whereHas('company.city', function ($q) use ($cityName) {
+                    $q->where('name', 'like', '%' . $cityName . '%');
+                });
+            });
 
         // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
