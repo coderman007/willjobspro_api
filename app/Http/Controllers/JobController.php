@@ -170,12 +170,10 @@ class JobController extends Controller
                 return $query->whereHas('company.city', function ($q) use ($cityName) {
                     $q->where('name', 'like', '%' . $cityName . '%');
                 });
+            })->when($query->doesntHave('country'), function ($query) {
+                // Agrega un mensaje informativo si no se encuentra una ubicación asociada a la oferta de trabajo
+                return response()->json(['message' => 'La ubicación corresponde a la ubicación de la compañía']);
             });
-
-        // Si no se encuentra una ubicación asociada, agregar mensaje informativo
-        $query->when(!$request->filled('country_name') && !$request->filled('state_name') && !$request->filled('city_name'), function ($query) {
-            return $query->withMessage('La ubicación mostrada es la de la compañía.');
-        });
 
         // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
