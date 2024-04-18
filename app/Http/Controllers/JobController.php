@@ -172,6 +172,11 @@ class JobController extends Controller
                 });
             });
 
+        // Si no se encuentra una ubicación asociada, agregar mensaje informativo
+        $query->when(!$request->filled('country_name') && !$request->filled('state_name') && !$request->filled('city_name'), function ($query) {
+            return $query->withMessage('La ubicación mostrada es la de la compañía.');
+        });
+
         // Ordenar resultados
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
