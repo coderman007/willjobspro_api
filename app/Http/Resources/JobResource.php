@@ -4,6 +4,9 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @method getAttribute(string $string)
+ */
 class JobResource extends JsonResource
 {
     public function toArray($request): array
