@@ -29,8 +29,7 @@ class UpdateCandidateRequest extends FormRequest
             'gender' => 'nullable|string|in:Male,Female,Other',
             'date_of_birth' => 'nullable|date',
             'phone_number' => 'nullable|string',
-            'address' => 'nullable|string|max:20',
-            'expected_salary' => 'nullable|numeric',
+            'address' => 'nullable|string',
             // Archivos base64
             'cv' => 'nullable|string',
             'photo' => 'nullable|string',
@@ -99,7 +98,6 @@ class UpdateCandidateRequest extends FormRequest
             'date_of_birth.nullable' => 'The date of birth field is optional.',
             'phone_number.nullable' => 'The phone number field is optional.',
             'address.nullable' => 'The address field is optional.',
-            'expected_salary.nullable' => 'The expected salary field is optional.',
             'location.nullable' => 'The location field is optional.',
             'location.country.required' => 'El país es obligatorio.',
             'location.country.string' => 'El país debe ser una cadena de texto.',

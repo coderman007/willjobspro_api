@@ -333,7 +333,16 @@ class CompanyController extends Controller
             Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
             $company->banner = $bannerPath;
         }
+
+        if ($request->has('video')) {
+            $videoBase64 = $request->input('video');
+            $videoName = Str::random(40) . '.mp4'; // Cambiar la extensión según el tipo de archivo permitido
+            $videoPath = 'company_uploads/videos/' . $videoName;
+            Storage::disk('public')->put($videoPath, base64_decode($videoBase64));
+            $company->video = $videoPath;
+        }
     }
+
     private function handleException(Exception $exception): JsonResponse
     {
         $statusCode = $exception->getCode() ?: 500;

@@ -26,7 +26,6 @@ class CandidateFactory extends Factory
             'gender' => $this->faker->randomElement(['male', 'female']),
             'date_of_birth' => $this->faker->date(),
             'phone_number' => $this->faker->phoneNumber,
-            'expected_salary' => $this->faker->randomFloat(2, 1000, 10000),
             'status' => $this->faker->randomElement(['Active', 'Blocked']),
             'cv' => 'candidate_uploads/cvs/' . $this->faker->file('public/storage/candidate_uploads/cvs', storage_path('app/public/candidate_uploads/cvs'), false),
             'photo' => 'candidate_uploads/profile_photos/' . $this->faker->image('public/storage/candidate_uploads/profile_photos', 100, 100, null, false),

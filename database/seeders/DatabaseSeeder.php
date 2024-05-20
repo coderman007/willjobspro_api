@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             EducationLevelSeeder::class,
 //            SocialNetworkSeeder::class,
             LanguageSeeder::class,
+            BenefitSeeder::class,
             SkillSeeder::class,
 //            CandidateSeeder::class,
 //            CompanySeeder::class,

@@ -8,12 +8,15 @@ use App\Http\Resources\JobResource;
 use App\Models\Job;
 use App\Models\Language;
 use App\Services\LocationService;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
@@ -54,7 +57,7 @@ class JobController extends Controller
 
             // Retornar las ofertas de trabajo paginadas junto con datos adicionales
             return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Manejar cualquier error y retornar una respuesta de error
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
         }
@@ -203,6 +206,9 @@ class JobController extends Controller
             // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
 
+            // Almacena los archivos codificados en Base64
+            $this->storeBase64Files($job, $request);
+
             // Asociar ubicación si los datos están presentes
             if ($request->filled('location')) {
                 $locationService = new LocationService();
@@ -215,6 +221,11 @@ class JobController extends Controller
                 }
             }
 
+            // Asociar beneficios
+            if ($request->filled('benefits')) {
+                $benefits = $request->input('benefits');
+                $job->benefits()->syncWithoutDetaching($benefits);
+            }
 
             // Asociar habilidades
             if ($request->filled('skills')) {
@@ -256,7 +267,7 @@ class JobController extends Controller
                 'message' => 'Job offer created successfully!',
                 'data' => $jobResource,
             ], 201);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Manejar cualquier error y revertir la transacción
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 500);
@@ -273,7 +284,7 @@ class JobController extends Controller
             return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully', 200);
         } catch (ModelNotFoundException $e) {
             return $this->jsonErrorResponse('Job not found.', 404);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage(), 500);
         }
     }
@@ -302,6 +313,19 @@ class JobController extends Controller
 
             // Actualizar la oferta de trabajo con los datos validados
             $job->update($validatedData);
+
+            // Almacena los archivos codificados en Base64
+            $this->storeBase64Files($job, $request);
+
+            // Asociar beneficios
+            if ($request->filled('benefits')) {
+                $benefits = $request->input('benefits');
+                $job->benefits()->sync($benefits);
+            }
+            else {
+                // Si no se proporcionan beneficios, eliminar todas las asociaciones existentes
+                $job->educationLevels()->detach(); // Desasociar todos los beneficios existentes de la oferta de trabajo
+            }
 
             // Asociar ubicación
             $locationService = new LocationService();
@@ -361,7 +385,7 @@ class JobController extends Controller
             // Devolver una respuesta exitosa con la oferta de trabajo actualizada
             $jobResource = new JobResource($job);
             return $this->jsonResponse($jobResource, 'Job offer updated successfully', 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Revertir la transacción en caso de error
             DB::rollBack();
             // Manejar cualquier error y devolver una respuesta de error
@@ -381,8 +405,27 @@ class JobController extends Controller
             $job->delete();
 
             return $this->jsonResponse(null, 'Job offer deleted successfully!', 200);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage(), 500);
+        }
+    }
+
+    private function storeBase64Files(Job $job, Request $request): void
+    {
+        if ($request->has('image')) {
+            $imageBase64 = $request->input('image');
+            $imageName = Str::random(40) . '.jpg'; // Cambiar la extensión según el tipo de archivo permitido
+            $imagePath = 'job_uploads/images/' . $imageName;
+            Storage::disk('public')->put($imagePath, base64_decode($imageBase64));
+            $job->image = $imagePath;
+        }
+
+        if ($request->has('video')) {
+            $videoBase64 = $request->input('video');
+            $videoName = Str::random(40) . '.mp4'; // Cambiar la extensión según el tipo de archivo permitido
+            $videoPath = 'job_uploads/videos/' . $videoName;
+            Storage::disk('public')->put($videoPath, base64_decode($videoBase64));
+            $job->video = $videoPath;
         }
     }
 

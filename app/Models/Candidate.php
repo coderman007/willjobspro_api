@@ -22,7 +22,6 @@ class Candidate extends Model
         'gender',
         'date_of_birth',
         'phone_number',
-        'expected_salary',
         'cv',
         'photo',
         'banner',

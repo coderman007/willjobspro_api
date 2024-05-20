@@ -22,6 +22,7 @@ return new class extends Migration {
             $table->enum('status', ['Active', 'Blocked'])->default('Active');
             $table->string('logo')->nullable();
             $table->string('banner')->nullable();
+            $table->string('video')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

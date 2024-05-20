@@ -23,6 +23,7 @@ class UpdateCompanyRequest extends FormRequest
             'status' => 'nullable|in:Active,Blocked',
             'logo' => 'nullable|string', // Archivo base64
             'banner' => 'nullable|string', // Archivo base64
+            'video' => 'nullable|string', // Archivo base64
         ];
 
         // Reglas de validación para las redes sociales (opcional)
@@ -51,23 +52,25 @@ class UpdateCompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'contact_person.string' => 'El campo persona de contacto debe ser una cadena.',
-            'phone_number.max' => 'El número de teléfono no puede tener más de :max caracteres.',
-            'website.url' => 'El formato del sitio web no es válido.',
-            'logo.string' => 'El archivo del logotipo debe ser una cadena.',
-            'banner.string' => 'El archivo del banner debe ser una cadena.',
-            'social_networks.*.url.required' => 'El campo URL de la red social es obligatorio.',
-            'social_networks.*.url.url' => 'El formato de la URL de la red social no es válido.',
-            'location.country.required' => 'El país es obligatorio.',
-            'location.state.required' => 'El estado es obligatorio.',
-            'location.city.required' => 'La ciudad es obligatoria.',
-            'location.zip_code.required' => 'El código postal es obligatorio.',
-            'location.zip_code.max' => 'El código postal no puede tener más de :max caracteres.',
-            'location.dial_code.required' => 'El dial code es obligatorio.',
-            'location.dial_code.max' => 'El dial code no puede tener más de :max caracteres.',
-            'location.iso_alpha_2.required' => 'El código ISO alpha 2 es obligatorio.',
-            'location.iso_alpha_2.string' => 'El código ISO alpha 2 debe ser una cadena.',
-            'location.iso_alpha_2.size' => 'El código ISO alpha 2 debe tener :size caracteres.',
+            'contact_person.string' => 'The contact person field must be a string.',
+            'phone_number.max' => 'The phone number may not be greater than :max characters.',
+            'website.url' => 'The website format is invalid.',
+            'logo.string' => 'The logo field must be a string.',
+            'banner.string' => 'The banner field must be a string.',
+            'video.string' => 'The banner field must be a string.',
+            'social_networks.*.url.required' => 'The social network URL field is required.',
+            'social_networks.*.url.url' => 'The social network URL format is invalid.',
+            'location.country.required' => 'The country field is required.',
+            'location.state.required' => 'The state field is required.',
+            'location.city.required' => 'The city field is required.',
+            'location.zip_code.required' => 'The zip code field is required.',
+            'location.zip_code.max' => 'The zip code may not be greater than :max characters.',
+            'location.dial_code.required' => 'The dial code field is required.',
+            'location.dial_code.max' => 'The dial code may not be greater than :max characters.',
+            'location.iso_alpha_2.required' => 'The ISO alpha 2 code is required.',
+            'location.iso_alpha_2.string' => 'The ISO alpha 2 code must be a string.',
+            'location.iso_alpha_2.size' => 'The ISO alpha 2 code must be :size characters.',
         ];
+
     }
 }

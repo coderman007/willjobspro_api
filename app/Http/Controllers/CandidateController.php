@@ -357,7 +357,12 @@ class CandidateController extends Controller
                 $cvName = Str::random(40) . '.pdf';
                 $cvPath = 'candidate_uploads/cvs/' . $cvName;
                 Storage::disk('public')->put($cvPath, base64_decode($cvBase64));
-                Storage::disk('public')->delete($candidate->cv); // Eliminar el archivo existente
+
+                // Verificar y eliminar el archivo existente
+                if ($candidate->cv) {
+                    Storage::disk('public')->delete($candidate->cv);
+                }
+
                 $candidate->cv = $cvPath;
             }
 
@@ -366,7 +371,12 @@ class CandidateController extends Controller
                 $photoName = Str::random(40) . '.jpg';
                 $photoPath = 'candidate_uploads/profile_photos/' . $photoName;
                 Storage::disk('public')->put($photoPath, base64_decode($photoBase64));
-                Storage::disk('public')->delete($candidate->photo); // Eliminar el archivo existente
+
+                // Verificar y eliminar el archivo existente
+                if ($candidate->photo) {
+                    Storage::disk('public')->delete($candidate->photo);
+                }
+
                 $candidate->photo = $photoPath;
             }
 
@@ -375,7 +385,12 @@ class CandidateController extends Controller
                 $bannerName = Str::random(40) . '.jpg';
                 $bannerPath = 'candidate_uploads/banners/' . $bannerName;
                 Storage::disk('public')->put($bannerPath, base64_decode($bannerBase64));
-                Storage::disk('public')->delete($candidate->banner); // Eliminar el archivo existente
+
+                // Verificar y eliminar el archivo existente
+                if ($candidate->banner) {
+                    Storage::disk('public')->delete($candidate->banner);
+                }
+
                 $candidate->banner = $bannerPath;
             }
 
@@ -471,6 +486,7 @@ class CandidateController extends Controller
             return $this->handleException($e);
         }
     }
+
 
     public function destroy(int $userId): JsonResponse
     {

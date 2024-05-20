@@ -28,6 +28,8 @@ class Job extends Model
         'contact_email',
         'contact_phone',
         'experience_required',
+        'image',
+        'video'
     ];
 
     protected $attributes = [
@@ -92,5 +94,10 @@ class Job extends Model
     public function zipCode(): BelongsTo
     {
         return $this->belongsTo(ZipCode::class);
+    }
+
+    public function benefits(): BelongsToMany
+    {
+        return $this->belongsToMany(Benefit::class, 'benefit_job');
     }
 }

@@ -18,7 +18,6 @@ class StoreCandidateRequest extends FormRequest
             'date_of_birth' => 'nullable|date',
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string',
-            'expected_salary' => 'nullable|numeric',
             // Archivos base64
             'cv' => 'nullable|string',
             'photo' => 'nullable|string',
@@ -83,7 +82,6 @@ class StoreCandidateRequest extends FormRequest
             'gender.nullable' => 'The gender field is optional.',
             'date_of_birth.nullable' => 'The date of birth field is optional.',
             'phone_number.nullable' => 'The phone number field is optional.',
-            'expected_salary.nullable' => 'The expected salary field is optional.',
             'education_level_id.exists' => 'The education level is required if education history is provided.',
             'education_history.*.institution.nullable' => 'The institution field is optional.',
             'education_history.*.field_of_study.nullable' => 'The field of study field is optional.',

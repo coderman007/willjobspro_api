@@ -19,6 +19,7 @@ class Company extends Model
         'website',
         'logo',
         'banner',
+        'video'
     ];
 
     protected $attributes = [

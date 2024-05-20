@@ -35,6 +35,7 @@ class CompanyResource extends JsonResource
             'social_networks' => $this->user->socialNetworks,
             'logo' => $this->logo ? url('storage/' . $this->logo) : null,
             'banner' => $this->banner ? url('storage/' . $this->banner) : null,
+            'video' => $this->video ? url('storage/' . $this->video) : null,
         ];
     }
 }

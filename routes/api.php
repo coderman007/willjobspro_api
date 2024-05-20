@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BenefitController;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\CommandController;
 use App\Http\Controllers\CompanyController;
@@ -48,6 +49,8 @@ Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
 Route::get('languages', [LanguageController::class, 'index']);
 Route::get('languages/{language}', [LanguageController::class, 'show']);
+Route::get('benefits', [BenefitController::class, 'index']);
+Route::get('benefits/{benefit}', [BenefitController::class, 'show']);
 Route::get('link-storage', [CommandController::class, 'linkStorage']);
 
 // Rutas comunes a todos los usuarios, protegidas solo con autenticación.
@@ -139,6 +142,11 @@ Route::group([
     Route::post('languages', [LanguageController::class, 'store']);
     Route::put('languages/{language}', [LanguageController::class, 'update']);
     Route::delete('languages/{language}', [LanguageController::class, 'destroy']);
+
+    // Rutas para Beneficios
+    Route::post('benefits', [BenefitController::class, 'store']);
+    Route::put('benefits/{benefit}', [BenefitController::class, 'update']);
+    Route::delete('benefits/{benefit}', [BenefitController::class, 'destroy']);
 
     // Rutas para gestionar experiencias laborales
     Route::get('work-experiences', [WorkExperienceController::class, 'index']);

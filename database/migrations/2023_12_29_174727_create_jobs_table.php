@@ -23,11 +23,13 @@ return new class extends Migration {
             $table->unsignedBigInteger('state_id')->nullable();
             $table->unsignedBigInteger('city_id')->nullable();
             $table->unsignedBigInteger('zip_code_id')->nullable();
-            $table->decimal('salary', 10, 2);
+            $table->decimal('salary', 10);
             $table->string('contact_email');
             $table->string('contact_phone');
             $table->string('experience_required')->nullable();
             $table->enum('status', ['Open', 'Closed', 'Under Review'])->default('Open');
+            $table->string('image')->nullable();
+            $table->string('video')->nullable();
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');

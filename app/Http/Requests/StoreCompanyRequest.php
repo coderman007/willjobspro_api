@@ -23,6 +23,7 @@ class StoreCompanyRequest extends FormRequest
             'status' => 'nullable|in:Active,Blocked',
             'logo' => 'nullable|string', // Archivo base64
             'banner' => 'nullable|string', // Archivo base64
+            'video' => 'nullable|string', // Archivo base64
         ];
 
         if ($this->filled('location')) {
@@ -47,8 +48,9 @@ class StoreCompanyRequest extends FormRequest
             'contact_person.required' => 'The contact person field is required.',
             'phone_number.max' => 'The phone number cannot be more than :max characters.',
             'website.url' => 'The website format is invalid.',
-            'logo.string' => 'The logo file must be a string.',
-            'banner.string' => 'The banner file must be a string.',
+            'logo.string' => 'The logo field must be a string.',
+            'banner.string' => 'The banner field must be a string.',
+            'video.string' => 'The video field must be a string.',
             'location.country.required' => 'The country is required.',
             'location.state.required' => 'The state is required.',
             'location.city.required' => 'The city is required.',
