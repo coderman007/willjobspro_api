@@ -15,14 +15,27 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('candidate_id');
             $table->unsignedBigInteger('job_id');
-            $table->dateTime('application_date')->default(now()); // Fecha de aplicación completada automáticamente
-            $table->dateTime('rejection_date')->nullable(); // Fecha de rechazo
+            $table->dateTime('application_date')->default(now()); // Automatically set the application date
+            $table->dateTime('rejection_date')->nullable(); // Rejection date
             $table->text('cover_letter')->nullable();
-            $table->enum('status', ['Pending', 'Reviewed', 'Accepted', 'Rejected', 'Expired'])->default('Pending')->nullable();
+            $table->enum('status', [
+                'Sent',
+                'Reviewed',
+                'Evaluated',
+                'Closed',
+                'Not Continuing Process',
+                'Continuing Process',
+                'Preselected',
+                'Virtual Interview',
+                'In-Person Interview',
+                'Test Application (In-Person, Virtual or On-Platform)',
+                'Ready to Hire',
+                'Process Closed'
+            ])->default('Sent');
             $table->timestamps();
 
-            $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
             $table->foreign('candidate_id')->references('id')->on('candidates')->onDelete('cascade');
+            $table->foreign('job_id')->references('id')->on('jobs')->onDelete('cascade');
         });
     }
 

@@ -19,7 +19,7 @@ class Application extends Model
     ];
 
     protected $attributes = [
-        'status' => 'Pending',
+        'status' => 'Sent',
     ];
 
     protected array $dates = [
