@@ -187,7 +187,6 @@ class CompanyController extends Controller
                 'message' => 'Company profile created successfully!',
                 'data' => $companyResource,
             ], 201);
-
         } catch (\Exception $e) {
             // En caso de error, hace un rollback de la transacción de base de datos
             DB::rollBack();
@@ -272,7 +271,6 @@ class CompanyController extends Controller
                 'message' => 'Company profile updated successfully!',
                 'data' => $companyResource,
             ], 200);
-
         } catch (\Exception $e) {
             // En caso de error, hace un rollback de la transacción de base de datos
             DB::rollBack();
@@ -310,7 +308,6 @@ class CompanyController extends Controller
 
             // Devuelve una respuesta JSON con el mensaje de éxito
             return response()->json(['message' => 'Company deleted successfully!'], 200);
-
         } catch (Exception $e) {
             // Maneja la excepción y devuelve una respuesta JSON con el mensaje de error
             return $this->handleException($e);
@@ -401,5 +398,4 @@ class CompanyController extends Controller
             return $this->handleException($e);
         }
     }
-
 }

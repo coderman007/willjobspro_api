@@ -14,6 +14,7 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'company_name' => 'nullable|string',
             'contact_person' => 'required|string',
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -45,6 +46,7 @@ class StoreCompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'company_name.nullable' => 'The company name field is optional.',
             'contact_person.required' => 'The contact person field is required.',
             'phone_number.max' => 'The phone number cannot be more than :max characters.',
             'website.url' => 'The website format is invalid.',
@@ -63,5 +65,4 @@ class StoreCompanyRequest extends FormRequest
             'location.iso_alpha_2.size' => 'The ISO alpha 2 code must be :size characters.',
         ];
     }
-
 }

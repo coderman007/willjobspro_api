@@ -14,6 +14,7 @@ class UpdateCompanyRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
+            'company_name' => 'nullable|string',
             'contact_person' => 'string',
             'phone_number' => 'nullable|string|max:20',
             'address' => 'nullable|string',
@@ -52,6 +53,8 @@ class UpdateCompanyRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'company_name.nullable' => 'The company name field is optional.',
+            'company_name.string' => 'The company name field must be a string.',
             'contact_person.string' => 'The contact person field must be a string.',
             'phone_number.max' => 'The phone number may not be greater than :max characters.',
             'website.url' => 'The website format is invalid.',
@@ -71,6 +74,5 @@ class UpdateCompanyRequest extends FormRequest
             'location.iso_alpha_2.string' => 'The ISO alpha 2 code must be a string.',
             'location.iso_alpha_2.size' => 'The ISO alpha 2 code must be :size characters.',
         ];
-
     }
 }

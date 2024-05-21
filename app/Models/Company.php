@@ -12,6 +12,7 @@ class Company extends Model
     use HasFactory;
 
     protected $fillable = [
+        'company_name',
         'contact_person',
         'phone_number',
         'industry',
@@ -38,5 +39,4 @@ class Company extends Model
     {
         return $this->hasMany(Job::class);
     }
-
 }
