@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreJobRequest;
 use App\Http\Requests\UpdateJobRequest;
 use App\Http\Resources\JobResource;
+use App\Models\EducationLevel;
 use App\Models\Job;
+use App\Models\JobType;
 use App\Models\Language;
 use App\Services\LocationService;
 use Exception;
@@ -20,10 +22,8 @@ use Illuminate\Support\Str;
 
 class JobController extends Controller
 {
-
     public function index(Request $request): JsonResponse
     {
-        // Reglas de validación para los filtros
         $rules = [
             'search' => 'nullable|string',
             'sort_by' => 'nullable|string|in:title,description,location,created_at',
@@ -33,50 +33,50 @@ class JobController extends Controller
             'skill_name' => 'nullable|string',
             'education_level_name' => 'nullable|string',
             'language_name' => 'nullable|string',
+            'benefit_name' => 'nullable|string',
             'job_type_name' => 'nullable|string',
             'job_category_name' => 'nullable|string',
             'country_name' => 'nullable|string',
             'state_name' => 'nullable|string',
             'city_name' => 'nullable|string',
+            'min_salary' => 'nullable|numeric|min:0',
+            'max_salary' => 'nullable|numeric|min:0'
         ];
 
-        // Validar los parámetros de la solicitud
         $validator = Validator::make($request->all(), $rules);
 
-        // Comprobar si la validación falla
         if ($validator->fails()) {
             return $this->jsonErrorResponse('Validation Error: ' . $validator->errors()->first(), 422);
         }
 
         try {
-            // Verificar si se proporciona el parámetro perPage y si es un número válido
             $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
 
-            // Construir la consulta para las ofertas de trabajo y cargar datos relacionados
-            $jobs = $this->buildJobQuery($request)->paginate($perPage)->items();
+            // Usar paginate en lugar de items()
+            $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
-            // Retornar las ofertas de trabajo paginadas junto con datos adicionales
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!', 200);
+            // Retornar las ofertas de trabajo paginadas
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!');
         } catch (Exception $e) {
-            // Manejar cualquier error y retornar una respuesta de error
-            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage(), 500);
+            return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
         }
     }
 
     private function buildJobQuery(Request $request): Builder
     {
-        // Inicializar la consulta con las relaciones necesarias
-        $query = Job::with(['company', 'jobCategory', 'applications', 'skills', 'jobTypes', 'educationLevels', 'languages']);
+        $query = Job::with(['company', 'jobCategory', 'applications', 'benefits', 'skills', 'jobTypes', 'educationLevels', 'languages']);
 
-        // Aplicar filtros basados en los parámetros de la solicitud
+        // Aplicar filtros
         $query->when($request->filled('search'), function ($query) use ($request) {
             $searchTerm = $request->query('search');
             return $query->where('title', 'like', '%' . $searchTerm . '%')
                 ->orWhere('description', 'like', '%' . $searchTerm . '%')
-                ->orWhere('posted_date', 'like', '%' . $searchTerm . '%');
+                ->orWhere('posted_date', 'like', '%' . $searchTerm . '%')
+                ->orWhere('deadline', 'like', '%' . $searchTerm . '%')
+                ->orWhere('contact_email', 'like', '%' . $searchTerm . '%')
+                ->orWhere('contact_phone', 'like', '%' . $searchTerm . '%');
         });
 
-        // Filtrar por nombre de compañía
         $query->when($request->filled('company_name'), function ($query) use ($request) {
             $companyName = $request->query('company_name');
             return $query->whereHas('company', function ($q) use ($companyName) {
@@ -84,7 +84,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por nombre de habilidad
         $query->when($request->filled('skill_name'), function ($query) use ($request) {
             $skillName = $request->query('skill_name');
             return $query->whereHas('skills', function ($q) use ($skillName) {
@@ -92,7 +91,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por nombre de nivel de educación
         $query->when($request->filled('education_level_name'), function ($query) use ($request) {
             $educationLevelName = $request->query('education_level_name');
             return $query->whereHas('educationLevels', function ($q) use ($educationLevelName) {
@@ -100,7 +98,13 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por nombre de lenguaje
+        $query->when($request->filled('benefit_name'), function ($query) use ($request) {
+            $benefitName = $request->query('benefit_name');
+            return $query->whereHas('benefits', function ($q) use ($benefitName) {
+                $q->where('name', 'like', '%' . $benefitName . '%');
+            });
+        });
+
         $query->when($request->filled('language_name'), function ($query) use ($request) {
             $languageName = $request->query('language_name');
             return $query->whereHas('languages', function ($q) use ($languageName) {
@@ -108,7 +112,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por nombre de tipo de trabajo
         $query->when($request->filled('job_type_name'), function ($query) use ($request) {
             $jobTypeName = $request->query('job_type_name');
             return $query->whereHas('jobTypes', function ($q) use ($jobTypeName) {
@@ -116,7 +119,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtrar por nombre de categoría de trabajo
         $query->when($request->filled('job_category_name'), function ($query) use ($request) {
             $jobCategoryName = $request->query('job_category_name');
             return $query->whereHas('jobCategory', function ($q) use ($jobCategoryName) {
@@ -124,7 +126,6 @@ class JobController extends Controller
             });
         });
 
-        // Filtro por ubicación de la oferta de trabajo
         $query->when($request->filled('country_name'), function ($query) use ($request) {
             $countryName = $request->query('country_name');
             return $query->whereHas('country', function ($q) use ($countryName) {
@@ -146,40 +147,37 @@ class JobController extends Controller
             });
         });
 
-        // Si la oferta de trabajo no tiene una ubicación asociada, filtrar por la ubicación de la compañía
-        $query->orWhereDoesntHave('country')
-            ->orWhereDoesntHave('state')
-            ->orWhereDoesntHave('city')
-            ->when($request->filled('country_name'), function ($query) use ($request) {
-                $countryName = $request->query('country_name');
-                return $query->whereHas('company.country', function ($q) use ($countryName) {
-                    $q->where('name', 'like', '%' . $countryName . '%');
-                });
-            })
-            ->when($request->filled('state_name'), function ($query) use ($request) {
-                $stateName = $request->query('state_name');
-                return $query->whereHas('company.state', function ($q) use ($stateName) {
-                    $q->where('name', 'like', '%' . $stateName . '%');
-                });
-            })
-            ->when($request->filled('city_name'), function ($query) use ($request) {
-                $cityName = $request->query('city_name');
-                return $query->whereHas('company.city', function ($q) use ($cityName) {
-                    $q->where('name', 'like', '%' . $cityName . '%');
-                });
-            });
+        $query->when($request->filled('min_salary'), function ($query) use ($request) {
+            $minSalary = $request->query('min_salary');
+            return $query->where('salary', '>=', $minSalary);
+        });
 
-        // Ordenar resultados
+        $query->when($request->filled('max_salary'), function ($query) use ($request) {
+            $maxSalary = $request->query('max_salary');
+            return $query->where('salary', '<=', $maxSalary);
+        });
+
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
             return $query->orderBy($sortBy, $sortOrder);
         }, function ($query) {
-            // Ordenar por defecto si no se especifica
             $query->orderBy('created_at', 'desc');
         });
 
         return $query;
+    }
+
+    public function getJobTypeCounts(): array
+    {
+        $jobTypes = JobType::withCount('jobs')->get();
+        return $jobTypes->pluck('jobs_count', 'name')->toArray();
+    }
+
+    public function getEducationLevelCounts(): array
+    {
+        $educationLevels = EducationLevel::withCount('jobs')->get();
+        return $educationLevels->pluck('jobs_count', 'name')->toArray();
     }
 
     public function store(StoreJobRequest $request): JsonResponse
@@ -281,11 +279,11 @@ class JobController extends Controller
             $job->load(['company.user', 'jobCategory', 'skills', 'jobTypes', 'languages', 'educationLevels']);
 
             // Devolver la oferta de trabajo como un recurso API
-            return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully', 200);
+            return $this->jsonResponse(new JobResource($job), 'Job offer detail obtained successfully');
         } catch (ModelNotFoundException $e) {
             return $this->jsonErrorResponse('Job not found.', 404);
         } catch (Exception $e) {
-            return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage(), 500);
+            return $this->jsonErrorResponse('Error retrieving job details: ' . $e->getMessage());
         }
     }
 
@@ -321,8 +319,7 @@ class JobController extends Controller
             if ($request->filled('benefits')) {
                 $benefits = $request->input('benefits');
                 $job->benefits()->sync($benefits);
-            }
-            else {
+            } else {
                 // Si no se proporcionan beneficios, eliminar todas las asociaciones existentes
                 $job->educationLevels()->detach(); // Desasociar todos los beneficios existentes de la oferta de trabajo
             }
@@ -384,12 +381,12 @@ class JobController extends Controller
 
             // Devolver una respuesta exitosa con la oferta de trabajo actualizada
             $jobResource = new JobResource($job);
-            return $this->jsonResponse($jobResource, 'Job offer updated successfully', 200);
+            return $this->jsonResponse($jobResource, 'Job offer updated successfully');
         } catch (Exception $e) {
             // Revertir la transacción en caso de error
             DB::rollBack();
             // Manejar cualquier error y devolver una respuesta de error
-            return $this->jsonErrorResponse($e->getMessage(), 500);
+            return $this->jsonErrorResponse($e->getMessage());
         }
     }
 
@@ -404,9 +401,9 @@ class JobController extends Controller
 
             $job->delete();
 
-            return $this->jsonResponse(null, 'Job offer deleted successfully!', 200);
+            return $this->jsonResponse(null, 'Job offer deleted successfully!');
         } catch (Exception $e) {
-            return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage(), 500);
+            return $this->jsonErrorResponse('Error deleting the job offer: ' . $e->getMessage());
         }
     }
 
@@ -449,6 +446,4 @@ class JobController extends Controller
 
         return response()->json($response, $status);
     }
-
 }
-

@@ -12,7 +12,7 @@ class ApplicationSeeder extends Seeder
     /**
      * Run the database seeds.
      */
-    public function run()
+    public function run(): void
     {
         Application::factory()->count(20)->create();
     }

@@ -45,6 +45,8 @@ Route::get('skills', [SkillController::class, 'index']);
 Route::get('skills/{skill}', [SkillController::class, 'show']);
 Route::get('jobs/{job}', [JobController::class, 'show']);
 Route::get('jobs/{user?}', [JobController::class, 'index']);
+Route::get('/job-type-counts', [JobController::class, 'getJobTypeCounts']);
+Route::get('/education-level-counts', [JobController::class, 'getEducationLevelCounts']);
 Route::get('education-levels', [EducationLevelController::class, 'index']);
 Route::get('education-levels/{education_level}', [EducationLevelController::class, 'show']);
 Route::get('languages', [LanguageController::class, 'index']);
