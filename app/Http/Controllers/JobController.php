@@ -170,7 +170,7 @@ class JobController extends Controller
 
     public function getJobTypeCounts(): array
     {
-        return [
+        $data = [
             'Data' => JobType::withCount('jobs')->get()
                 ->map(function ($jobType) {
                     return [
@@ -180,11 +180,13 @@ class JobController extends Controller
                 })
                 ->toArray(),
         ];
+
+        return $data;
     }
 
     public function getEducationLevelCounts(): array
     {
-        return [
+        $data = [
             'Data' => EducationLevel::withCount('jobs')->get()
                 ->map(function ($educationLevel) {
                     return [
@@ -194,6 +196,8 @@ class JobController extends Controller
                 })
                 ->toArray(),
         ];
+
+        return $data;
     }
 
 
