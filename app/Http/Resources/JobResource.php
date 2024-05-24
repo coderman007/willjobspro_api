@@ -20,6 +20,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed $video
  * @property mixed $jobCategory
  * @property mixed $applications
+ * @property mixed $location
  */
 class JobResource extends JsonResource
 {
@@ -27,11 +28,16 @@ class JobResource extends JsonResource
     {
         $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
 
-        $companyLocation = $this->company->location ?? null;
-        $companyLocationString = $companyLocation ? $companyLocation->city . ', ' . $companyLocation->state . ', ' . $companyLocation->country : 'Location not provided for this company';
+        $jobLocation = $this->location;
+        $companyLocation = $this->company->location;
 
-        $jobLocation = $this->location ?? $companyLocation;
-        $jobLocationString = $jobLocation ? $jobLocation->city . ', ' . $jobLocation->state . ', ' . $jobLocation->country : 'Location not provided for this job';
+        if (!$jobLocation && $companyLocation) {
+            $locationString = $companyLocation->city . ', ' . $companyLocation->state . ', ' . $companyLocation->country;
+        } elseif (!$jobLocation && !$companyLocation) {
+            $locationString = 'Company does not have a location specified.';
+        } else {
+            $locationString = $jobLocation->city . ', ' . $jobLocation->state . ', ' . $jobLocation->country;
+        }
 
         return [
             'id' => $this->id,
@@ -53,7 +59,7 @@ class JobResource extends JsonResource
                 'address' => $this->company->user->address ?? null,
                 'logo' => $this->company->logo ? $serverPath . $this->company->logo : null,
                 'banner' => $this->company->banner ? $serverPath . $this->company->banner : null,
-                'location' => $companyLocationString,
+                'location' => $companyLocation ? $companyLocation->city . ', ' . $companyLocation->state . ', ' . $companyLocation->country : null,
             ],
             'benefits' => $this->getAttribute('benefits') ?? null,
             'job_category' => $this->jobCategory->name,
@@ -62,7 +68,7 @@ class JobResource extends JsonResource
             'education_levels' => $this->getAttribute('educationLevels') ?? null,
             'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
-            'location' => $jobLocationString,
+            'location' => $locationString,
         ];
     }
 }
