@@ -170,34 +170,22 @@ class JobController extends Controller
 
     public function getJobTypeCounts(): array
     {
-        $data = [
-            'Data' => JobType::withCount('jobs')->get()
-                ->map(function ($jobType) {
-                    return [
-                        'name' => $jobType->name,
-                        'job_count' => $jobType->jobs_count,
-                    ];
-                })
-                ->toArray(),
-        ];
+        $jobTypes = JobType::withCount('jobs')->get();
 
-        return $data;
+        // Modify the return statement to return the object directly
+        return [
+            'Data' => $jobTypes->pluck('jobs_count', 'name')->toArray()
+        ];
     }
 
     public function getEducationLevelCounts(): array
     {
-        $data = [
-            'Data' => EducationLevel::withCount('jobs')->get()
-                ->map(function ($educationLevel) {
-                    return [
-                        'name' => $educationLevel->name,
-                        'job_count' => $educationLevel->jobs_count,
-                    ];
-                })
-                ->toArray(),
-        ];
+        $educationLevels = EducationLevel::withCount('jobs')->get();
 
-        return $data;
+        // Modify the return statement to return the object directly
+        return [
+            'Data' => $educationLevels->pluck('jobs_count', 'name')->toArray()
+        ];
     }
 
 
