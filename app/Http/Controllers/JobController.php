@@ -168,16 +168,28 @@ class JobController extends Controller
         return $query;
     }
 
-    public function getJobTypeCounts(): array
+    public function getJobTypeCounts(): JsonResponse
     {
-        $jobTypes = JobType::withCount('jobs')->get();
-        return $jobTypes->pluck('jobs_count', 'name')->toArray();
+        $jobTypes = JobType::withCount('jobs')->get()->map(function ($jobType) {
+            return [
+                'job_type' => $jobType->name,
+                'count' => $jobType->jobs_count
+            ];
+        });
+
+        return response()->json($jobTypes);
     }
 
-    public function getEducationLevelCounts(): array
+    public function getEducationLevelCounts(): JsonResponse
     {
-        $educationLevels = EducationLevel::withCount('jobs')->get();
-        return $educationLevels->pluck('jobs_count', 'name')->toArray();
+        $educationLevels = EducationLevel::withCount('jobs')->get()->map(function ($educationLevel) {
+            return [
+                'education_level' => $educationLevel->name,
+                'count' => $educationLevel->jobs_count
+            ];
+        });
+
+        return response()->json($educationLevels);
     }
 
     public function store(StoreJobRequest $request): JsonResponse
