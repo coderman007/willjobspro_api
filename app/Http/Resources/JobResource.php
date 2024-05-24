@@ -27,7 +27,30 @@ class JobResource extends JsonResource
     {
         $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
 
-        $data = [
+        // Obtener la ubicación del trabajo
+        $jobLocation = [
+            'country' => $this->getAttribute('country')->name ?? null,
+            'state' => $this->getAttribute('state')->name ?? null,
+            'city' => $this->getAttribute('city')->name ?? null,
+            'zip_code' => $this->getAttribute('zipCode')->code ?? null,
+        ];
+
+        // Obtener la ubicación de la compañía
+        $companyLocation = [
+            'country' => $this->company->user->country->name ?? null,
+            'state' => $this->company->user->state->name ?? null,
+            'city' => $this->company->user->city->name ?? null,
+            'zip_code' => $this->company->user->zip_code->name ?? null,
+        ];
+
+        // Determinar la ubicación a mostrar
+        $location = $jobLocation['country'] || $jobLocation['state'] || $jobLocation['city'] || $jobLocation['zip_code']
+            ? $jobLocation
+            : ($companyLocation['country'] || $companyLocation['state'] || $companyLocation['city'] || $companyLocation['zip_code']
+                ? $companyLocation
+                : 'Ubicación no provista');
+
+        return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description ?? null,
@@ -48,6 +71,7 @@ class JobResource extends JsonResource
                 'logo' => $this->company->logo ? $serverPath . $this->company->logo : null,
                 'banner' => $this->company->banner ? $serverPath . $this->company->banner : null,
             ],
+            'location' => $location,
             'benefits' => $this->getAttribute('benefits') ?? null,
             'job_category' => $this->jobCategory->name,
             'job_types' => $this->getAttribute('jobTypes') ?? null,
@@ -56,37 +80,5 @@ class JobResource extends JsonResource
             'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
         ];
-
-        // Verificar si la oferta de trabajo tiene una ubicación asociada
-        $jobLocation = [
-            'location' => 'Job Offer Location',
-            'country' => $this->getAttribute('country')->name ?? null,
-            'state' => $this->getAttribute('state')->name ?? null,
-            'city' => $this->getAttribute('city')->name ?? null,
-            'zip_code' => $this->getAttribute('zipCode')->code ?? null,
-        ];
-
-        // Si no hay ubicación para la oferta de trabajo, verificar la ubicación de la compañía
-        if (empty(array_filter($jobLocation))) {
-            $companyLocation = [
-                'location' => 'Company Location',
-                'country' => $this->company->user->country->name ?? null,
-                'state' => $this->company->user->state->name ?? null,
-                'city' => $this->company->user->city->name ?? null,
-                'zip_code' => $this->company->user->zipCode->code ?? null,
-            ];
-
-            // Si la compañía tampoco tiene ubicación, mostrar un mensaje indicando que no se ha proporcionado ninguna ubicación
-            if (empty(array_filter($companyLocation))) {
-                $location = 'Location not provided';
-            } else {
-                $location = $companyLocation;
-            }
-        } else {
-            $location = $jobLocation;
-        }
-
-        // Combinar la información de ubicación con los datos existentes
-        return array_merge($data, ['location' => $location]);
     }
 }
