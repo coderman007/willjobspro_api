@@ -52,11 +52,19 @@ class JobController extends Controller
         try {
             $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
 
+            // Get minimum and maximum salary directly from database
+            $minSalary = Job::select(DB::raw('MIN(salary) as min_salary'))->first()->min_salary;
+            $maxSalary = Job::select(DB::raw('MAX(salary) as max_salary'))->first()->max_salary;
+
             // Usar paginate en lugar de items()
             $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
             // Retornar las ofertas de trabajo paginadas
-            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!');
+            return $this->jsonResponse([
+                'min_salary' => $minSalary,
+                'max_salary' => $maxSalary,
+                'data' => JobResource::collection($jobs),
+            ], 'Job offers retrieved successfully!');
         } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
         }
