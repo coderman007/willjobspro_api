@@ -47,6 +47,6 @@ class EducationLevelSeeder extends Seeder
         ];
 
 // Insertar los datos en la base de datos
-        EducationLevel::insert($levels);
+        EducationLevel::create($levels);
     }
 }

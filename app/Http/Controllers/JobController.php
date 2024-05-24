@@ -352,7 +352,7 @@ class JobController extends Controller
                 $job->educationLevels()->detach(); // Desasociar todos los beneficios existentes de la oferta de trabajo
             }
 
-            // Asociar ubicación
+            // Actualizar la ubicación cuando sea necesario
             $locationService = new LocationService();
             $locationData = $request->input('location');
             $locationResult = $locationService->updateAndAssociateLocationForJob($locationData, $job);
