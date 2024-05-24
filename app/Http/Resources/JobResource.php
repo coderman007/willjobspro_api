@@ -27,7 +27,7 @@ class JobResource extends JsonResource
     {
         $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
 
-        return [
+        $data = [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description ?? null,
@@ -45,7 +45,6 @@ class JobResource extends JsonResource
                 'name' => $this->company->user->name,
                 'company_name' => $this->company->company_name,
                 'address' => $this->company->user->address ?? null,
-                'location' => $this->company->user->country ?? "No company country defined",
                 'logo' => $this->company->logo ? $serverPath . $this->company->logo : null,
                 'banner' => $this->company->banner ? $serverPath . $this->company->banner : null,
             ],
@@ -57,6 +56,33 @@ class JobResource extends JsonResource
             'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
         ];
-    }
 
+        // Verificar si la oferta de trabajo tiene una ubicación asociada
+        $location = [
+            'country' => $this->getAttribute('country')->name ?? null,
+            'state' => $this->getAttribute('state')->name ?? null,
+            'city' => $this->getAttribute('city')->name ?? null,
+            'zip_code' => $this->getAttribute('zipCode')->code ?? null,
+        ];
+
+        // Si no hay ubicación para la oferta de trabajo, verificar la ubicación de la compañía
+        if (empty(array_filter($location))) {
+            $companyLocation = [
+                'country' => $this->company->user->country->name ?? null,
+                'state' => $this->company->user->state->name ?? null,
+                'city' => $this->company->user->city->name ?? null,
+                'zip_code' => $this->company->user->zipCode->code ?? null,
+            ];
+
+            // Si la compañía tampoco tiene ubicación, mostrar un mensaje indicando que no se ha proporcionado ninguna ubicación
+            if (empty(array_filter($companyLocation))) {
+                $location = 'Ubicación no proporcionada';
+            } else {
+                $location = $companyLocation;
+            }
+        }
+
+        // Combinar la información de ubicación con los datos existentes
+        return array_merge($data, ['location' => $location]);
+    }
 }
