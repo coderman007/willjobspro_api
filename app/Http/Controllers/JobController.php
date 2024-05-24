@@ -52,9 +52,9 @@ class JobController extends Controller
         try {
             $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
 
-            // Get minimum and maximum salary directly from database
-            $minSalary = Job::select(DB::raw('MIN(salary) as min_salary'))->first()->min_salary;
-            $maxSalary = Job::select(DB::raw('MAX(salary) as max_salary'))->first()->max_salary;
+            // Obtener los valores de salario mínimo y máximo
+            $minSalary = Job::min('salary');
+            $maxSalary = Job::max('salary');
 
             // Usar paginate en lugar de items()
             $jobs = $this->buildJobQuery($request)->paginate($perPage);
