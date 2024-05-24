@@ -449,8 +449,8 @@ class JobController extends Controller
     {
         $response = [
             'success' => true,
-            'data' => $data,
             'message' => $message,
+            'data' => $data,
         ];
 
         // Agregar salario mínimo y máximo si están presentes
