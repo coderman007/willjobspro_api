@@ -40,7 +40,7 @@ class JobResource extends JsonResource
             'country' => $this->company->user->country->name ?? null,
             'state' => $this->company->user->state->name ?? null,
             'city' => $this->company->user->city->name ?? null,
-            'zip_code' => $this->company->user->zip_code->name ?? null,
+            'zip_code' => $this->company->user->zip_code->code ?? null,
         ];
 
         // Determinar la ubicación a mostrar
