@@ -75,7 +75,7 @@ class JobResource extends JsonResource
             'education_levels' => $this->getAttribute('educationLevels') ?? null,
             'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
-            'location' => 'groop',
+            'location' => $locationString,
         ];
     }
 }
