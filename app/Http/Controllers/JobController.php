@@ -52,21 +52,11 @@ class JobController extends Controller
         try {
             $perPage = $request->filled('per_page') ? max(1, intval($request->query('per_page'))) : 10;
 
-            // Obtener los valores de salario mínimo y máximo
-            $minSalary = Job::min('salary');
-            $maxSalary = Job::max('salary');
-
             // Usar paginate en lugar de items()
             $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
             // Retornar las ofertas de trabajo paginadas
-            return $this->jsonResponse(
-                JobResource::collection($jobs),
-                'Job offers retrieved successfully!',
-                200,
-                $minSalary,
-                $maxSalary
-            );
+            return $this->jsonResponse(JobResource::collection($jobs), 'Job offers retrieved successfully!');
         } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
         }
@@ -170,18 +160,8 @@ class JobController extends Controller
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
-
-            // Verificar si el campo de ordenación es válido
-            $validSortFields = ['title', 'description', 'location', 'created_at'];
-            if (!in_array($sortBy, $validSortFields)) {
-                // Si el campo de ordenación no es válido, aplicar la ordenación por defecto
-                return $query->orderBy('created_at', 'desc');
-            }
-
-            // Aplicar la ordenación según los parámetros proporcionados
             return $query->orderBy($sortBy, $sortOrder);
         }, function ($query) {
-            // Si no se proporcionan parámetros de ordenación, aplicar la ordenación por defecto
             $query->orderBy('created_at', 'desc');
         });
 
@@ -191,21 +171,13 @@ class JobController extends Controller
     public function getJobTypeCounts(): array
     {
         $jobTypes = JobType::withCount('jobs')->get();
-
-        // Modify the return statement to return the object directly
-        return [
-            'data' => $jobTypes->pluck('jobs_count', 'name')->toArray()
-        ];
+        return $jobTypes->pluck('jobs_count', 'name')->toArray();
     }
 
     public function getEducationLevelCounts(): array
     {
         $educationLevels = EducationLevel::withCount('jobs')->get();
-
-        // Modify the return statement to return the object directly
-        return [
-            'data' => $educationLevels->pluck('jobs_count', 'name')->toArray()
-        ];
+        return $educationLevels->pluck('jobs_count', 'name')->toArray();
     }
 
     public function store(StoreJobRequest $request): JsonResponse
@@ -262,19 +234,7 @@ class JobController extends Controller
             // Asociar tipos de trabajo
             if ($request->filled('job_types')) {
                 $jobTypes = $request->input('job_types');
-
-                // Verificar si todos los tipos de trabajo proporcionados son válidos
-                $validJobTypes = JobType::whereIn('id', $jobTypes)->count() === count($jobTypes);
-
-                if (!$validJobTypes) {
-                    return $this->jsonErrorResponse('One or more selected job types are invalid.', 422);
-                }
-
-                // Asociar los tipos de trabajo válidos
-                $job->jobTypes()->sync($jobTypes);
-            } else {
-                // Si no se proporcionan tipos de trabajo, eliminar todas las asociaciones existentes
-                $job->jobTypes()->detach(); // Desasociar todos los tipos de trabajo existentes de la oferta de trabajo
+                $job->jobTypes()->syncWithoutDetaching($jobTypes);
             }
 
             // Asociar niveles educativos
@@ -364,7 +324,7 @@ class JobController extends Controller
                 $job->educationLevels()->detach(); // Desasociar todos los beneficios existentes de la oferta de trabajo
             }
 
-            // Actualizar la ubicación cuando sea necesario
+            // Asociar ubicación
             $locationService = new LocationService();
             $locationData = $request->input('location');
             $locationResult = $locationService->updateAndAssociateLocationForJob($locationData, $job);
@@ -466,19 +426,17 @@ class JobController extends Controller
         }
     }
 
-    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200, ?float $minSalary = null, ?float $maxSalary = null): JsonResponse
+    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200): JsonResponse
     {
         $response = [
             'success' => true,
-            'message' => $message,
-            // Agregar salario mínimo y máximo si están presentes
-            'min_salary' => $minSalary,
-            'max_salary' => $maxSalary,
             'data' => $data,
+            'message' => $message,
         ];
 
         return response()->json($response, $status);
     }
+
     protected function jsonErrorResponse(?string $message = null, int $status = 500): JsonResponse
     {
         $response = [
