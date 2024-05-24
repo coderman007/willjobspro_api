@@ -262,7 +262,19 @@ class JobController extends Controller
             // Asociar tipos de trabajo
             if ($request->filled('job_types')) {
                 $jobTypes = $request->input('job_types');
-                $job->jobTypes()->syncWithoutDetaching($jobTypes);
+
+                // Verificar si todos los tipos de trabajo proporcionados son válidos
+                $validJobTypes = JobType::whereIn('id', $jobTypes)->count() === count($jobTypes);
+
+                if (!$validJobTypes) {
+                    return $this->jsonErrorResponse('One or more selected job types are invalid.', 422);
+                }
+
+                // Asociar los tipos de trabajo válidos
+                $job->jobTypes()->sync($jobTypes);
+            } else {
+                // Si no se proporcionan tipos de trabajo, eliminar todas las asociaciones existentes
+                $job->jobTypes()->detach(); // Desasociar todos los tipos de trabajo existentes de la oferta de trabajo
             }
 
             // Asociar niveles educativos
