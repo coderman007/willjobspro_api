@@ -170,8 +170,18 @@ class JobController extends Controller
         $query->when($request->filled('sort_by') && $request->filled('sort_order'), function ($query) use ($request) {
             $sortBy = $request->query('sort_by');
             $sortOrder = $request->query('sort_order');
+
+            // Verificar si el campo de ordenación es válido
+            $validSortFields = ['title', 'description', 'location', 'created_at'];
+            if (!in_array($sortBy, $validSortFields)) {
+                // Si el campo de ordenación no es válido, aplicar la ordenación por defecto
+                return $query->orderBy('created_at', 'desc');
+            }
+
+            // Aplicar la ordenación según los parámetros proporcionados
             return $query->orderBy($sortBy, $sortOrder);
         }, function ($query) {
+            // Si no se proporcionan parámetros de ordenación, aplicar la ordenación por defecto
             $query->orderBy('created_at', 'desc');
         });
 
