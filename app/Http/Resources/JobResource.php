@@ -59,6 +59,7 @@ class JobResource extends JsonResource
 
         // Verificar si la oferta de trabajo tiene una ubicación asociada
         $location = [
+            'location' => 'Job Offer Location',
             'country' => $this->getAttribute('country')->name ?? null,
             'state' => $this->getAttribute('state')->name ?? null,
             'city' => $this->getAttribute('city')->name ?? null,
@@ -68,6 +69,7 @@ class JobResource extends JsonResource
         // Si no hay ubicación para la oferta de trabajo, verificar la ubicación de la compañía
         if (empty(array_filter($location))) {
             $companyLocation = [
+                'location' => 'Company Location',
                 'country' => $this->company->user->country->name ?? null,
                 'state' => $this->company->user->state->name ?? null,
                 'city' => $this->company->user->city->name ?? null,
