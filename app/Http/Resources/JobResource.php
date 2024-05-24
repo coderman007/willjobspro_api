@@ -4,9 +4,6 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @method getAttribute(string $string)
- */
 class JobResource extends JsonResource
 {
     public function toArray($request): array
@@ -26,7 +23,6 @@ class JobResource extends JsonResource
             'status' => $this->status,
             'image' => $this->image ? url('storage/' . $this->image) : null,
             'video' => $this->video ? url('storage/' . $this->video) : null,
-            // 'company' => new CompanyResource($this->whenLoaded('company')),
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->user->name,
@@ -44,22 +40,55 @@ class JobResource extends JsonResource
             'total_applications' => $this->applications->count(),
         ];
 
-        // Verificar si la ubicación está presente
-        if ($this->country && $this->state && $this->city && $this->zipCode) {
-            $data['location'] = [
+        // Verificar si la ubicación está presente en la oferta de trabajo
+        if ($this->location) {
+            // La oferta de trabajo tiene una ubicación definida
+            $locationData = [
                 'country' => [
-                    'name' => $this->country->name,
-                    'dial_code' => $this->country->dial_code,
-                    'iso_alpha_2' => $this->country->iso_alpha_2
+                    'name' => $this->location->country->name,
+                    'dial_code' => $this->location->country->dial_code,
+                    'iso_alpha_2' => $this->location->country->iso_alpha_2
                 ],
-                'state' => $this->state->name,
-                'city' => $this->city->name,
-                'zip_code' => $this->zipCode->code,
+                'state' => $this->location->state->name,
+                'city' => $this->location->city->name,
+                'zip_code' => $this->location->zipCode->code,
             ];
         } else {
-            $data['location'] = null; // Ubicación no proporcionada
+            // La oferta de trabajo no tiene una ubicación definida, obtenemos la ubicación de la compañía
+            $companyLocation = $this->getCompanyLocation();
+            if ($companyLocation) {
+                // La compañía tiene una ubicación definida
+                $locationData = $companyLocation;
+            } else {
+                // Ni la oferta de trabajo ni la compañía tienen una ubicación definida
+                $locationData = null;
+            }
         }
 
+        $data['location'] = $locationData;
+
         return $data;
+    }
+
+    protected function getCompanyLocation(): ?array
+    {
+        // Obtener la ubicación de la compañía asociada a la oferta de trabajo
+        $company = $this->company;
+
+        if ($company && $company->location) {
+            // La compañía tiene una ubicación definida
+            return [
+                'country' => [
+                    'name' => $company->location->country->name,
+                    'dial_code' => $company->location->country->dial_code,
+                    'iso_alpha_2' => $company->location->country->iso_alpha_2
+                ],
+                'state' => $company->location->state->name,
+                'city' => $company->location->city->name,
+                'zip_code' => $company->location->zipCode->code,
+            ];
+        }
+
+        return null; // La compañía no tiene una ubicación definida
     }
 }
