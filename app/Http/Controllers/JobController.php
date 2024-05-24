@@ -171,12 +171,12 @@ class JobController extends Controller
     public function getJobTypeCounts(): JsonResponse
     {
         $jobTypes = JobType::withCount('jobs')->get()->map(function ($jobType) {
-            return [
-                'data' => [
+
+                $data = [
                     'job_type' => $jobType->name,
                     'count' => $jobType->jobs_count
-                ]
-            ];
+                ];
+            return $data;
         });
 
         return response()->json($jobTypes);
