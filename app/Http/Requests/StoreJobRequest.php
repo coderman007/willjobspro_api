@@ -78,7 +78,6 @@ class StoreJobRequest extends FormRequest
             'contact_email' => 'Contact email',
             'contact_phone' => 'Contact phone',
             'experience_required' => 'Experience required',
-            'subscription_plan_id' => 'Subscription plan',
             'image' => 'nullable|string', // Archivo base64
             'video' => 'nullable|string', // Archivo base64
             'skills.*' => 'Skill',
@@ -115,7 +114,6 @@ class StoreJobRequest extends FormRequest
             'contact_email.email' => 'The contact email must be a valid email address.',
             'contact_phone.required' => 'The contact phone field is required.',
             'experience_required.string' => 'The experience required field must be a string.',
-            'subscription_plan_id.exists' => 'The selected subscription plan is invalid.',
             'image.string' => 'The image field must be a string.',
             'video.string' => 'The video field must be a string.',
             'skills.*.required' => 'At least one skill is required for the job.',

@@ -20,6 +20,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @property mixed $video
  * @property mixed $jobCategory
  * @property mixed $applications
+ * @property mixed $location
  */
 class JobResource extends JsonResource
 {
@@ -27,7 +28,26 @@ class JobResource extends JsonResource
     {
         $serverPath = 'https://coderman.pixela2.com.co/public/storage/';
 
-        $data = [
+        // Inicializamos la ubicación de la oferta de trabajo
+        $jobLocation = $this->location;
+
+        if ($jobLocation) {
+            // Si la oferta de trabajo tiene una ubicación, la utilizamos
+            $locationString = $jobLocation->city . ', ' . $jobLocation->state . ', ' . $jobLocation->country;
+        } else {
+            // Si la oferta de trabajo no tiene una ubicación, verificamos la ubicación de la compañía
+            $companyLocation = $this->company->location;
+
+            if ($companyLocation) {
+                // Si la compañía tiene una ubicación, la utilizamos
+                $locationString = $companyLocation->city . ', ' . $companyLocation->state . ', ' . $companyLocation->country;
+            } else {
+                // Si ninguna tiene ubicación, mostramos un mensaje de que no se ha proporcionado ninguna ubicación
+                $locationString = 'Location not provided';
+            }
+        }
+
+        return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description ?? null,
@@ -55,36 +75,7 @@ class JobResource extends JsonResource
             'education_levels' => $this->getAttribute('educationLevels') ?? null,
             'skills' => $this->getAttribute('skills') ?? null,
             'total_applications' => $this->applications->count(),
+            'location' => 'groop',
         ];
-
-        // Verificar si la oferta de trabajo tiene una ubicación asociada
-        $location = [
-            'location' => 'Job Offer Location',
-            'country' => $this->getAttribute('country')->name ?? null,
-            'state' => $this->getAttribute('state')->name ?? null,
-            'city' => $this->getAttribute('city')->name ?? null,
-            'zip_code' => $this->getAttribute('zipCode')->code ?? null,
-        ];
-
-        // Si no hay ubicación para la oferta de trabajo, verificar la ubicación de la compañía
-        if (empty(array_filter($location))) {
-            $companyLocation = [
-                'location' => 'Company Location',
-                'country' => $this->company->user->country->name ?? null,
-                'state' => $this->company->user->state->name ?? null,
-                'city' => $this->company->user->city->name ?? null,
-                'zip_code' => $this->company->user->zipCode->code ?? null,
-            ];
-
-            // Si la compañía tampoco tiene ubicación, mostrar un mensaje indicando que no se ha proporcionado ninguna ubicación
-            if (empty(array_filter($companyLocation))) {
-                $location = 'Ubicación no proporcionada';
-            } else {
-                $location = $companyLocation;
-            }
-        }
-
-        // Combinar la información de ubicación con los datos existentes
-        return array_merge($data, ['location' => $location]);
     }
 }
