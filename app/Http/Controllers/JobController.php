@@ -174,7 +174,7 @@ class JobController extends Controller
 
         // Modify the return statement to return the object directly
         return [
-            'Data' => $jobTypes->pluck('jobs_count', 'name')->toArray()
+            'data' => $jobTypes->pluck('jobs_count', 'name')->toArray()
         ];
     }
 
