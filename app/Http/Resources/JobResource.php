@@ -71,4 +71,5 @@ class JobResource extends JsonResource
             'location' => $locationString,
         ];
     }
+
 }
