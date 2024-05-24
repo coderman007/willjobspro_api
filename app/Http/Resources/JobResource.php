@@ -48,7 +48,7 @@ class JobResource extends JsonResource
             ? $jobLocation
             : ($companyLocation['country'] || $companyLocation['state'] || $companyLocation['city'] || $companyLocation['zip_code']
                 ? $companyLocation
-                : 'Ubicación no provista');
+                : 'Location not provided');
 
         return [
             'id' => $this->id,
