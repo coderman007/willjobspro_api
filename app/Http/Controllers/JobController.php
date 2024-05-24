@@ -60,13 +60,13 @@ class JobController extends Controller
             $jobs = $this->buildJobQuery($request)->paginate($perPage);
 
             // Retornar las ofertas de trabajo paginadas
-            return $this->jsonResponse([
-                'success' => true,
-                'min_salary' => $minSalary,
-                'max_salary' => $maxSalary,
-                'message' => 'Job offers retrieved successfully!',
-                'data' => JobResource::collection($jobs),
-            ], 200);
+            return $this->jsonResponse(
+                JobResource::collection($jobs),
+                'Job offers retrieved successfully!',
+                200,
+                $minSalary,
+                $maxSalary
+            );
         } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
         }
@@ -445,7 +445,7 @@ class JobController extends Controller
         }
     }
 
-    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200): JsonResponse
+    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200, ?float $minSalary = null, ?float $maxSalary = null): JsonResponse
     {
         $response = [
             'success' => true,
@@ -453,8 +453,18 @@ class JobController extends Controller
             'message' => $message,
         ];
 
+        // Agregar salario mínimo y máximo si están presentes
+        if ($minSalary !== null) {
+            $response['min_salary'] = $minSalary;
+        }
+
+        if ($maxSalary !== null) {
+            $response['max_salary'] = $maxSalary;
+        }
+
         return response()->json($response, $status);
     }
+
 
     protected function jsonErrorResponse(?string $message = null, int $status = 500): JsonResponse
     {
