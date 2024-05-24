@@ -445,12 +445,12 @@ class JobController extends Controller
         }
     }
 
-    protected function jsonResponse(?float $minSalary = null, ?float $maxSalary = null, ?string $message = null, int $status = 200, mixed $data = null): JsonResponse
+    protected function jsonResponse(mixed $data = null, ?string $message = null, int $status = 200, ?float $minSalary = null, ?float $maxSalary = null): JsonResponse
     {
         $response = [
             'success' => true,
-            'message' => $message,
             'data' => $data,
+            'message' => $message,
         ];
 
         // Agregar salario mínimo y máximo si están presentes
