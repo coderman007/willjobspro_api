@@ -63,7 +63,7 @@ class JobController extends Controller
             return $this->jsonResponse([
                 'min_salary' => $minSalary,
                 'max_salary' => $maxSalary,
-                'data' => JobResource::collection($jobs),
+                JobResource::collection($jobs),
             ], 'Job offers retrieved successfully!');
         } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
