@@ -61,10 +61,12 @@ class JobController extends Controller
 
             // Retornar las ofertas de trabajo paginadas
             return $this->jsonResponse([
+                'success' => true,
                 'min_salary' => $minSalary,
                 'max_salary' => $maxSalary,
-                JobResource::collection($jobs),
-            ], 'Job offers retrieved successfully!');
+                'message' => 'Job offers retrieved successfully!',
+                'data' => JobResource::collection($jobs),
+            ], 200);
         } catch (Exception $e) {
             return $this->jsonErrorResponse('Error retrieving jobs: ' . $e->getMessage());
         }
