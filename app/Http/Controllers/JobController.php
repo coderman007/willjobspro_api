@@ -231,7 +231,6 @@ class JobController extends Controller
 
             // Crear la oferta de trabajo con los datos validados
             $job = Job::create($validatedData);
-            dd($user->zipCode->code);
 
             // Almacena los archivos codificados en Base64
             $this->storeBase64Files($job, $request);
