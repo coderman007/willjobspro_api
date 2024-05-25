@@ -18,6 +18,7 @@ use Spatie\Permission\Traits\HasRoles;
  *
  * @property Company|null $company
  * @property Candidate|null $candidate
+ * @property mixed $address
  */
 class User extends Authenticatable
 {
