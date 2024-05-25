@@ -32,7 +32,7 @@ class JobResource extends JsonResource
             'country' => $this->getAttribute('country')->name ?? null,
             'state' => $this->getAttribute('state')->name ?? null,
             'city' => $this->getAttribute('city')->name ?? null,
-            'zip_code' => $this->getAttribute('zip_code')->code ?? null,
+            'zip_code' => $this->getAttribute('zipCode')->code ?? null,
         ];
 
         // Obtener la ubicación de la compañía
