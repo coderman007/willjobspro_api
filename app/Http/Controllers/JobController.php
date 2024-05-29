@@ -81,7 +81,6 @@ class JobController extends Controller
             $searchTerm = $request->query('search');
             return $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
                     ->orWhereHas('company', function ($q) use ($searchTerm) {
                         $q->where('company_name', 'like', '%' . $searchTerm . '%');
                     });
