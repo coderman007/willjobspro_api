@@ -79,12 +79,13 @@ class JobController extends Controller
         // Aplicar filtros
         $query->when($request->filled('search'), function ($query) use ($request) {
             $searchTerm = $request->query('search');
-            return $query->where('title', 'like', '%' . $searchTerm . '%')
-                ->orWhere('description', 'like', '%' . $searchTerm . '%')
-                ->orWhere('posted_date', 'like', '%' . $searchTerm . '%')
-                ->orWhere('deadline', 'like', '%' . $searchTerm . '%')
-                ->orWhere('contact_email', 'like', '%' . $searchTerm . '%')
-                ->orWhere('contact_phone', 'like', '%' . $searchTerm . '%');
+            return $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('company', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', '%' . $searchTerm . '%');
+                    });
+            });
         });
 
         $query->when($request->filled('company_name'), function ($query) use ($request) {
