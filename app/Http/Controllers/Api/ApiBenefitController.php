@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBenefitRequest;
 use App\Http\Requests\UpdateBenefitRequest;
 use App\Models\Benefit;
@@ -11,7 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class BenefitController extends Controller
+class ApiBenefitController extends Controller
 {
     /**
      * Display a listing of the resource.

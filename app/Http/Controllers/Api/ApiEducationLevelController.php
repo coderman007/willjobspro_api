@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEducationLevelRequest;
 use App\Http\Requests\UpdateEducationLevelRequest;
 use App\Models\EducationLevel;
@@ -9,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class EducationLevelController extends Controller
+class ApiEducationLevelController extends Controller
 {
     /**
      * Display a listing of the education levels.

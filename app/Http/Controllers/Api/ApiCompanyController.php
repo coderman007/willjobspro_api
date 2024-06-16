@@ -1,13 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCompanyRequest;
 use App\Http\Requests\UpdateCompanyRequest;
 use App\Http\Resources\ApplicationResource;
 use App\Http\Resources\CompanyResource;
+use App\Models\City;
 use App\Models\Company;
+use App\Models\Country;
 use App\Models\SocialNetwork;
+use App\Models\State;
+use App\Models\ZipCode;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,13 +20,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\Country;
-use App\Models\State;
-use App\Models\City;
-use App\Models\ZipCode;
 
 
-class CompanyController extends Controller
+class ApiCompanyController extends Controller
 {
     public function index(Request $request): JsonResponse
     {

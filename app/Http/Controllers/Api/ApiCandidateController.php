@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCandidateRequest;
 use App\Http\Requests\UpdateCandidateRequest;
 use App\Http\Resources\CandidateResource;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 
-class CandidateController extends Controller
+class ApiCandidateController extends Controller
 {
     public function index(Request $request): JsonResponse
     {

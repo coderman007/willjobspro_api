@@ -1,14 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJobCategoryRequest;
 use App\Http\Requests\UpdateJobCategoryRequest;
 use App\Models\JobCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class JobCategoryController extends Controller
+class ApiJobCategoryController extends Controller
 {
     /**
      * Display a listing of the resource.

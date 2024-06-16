@@ -19,6 +19,11 @@ use Spatie\Permission\Traits\HasRoles;
  * @property Company|null $company
  * @property Candidate|null $candidate
  * @property mixed $address
+ * @property mixed $id
+ * @property mixed $name
+ * @property mixed $email
+ * @method static create(array $array)
+ * @method static where(string $string, mixed $email)
  */
 class User extends Authenticatable
 {

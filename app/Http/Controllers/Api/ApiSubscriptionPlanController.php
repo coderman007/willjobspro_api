@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\SubscriptionPlan;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreSubscriptionPlanRequest;
 use App\Http\Requests\UpdateSubscriptionPlanRequest;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\JsonResponse;
 
-class SubscriptionPlanController extends Controller
+class ApiSubscriptionPlanController extends Controller
 {
     private function handleException(\Exception $e, $errorMessage, $statusCode): JsonResponse
     {
@@ -27,7 +28,7 @@ class SubscriptionPlanController extends Controller
             // Obtener los planes de subscription paginados
             $subscriptionPlans = SubscriptionPlan::paginate($perPage);
 
-            // Metadatos de paginación 
+            // Metadatos de paginación
             $paginationData = [
                 'total' => $subscriptionPlans->total(),
                 // 'per_page' => $subscriptionPlans->perPage(),

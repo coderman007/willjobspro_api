@@ -1,17 +1,20 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use App\Models\User;
+use Exception;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
-class AuthController extends Controller
+class ApiAuthController extends Controller
 {
     /**
      * Registra un nuevo usuario y crea la instancia correspondiente (candidato o empresa).
@@ -46,46 +49,62 @@ class AuthController extends Controller
                     'user' => $user,
                     'token' => $token,
                 ]
-            ], 200);
+            ]);
         } catch (QueryException $e) {
             // Manejo de errores de base de datos
             return response()->json([
                 'error' => 'Database error occurred while registering the user',
                 'details' => $e->getMessage()
             ], 500);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Manejo de otras excepciones inesperadas
-            return response()->json([
-                'error' => 'An unexpected error occurred while registering the user',
-                'details' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'An unexpected error occurred while registering the user');
         }
     }
 
+    /**
+     * Inicia sesión del usuario y devuelve el token de autenticación.
+     *
+     * @param LoginRequest $request
+     * @return JsonResponse
+     */
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->email)->first();
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Invalid Credentials'], 401);
-        }
-        $token = $user->createToken('user_token')->plainTextToken;
+        try {
+            $user = User::where('email', $request->email)->first();
 
-        return response()->json([
-            'message' => 'User Logged Successfully!',
-            'data' => [
-                'user' => $user,
-                'token' => $token
-            ]
-        ], 200);
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                throw new AuthenticationException('Invalid credentials');
+            }
+
+            $token = $user->createToken('user_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'User Logged Successfully!',
+                'data' => [
+                    'user' => $user,
+                    'token' => $token
+                ]
+            ]);
+        } catch (AuthenticationException $e) {
+            return response()->json(['error' => $e->getMessage()], 401);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An unexpected error occurred while logging in');
+        }
     }
 
+    /**
+     * Obtiene el perfil del usuario autenticado.
+     *
+     * @return JsonResponse
+     */
     public function profile(): JsonResponse
     {
         try {
             $user = auth()->user();
 
             if (!$user) {
-                return response()->json(['error' => 'User not authenticated'], 401);
+                throw new AuthenticationException('User not authenticated');
             }
 
             $roles = $user->getRoleNames();
@@ -100,21 +119,25 @@ class AuthController extends Controller
                     ],
                     'roles' => $roles,
                 ]
-            ], 200);
-        } catch (\Exception $e) {
-            // Manejo de otras excepciones inesperadas
-            return response()->json([
-                'error' => 'An unexpected error occurred while fetching the user profile',
-                'details' => $e->getMessage()
-            ], 500);
+            ]);
+        } catch (AuthenticationException $e) {
+            return response()->json(['error' => $e->getMessage()], 401);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An unexpected error occurred while fetching the user profile');
         }
     }
 
+    /**
+     * Actualiza la contraseña del usuario autenticado.
+     *
+     * @param UpdatePasswordRequest $request
+     * @return JsonResponse
+     */
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
-        $user = auth()->user();
-
         try {
+            $user = auth()->user();
+
             // Actualización de contraseña.
             $user->update([
                 'password' => Hash::make($request->password),
@@ -123,33 +146,42 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Password updated successfully',
             ], 204);
-        } catch (QueryException $e) {
-            // Manejo de errores de base de datos
-            return response()->json([
-                'error' => 'Database error while updating the password',
-                'details' => $e->getMessage(),
-            ], 500);
-        } catch (\Exception $e) {
-            // Manejo de otras excepciones inesperadas
-            return response()->json([
-                'error' => 'An unexpected error occurred while updating the password',
-                'details' => $e->getMessage(),
-            ], 500);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'An unexpected error occurred while updating the password');
         }
     }
 
+    /**
+     * Cierra la sesión del usuario actual eliminando todos los tokens.
+     *
+     * @return JsonResponse
+     */
     public function logOut(): JsonResponse
     {
         try {
             auth()->user()->tokens()->delete();
             return response()->json([
                 'message' => 'Successfully Logged Out!',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Logout Error',
-                'details' => $e->getMessage()
-            ], 500);
+            ]);
+        } catch (Exception $e) {
+            return $this->handleException($e, 'Logout Error');
         }
+    }
+
+    /**
+     * Maneja las excepciones no controladas y devuelve una respuesta JSON adecuada.
+     *
+     * @param Exception $e
+     * @param string $errorMessage
+     * @return JsonResponse
+     */
+    private function handleException(Exception $e, string $errorMessage): JsonResponse
+    {
+        $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+
+        return response()->json([
+            'error' => $errorMessage,
+            'details' => $e->getMessage()
+        ], $statusCode);
     }
 }

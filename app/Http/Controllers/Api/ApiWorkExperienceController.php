@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\WorkExperience;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 
-class WorkExperienceController extends Controller
+class ApiWorkExperienceController extends Controller
 {
     /**
      * Display a listing of the resource.
